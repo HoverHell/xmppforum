@@ -229,6 +229,9 @@ class Moderator(models.Model):
     category = models.ForeignKey(Category, verbose_name=_('category'))
     user = models.ForeignKey(User, verbose_name=_('user'), related_name='sb_moderator_set')
 
+    def __unicode__(self):
+        return u'%s' % (self.user.username,)
+
     class Meta:
         verbose_name = _('moderator')
         verbose_name_plural = _('moderators')
