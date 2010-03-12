@@ -83,7 +83,9 @@ class UserSettingsForm(forms.ModelForm):
             cat.can_read(user)
         ]
 
-    frontpage_filters = forms.MultipleChoiceField(label=_('Front page categories'))
+    frontpage_filters = forms.MultipleChoiceField(
+        label=_('Front page categories'),
+        required = False)
 
     class Meta:
         model = UserSettings

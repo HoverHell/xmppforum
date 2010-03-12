@@ -15,6 +15,9 @@ from django.template import RequestContext
 from django.utils import simplejson
 from django.utils.translation import ugettext as _
 
+# XmppFace
+from xmppbase import XmppRequest, XmppResponse, render_to_response
+
 try:
     from notification import models as notification
 except ImportError:
@@ -171,7 +174,7 @@ def thread(request, thread_id):
             'postform': postform,
             })
     
-    return render_to_response('snapboard/thread.html',
+    return render_to_response('snapboard/thread',
             render_dict,
             context_instance=RequestContext(request, processors=extra_processors))
 
@@ -251,7 +254,7 @@ def new_thread(request, cat_id):
     else:
         threadform = ThreadForm()
 
-    return render_to_response('snapboard/newthread.html',
+    return render_to_response('snapboard/newthread',
             {
             'form': threadform,
             },
@@ -268,7 +271,7 @@ def favorite_index(request):
 
     render_dict = {'title': _("Watched Discussions"), 'threads': thread_list}
 
-    return render_to_response('snapboard/thread_index.html',
+    return render_to_response('snapboard/thread_index',
             render_dict,
             context_instance=RequestContext(request, processors=extra_processors))
 favorite_index = login_required(favorite_index)
@@ -278,7 +281,7 @@ def private_index(request):
 
     render_dict = {'title': _("Discussions with private messages to you"), 'threads': thread_list}
 
-    return render_to_response('snapboard/thread_index.html',
+    return render_to_response('snapboard/thread_index',
             render_dict,
             context_instance=RequestContext(request, processors=extra_processors))
 private_index = login_required(private_index)
@@ -292,19 +295,25 @@ def category_thread_index(request, cat_id):
         render_dict = ({'title': ''.join((_("Category: "), cat.label)), 'category': cat, 'threads': thread_list})
     except Category.DoesNotExist:
         raise Http404
-    return render_to_response('snapboard/thread_index.html',
+    return render_to_response('snapboard/thread_index',
             render_dict,
             context_instance=RequestContext(request, processors=extra_processors))
 
-def thread_index(request):
+def thread_index(request, num_limit=None, num_start=None):
     if request.user.is_authenticated():
         # filter on user prefs
         thread_list = Thread.view_manager.get_user_query_set(request.user)
     else:
         thread_list = Thread.view_manager.get_query_set()
     thread_list = filter(lambda t: t.category.can_view(request.user), thread_list)
+    if isinstance(request, XmppRequest):
+        # Apply Xmpp-specific limits
+        # ? int() failure would mean programming error... or not?
+        num_start=int(num_start or 1)-1 # Starting from humanized '1'.
+        num_limit=int(num_limit or 20)
+        thread_list=thread_list[num_start:num_start+num_limit]
     render_dict = {'title': _("Recent Discussions"), 'threads': thread_list}
-    return render_to_response('snapboard/thread_index.html',
+    return render_to_response('snapboard/thread_index',
             render_dict,
             context_instance=RequestContext(request, processors=extra_processors))
 
@@ -333,7 +342,7 @@ def locate_post(request, post_id):
     return HttpResponseRedirect('%s?page=%i#snap_post%i' % (reverse('snapboard_thread', args=(post.thread.id,)), page, post.id))
 
 def category_index(request):
-    return render_to_response('snapboard/category_index.html',
+    return render_to_response('snapboard/category_index',
             {
             'cat_list': [c for c in Category.objects.all() if c.can_view(request.user)],
             },
@@ -354,7 +363,7 @@ def edit_settings(request):
     else:
         form = UserSettingsForm(instance=userdata, user=request.user)
     return render_to_response(
-            'snapboard/edit_settings.html',
+            'snapboard/edit_settings',
             {'form': form},
             context_instance=RequestContext(request, processors=extra_processors))
 edit_settings = login_required(edit_settings)
@@ -373,7 +382,7 @@ def manage_group(request, group_id):
     elif request.GET.get('answered_invitations', False):
         render_dict['answered_invitations'] = group.sb_invitation_set.exclude(accepted=None)
     return render_to_response(
-            'snapboard/manage_group.html',
+            'snapboard/manage_group',
             render_dict,
             context_instance=RequestContext(request, processors=extra_processors))
 manage_group = login_required(manage_group)
@@ -395,12 +404,12 @@ def invite_user_to_group(request, group_id):
                         sent_by=request.user,
                         sent_to=invitee)
                 request.user.message_set.create(message=_('A invitation to join this group was sent to %s.') % invitee)
-            return render_to_response('snapboard/invite_user.html',
+            return render_to_response('snapboard/invite_user',
                     {'invitation': invitation, 'form': InviteForm(), 'group': group},
                     context_instance=RequestContext(request, processors=extra_processors))
     else:
         form = InviteForm()
-    return render_to_response('snapboard/invite_user.html',
+    return render_to_response('snapboard/invite_user',
             {'form': form, 'group': group},
             context_instance=RequestContext(request, processors=extra_processors))
 invite_user_to_group = login_required(invite_user_to_group)
@@ -508,7 +517,7 @@ def answer_invitation(request, invitation_id):
             invitation.save()
     elif invitation.accepted is None:
         form = AnwserInvitationForm()
-    return render_to_response('snapboard/invitation.html',
+    return render_to_response('snapboard/invitation',
             {'form': form, 'invitation': invitation},
             context_instance=RequestContext(request, processors=extra_processors))
 answer_invitation = login_required(answer_invitation)
@@ -529,6 +538,12 @@ def _brand_view(func):
     projects.
     '''
     setattr(func, '_snapboard', True)
+
+def home_redirect_response(request):
+    '''
+    Returns a redirect to the board home (SNAP_PREFIX).
+    '''
+    return HttpResponseRedirect(SNAP_PREFIX)
 
 _brand_view(rpc)
 _brand_view(thread)

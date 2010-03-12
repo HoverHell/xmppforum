@@ -104,7 +104,7 @@ class Invitation(models.Model):
     sent_to = models.ForeignKey(User, verbose_name=_('sent to'), related_name='sb_received_invitation_set')
     sent_date = models.DateTimeField(_('sent date'), auto_now_add=True)
     response_date = models.DateTimeField(_('response date'), blank=True, null=True)
-    accepted = models.BooleanField(_('accepted'), blank=True, null=True)
+    accepted = models.NullBooleanField(_('accepted'), blank=True, null=True)
 
     class Meta:
         verbose_name = _('invitation')
@@ -430,6 +430,9 @@ class UserSettings(models.Model):
             choices = ((5, '5'), (10, '10'), (20, '20'), (50, '50')),
             default = 20,
             help_text = _('Threads per page'), verbose_name=_('threads per page'))
+    jid = models.EmailField(
+            unique = True,
+            help_text = _('Jabber ID'), verbose_name=_('jid'))
 #    notify_email = models.BooleanField(default=False, blank=True,
 #            help_text = "Email notifications for watched discussions.", verbose_name=_('notify'))
     reverse_posts = models.BooleanField(
@@ -445,6 +448,15 @@ class UserSettings(models.Model):
 
     def __unicode__(self):
         return _('%s\'s preferences') % self.user
+
+## "Monkey patching"
+#User.add_to_class('openid', models.CharField(max_length=250,blank=True))
+#def get_user_name(self):
+#    if self.first_name or self.last_name:
+#        return self.first_name + " " + self.last_name
+#    return self.username
+#User.add_to_class("get_user_name",get_user_name)
+
     
 class UserBan(models.Model):
     '''
