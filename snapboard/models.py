@@ -21,7 +21,7 @@ from snapboard.middleware import threadlocals
 __all__ = [
     'SNAP_PREFIX', 'SNAP_MEDIA_PREFIX', 'SNAP_POST_FILTER',
     'NOBODY', 'ALL', 'USERS', 'CUSTOM', 'PERM_CHOICES', 'PERM_CHOICES_RESTRICTED',
-    'PermissionError', 'is_user_banned', 'is_ip_banned', 
+    'PermissionError', 'is_user_banned', 'is_ip_banned',
     'Category', 'Invitation', 'Group', 'Thread', 'Post', 'Moderator',
     'WatchList', 'AbuseReport', 'UserSettings', 'IPBan', 'UserBan',
     ]
@@ -29,7 +29,7 @@ __all__ = [
 _log = logging.getLogger('snapboard.models')
 
 SNAP_PREFIX = getattr(settings, 'SNAP_PREFIX', '/snapboard')
-SNAP_MEDIA_PREFIX = getattr(settings, 'SNAP_MEDIA_PREFIX', 
+SNAP_MEDIA_PREFIX = getattr(settings, 'SNAP_MEDIA_PREFIX',
         getattr(settings, 'MEDIA_URL', '') + '/snapboard')
 SNAP_POST_FILTER = getattr(settings, 'SNAP_POST_FILTER', 'markdown').lower()
 
@@ -52,22 +52,26 @@ PERM_CHOICES_RESTRICTED = (
     (CUSTOM, _('Custom')),
 )
 
+
 class PermissionError(PermissionDenied):
     '''
-    Raised when a user tries to perform a forbidden operation, as per the 
+    Raised when a user tries to perform a forbidden operation, as per the
     permissions defined by Category objects.
     '''
     pass
 
+
 def is_user_banned(user):
     return user.id in settings.SNAP_BANNED_USERS
+
 
 def is_ip_banned(ip):
     return ip in settings.SNAP_BANNED_IPS
 
+
 class Group(models.Model):
     '''
-    User-administerable group, be used to assign permissions to possibly 
+    User-administerable group, be used to assign permissions to possibly
     several users.
 
     Administrators of the group need to be explicitely added to the users
@@ -76,7 +80,7 @@ class Group(models.Model):
 
     name = models.CharField(_('name'), max_length=36)
     users = models.ManyToManyField(User, verbose_name=_('users'), related_name='sb_member_of_group_set')
-    admins = models.ManyToManyField(User, verbose_name=_('admins'), related_name='sb_admin_of_group_set') 
+    admins = models.ManyToManyField(User, verbose_name=_('admins'), related_name='sb_admin_of_group_set')
 
     class Meta:
         verbose_name = _('group')
@@ -90,6 +94,7 @@ class Group(models.Model):
 
     def has_admin(self, user):
         return self.admins.filter(pk=user.pk).count() != 0
+
 
 class Invitation(models.Model):
     '''
@@ -145,11 +150,12 @@ class Invitation(models.Model):
 signals.post_save.connect(Invitation.notify_received, sender=Invitation)
 signals.pre_delete.connect(Invitation.notify_cancelled, sender=Invitation)
 
+
 class Category(models.Model):
 
     label = models.CharField(max_length=32, verbose_name=_('label'))
 
-    view_perms = models.PositiveSmallIntegerField(_('view permission'), 
+    view_perms = models.PositiveSmallIntegerField(_('view permission'),
         choices=PERM_CHOICES, default=ALL,
         help_text=_('Limits the category\'s visibility.'))
     read_perms = models.PositiveSmallIntegerField(_('read permission'),
@@ -159,7 +165,7 @@ class Category(models.Model):
         choices=PERM_CHOICES_RESTRICTED, help_text=_('Limits the ability to '\
         'post in the category.'), default=USERS)
     new_thread_perms = models.PositiveSmallIntegerField(
-        _('create thread permission'), choices=PERM_CHOICES_RESTRICTED, 
+        _('create thread permission'), choices=PERM_CHOICES_RESTRICTED,
         help_text=_('Limits the ability to create new threads in the '\
         'category. Only users with permission to post can create new threads,'\
         'unless a group is specified.'), default=USERS)
@@ -225,6 +231,7 @@ class Category(models.Model):
         verbose_name = _('category')
         verbose_name_plural = _('categories')
 
+
 class Moderator(models.Model):
     category = models.ForeignKey(Category, verbose_name=_('category'))
     user = models.ForeignKey(User, verbose_name=_('user'), related_name='sb_moderator_set')
@@ -249,7 +256,7 @@ class Thread(models.Model):
     # Global sticky - will show up at the top of home listing.
     gsticky = models.BooleanField(default=False, verbose_name=_('global sticky'))
 
-    objects = models.Manager() # needs to be explicit due to below
+    objects = models.Manager()  # needs to be explicit due to below
     view_manager = managers.ThreadManager()
 
     def __unicode__(self):
@@ -264,11 +271,11 @@ class Thread(models.Model):
 
     def count_posts(self, user, before=None):
         '''
-        Returns the number of visible posts in the thread or, if ``before`` is 
+        Returns the number of visible posts in the thread or, if ``before`` is
         a Post object, the number of visible posts in the thread that are
         older.
         '''
-        # This partly does what Thread.objects.get_query_set() does, except 
+        # This partly does what Thread.objects.get_query_set() does, except
         # it takes into account the user and therefore knows what posts
         # are visible to him
         qs = self.post_set.filter(revision=None)
@@ -279,6 +286,7 @@ class Thread(models.Model):
         if before:
             qs.filter(date__lt=before.date)
         return qs.count()
+
 
 class Post(models.Model):
     """
@@ -298,9 +306,9 @@ class Post(models.Model):
     private = models.ManyToManyField(User,
             related_name="sb_private_posts_set", null=True, verbose_name=_('private recipients'))
     # The 'private message' status is denormalized by the ``is_private`` flag.
-    # It's currently quite hard to do the denormalization automatically 
+    # It's currently quite hard to do the denormalization automatically
     # If ManyRelatedManager._add_items() fired some signal on update, it would help.
-    # Right now it's up to the code that changes the 'private' many-to-many field to 
+    # Right now it's up to the code that changes the 'private' many-to-many field to
     # change ``is_private``.
     is_private = models.BooleanField(_('private'), default=False, editable=False)
 
@@ -312,11 +320,10 @@ class Post(models.Model):
             editable=False, null=True, blank=True)
 
     # (boolean set by mod.; true if abuse report deemed false)
-    censor = models.BooleanField(default=False, verbose_name=_('censored')) # moderator level access
-    freespeech = models.BooleanField(default=False, verbose_name=_('protected')) # superuser level access
+    censor = models.BooleanField(default=False, verbose_name=_('censored'))  # moderator level access
+    freespeech = models.BooleanField(default=False, verbose_name=_('protected'))  # superuser level access
 
-
-    objects = models.Manager() # needs to be explicit due to below
+    objects = models.Manager()  # needs to be explicit due to below
     view_manager = managers.PostManager()
 
     def save(self, force_insert=False, force_update=False):
@@ -336,7 +343,6 @@ class Post(models.Model):
             # only do the following on creation, not modification
             self.odate = datetime.now()
         super(Post, self).save(force_insert, force_update)
-
 
     def management_save(self):
         if self.previous is not None:
@@ -387,6 +393,7 @@ class Post(models.Model):
 #if notification:
 #    signals.post_save.connect(Post.notify, sender=Post)
 
+
 class AbuseReport(models.Model):
     '''
     When an abuse report is filed by a registered User, the post is listed
@@ -403,6 +410,7 @@ class AbuseReport(models.Model):
         verbose_name_plural = _('abuse reports')
         unique_together = (('post', 'submitter'),)
 
+
 class WatchList(models.Model):
     """
     Keep track of who is watching what thread.  Notify on change (sidebar).
@@ -410,6 +418,7 @@ class WatchList(models.Model):
     user = models.ForeignKey(User, verbose_name=_('user'), related_name='sb_watchlist')
     thread = models.ForeignKey(Thread, verbose_name=_('thread'))
     # no need to be in the admin
+
 
 class UserSettings(models.Model):
     '''
@@ -420,7 +429,7 @@ class UserSettings(models.Model):
 
     After logging in, save these values in a session variable.
     '''
-    user = models.OneToOneField(User, unique=True, 
+    user = models.OneToOneField(User, unique=True,
             verbose_name=_('user'), related_name='sb_usersettings')
     ppp = models.IntegerField(
             choices = ((5, '5'), (10, '10'), (20, '20'), (50, '50')),
@@ -457,7 +466,7 @@ class UserSettings(models.Model):
 #    return self.username
 #User.add_to_class("get_user_name",get_user_name)
 
-    
+   
 class UserBan(models.Model):
     '''
     This bans the user from posting messages on the forum. He can still log in.
@@ -485,12 +494,13 @@ class UserBan(models.Model):
 signals.post_save.connect(UserBan.update_cache, sender=UserBan)
 signals.post_delete.connect(UserBan.update_cache, sender=UserBan)
 
+
 class IPBan(models.Model):
     '''
     IPs in the list are not allowed to use the boards.
     Only IPv4 addresses are supported, one per record. (patch with IPv6 and/or address range support welcome)
     '''
-    address = models.IPAddressField(unique=True, verbose_name=_('IP address'), 
+    address = models.IPAddressField(unique=True, verbose_name=_('IP address'),
             help_text=_('A person\'s IP address may change and an IP address may be '
             'used by more than one person, or by different people over time. '
             'Be careful when using this.'), db_index=True)
@@ -500,7 +510,7 @@ class IPBan(models.Model):
     class Meta:
         verbose_name = _('banned IP address')
         verbose_name_plural = _('banned IP addresses')
-    
+   
     def __unicode__(self):
         return _('Banned IP: %s') % self.address
 

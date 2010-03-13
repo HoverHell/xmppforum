@@ -6,5 +6,5 @@ from views import *
 cmdpatterns = patterns('',
     (r'^#(?P<thread_id>\d+)$', thread, {}, 'snapboard_thread'),
     (r'^#( (?P<num_limit>\d+)?( (?P<num_start>\d+)?)?)?', \
-      thread_index, {}, 'snapboard_thread_index'), # spaces!
+      thread_index, {}, 'snapboard_thread_index'),  # spaces!
 )

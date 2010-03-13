@@ -5,6 +5,7 @@ from django.db.models import Q
 
 _log = logging.getLogger('snapboard.managers')
 
+
 class PostManager(models.Manager):
     def get_query_set(self):
         select = {}
@@ -15,12 +16,12 @@ class PostManager(models.Manager):
         select['abuse'] = extra_abuse_count
 
         return super(PostManager, self).get_query_set().extra(
-            select = select).exclude(revision__isnull=False).order_by('odate')
+            select=select).exclude(revision__isnull=False).order_by('odate')
 
     def posts_for_thread(self, thread_id, user):
         '''
-        Returns a query set filtered to contain only the posts the user is 
-        allowed to see with regards the post's ``private`` and ``censor`` 
+        Returns a query set filtered to contain only the posts the user is
+        allowed to see with regards the post's ``private`` and ``censor``
         attributes.
         This does not perform any category permissions check.
         '''
@@ -35,6 +36,7 @@ class PostManager(models.Manager):
         if not getattr(user, 'is_staff', False):
             qs = qs.exclude(censor=True)
         return qs
+
 
 class ThreadManager(models.Manager):
     def get_query_set(self):
@@ -69,13 +71,13 @@ class ThreadManager(models.Manager):
                     LIMIT 1)
             """
         extra_last_updated = """
-            SELECT date FROM snapboard_post 
+            SELECT date FROM snapboard_post
                 WHERE snapboard_post.thread_id = snapboard_thread.id
                 ORDER BY date DESC LIMIT 1
             """
 
         return super(ThreadManager, self).get_query_set().extra(
-            select = {
+            select={
                 'post_count': extra_post_count,
                 'starter': extra_starter,
                 #'last_updated': extra_last_updated,  # bug: http://code.djangoproject.com/ticket/2210
@@ -84,7 +86,6 @@ class ThreadManager(models.Manager):
                 'date': extra_last_updated,
                 'last_poster': extra_last_poster,
             },).order_by('-gsticky', '-date')
-
 
     def get_user_query_set(self, user):
         try:
@@ -111,6 +112,7 @@ class ThreadManager(models.Manager):
     def get_category(self, cat_id):
         return self.get_query_set().filter(category__id=cat_id)
 
+
 class CategoryManager(models.Manager):
     def get_query_set(self):
         thread_count = """
@@ -118,6 +120,6 @@ class CategoryManager(models.Manager):
             WHERE snapboard_thread.category_id = snapboard_category.id
             """
         return super(CategoryManager, self).get_query_set().extra(
-            select = {'thread_count': thread_count})
+            select={'thread_count': thread_count})
                 
 # vim: ai ts=4 sts=4 et sw=4

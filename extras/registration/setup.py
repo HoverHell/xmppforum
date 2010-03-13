@@ -8,9 +8,9 @@ setup(
     maintainer_email='snapboard-discuss@googlegroups.com',
     url='http://code.google.com/p/snapboard/',
     description='Templates for django-registration 0.5 designed for SNAPboard',
-    long_description='''SNAPboard is forum/bulletin board application based on the Django web 
-framework. This package contains templates for django-registration that are 
-designed to integrate with SNAPboard.''',
+    long_description='''SNAPboard is forum/bulletin board application based
+on the Django web framework.  This package contains templates for
+django-registration that are designed to integrate with SNAPboard.''',
     classifiers=[
         'Development Status :: 4 - Beta',
         'Environment :: Web Environment',
@@ -22,7 +22,7 @@ designed to integrate with SNAPboard.''',
         'Topic :: Communications :: BBS',
         'Topic :: Internet :: WWW/HTTP :: Dynamic Content :: Message Boards',
     ],
-    packages=['sbextras.registration',],
+    packages=['sbextras.registration', ],
     package_dir={'sbextras.registration': ''},
     package_data={'sbextras.registration': [
         'templates/*/*.*',

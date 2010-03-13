@@ -8,13 +8,13 @@ setup(
     maintainer_email='snapboard-discuss@googlegroups.com',
     url='http://code.google.com/p/snapboard/',
     description='Bulletin board application for Django.',
-    long_description='''SNAPboard is forum/bulletin board application based on the Django web 
-framework. It integrates easily in any Django project.
+    long_description='''SNAPboard is forum/bulletin board application based
+ on the Django web framework.  It integrates easily in any Django project.
 
 Among its features are:
 
     * Editable posts with all revisions publicly available
-    * Messages posted within threads can be made visible only to selected 
+    * Messages posted within threads can be made visible only to selected
       users
     * BBCode, Markdown and Textile supported for post formatting
     * BBCode toolbar
@@ -29,7 +29,7 @@ Among its features are:
       applications within the project
     * i18n hooks to create your own translations
     * Included translations: French, Russian
-    
+
 SNAPboard requires Django 1.0.''',
     classifiers=[
         'Development Status :: 4 - Beta',
@@ -42,7 +42,7 @@ SNAPboard requires Django 1.0.''',
         'Topic :: Communications :: BBS',
         'Topic :: Internet :: WWW/HTTP :: Dynamic Content :: Message Boards',
     ],
-    packages=['snapboard',],
+    packages=['snapboard', ],
     package_dir={'snapboard': 'snapboard'},
     package_data={'snapboard': [
         'media/*/*.*',

@@ -9,12 +9,13 @@ from django.utils.translation import ungettext
 
 from snapboard.models import Category, UserSettings
 
+
 class PostForm(forms.Form):
     post = forms.CharField(
-            label = '',
+            label='',
             widget=forms.Textarea(attrs={
-                'rows':'8',
-                'cols':'120',
+                'rows': '8',
+                'cols': '120',
             }),
         )
     private = forms.CharField(
@@ -29,7 +30,7 @@ class PostForm(forms.Form):
         if len(recipients.strip()) < 1:
             return []
         recipients = filter(lambda x: len(x.strip()) > 0, recipients.split(','))
-        recipients = Set([x.strip() for x in recipients]) # string of usernames
+        recipients = Set([x.strip() for x in recipients])  # string of usernames
 
         u = User.objects.filter(username__in=recipients).order_by('username')
         if len(u) != len(recipients):
@@ -41,13 +42,12 @@ class PostForm(forms.Form):
         return u
 
 
-
 class ThreadForm(forms.Form):
 #    def __init__( self, *args, **kwargs ):
 #        super( ThreadForm, self ).__init__( *args, **kwargs )
 #        self.fields['category'] = forms.ChoiceField(
 #                label = _('Category'),
-#                choices = [(str(x.id), x.label) for x in Category.objects.all()] 
+#                choices = [(str(x.id), x.label) for x in Category.objects.all()]
 #                )
 
 #    # this is here to set the order
@@ -58,19 +58,18 @@ class ThreadForm(forms.Form):
             widget=forms.TextInput(
                 attrs={
                     'size': '80',
-                })
-            )
+                }))
     post = forms.CharField(widget=forms.Textarea(
             attrs={
-                'rows':'8',
+                'rows': '8',
                 'cols': '80',
             }),
-            label=_('Message')
-        )
+            label=_('Message'))
 
 #    def clean_category(self):
 #        id = int(self.cleaned_data['category'])
 #        return id
+
 
 class UserSettingsForm(forms.ModelForm):
 
@@ -78,23 +77,22 @@ class UserSettingsForm(forms.ModelForm):
         user = ka.pop('user')
         self.user = user
         super(UserSettingsForm, self).__init__(*pa, **ka)
-        self.fields['frontpage_filters'].choices = [
-            (cat.id, cat.label) for cat in Category.objects.all() if 
-            cat.can_read(user)
-        ]
+        self.fields['frontpage_filters'].choices = [(cat.id, cat.label) for
+          cat in Category.objects.all() if cat.can_read(user)]
 
     frontpage_filters = forms.MultipleChoiceField(
         label=_('Front page categories'),
-        required = False)
+        required=False)
 
     class Meta:
         model = UserSettings
-        exclude = ('user',)
+        exclude = ('user', )
 
     def clean_frontpage_filters(self):
         frontpage_filters = [cat for cat in (Category.objects.get(pk=id) for id in
                 self.cleaned_data['frontpage_filters']) if cat.can_read(self.user)]
         return frontpage_filters
+
 
 class LoginForm(forms.Form):
     username = forms.CharField(max_length=30, label=_("Username"))
@@ -112,6 +110,7 @@ class LoginForm(forms.Form):
         else:
             raise ValidationError(_('Your username or password were incorrect.'))
 
+
 class InviteForm(forms.Form):
     user = forms.CharField(max_length=30, label=_('Username'))
 
@@ -122,6 +121,7 @@ class InviteForm(forms.Form):
         except User.DoesNotExist:
             raise ValidationError(_('Unknown username'))
         return user
+
 
 class AnwserInvitationForm(forms.Form):
     decision = forms.ChoiceField(label=_('Answer'), choices=((0, _('Decline')), (1, _('Accept'))))

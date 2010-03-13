@@ -7,6 +7,7 @@ from snapboard.models import Post
 
 SITE = Site.objects.get_current()
 
+
 class LatestPosts(Feed):
     title = _('%s Latest Discussions') % str(SITE)
     link = "/snapboard/"
@@ -17,6 +18,8 @@ class LatestPosts(Feed):
 
     def items(self):
         # we should only return the non-private messages
-        return filter(lambda p: p.thread.category.can_read(self.request.user), Post.objects.filter(is_private=False).order_by('-date')[:10])
+        return filter(lambda p: \
+          p.thread.category.can_read(self.request.user),
+          Post.objects.filter(is_private=False).order_by('-date')[:10])
 
 # vim: ai ts=4 sts=4 et sw=4
