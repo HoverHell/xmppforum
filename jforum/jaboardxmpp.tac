@@ -26,23 +26,24 @@ from multiprocessing import Process, Queue, active_children, current_process
 from thread import start_new_thread
 import traceback # Debug on exceptions.
 import signal # Sigint handler.
+import time # Old processes killing timeout.
 
 import xmppworker
 
 def returner(outqueue):
     while True:
         z = outqueue.get()
-        server.log.msg.err(" D: Processed: " + ("%s" % z).split('\n')[0])
+        server.log.err(" D: Processed: z is %r.\n" % type(z))
+        server.log.err(" D: Processed: " + z.__str__().split('\n')[0] +
+          "\n.")
         # Create and send a response.
         # ! Should probably handle most of this in XmppResponse class.
-        try:
-            # 
-            # No source request. Construct it from other fields.
-            ren
-            response['to'] = z.dst
-            response['from'] = z.src
+        response = domish.Element((None, 'message'))
+        response['to'] = z.dst
+        response['from'] = z.src
+        response['type'] = 'chat'
         # ! TODO: Add a html-formatted message representation.
-        response.addElement('body', content=response.__str__())
+        response.addElement('body', content=z.__str__())
         msgHandler.send(response)
 
 def createworkerpool(targetfunc, outqueue, nworkers):
@@ -69,7 +70,7 @@ def finishworkersgracefully(workerlist, inqueue):
     # Does that do something?
     inqueue.close()
     inqueue.join_thread()
-    time.sleep(20) # If they still live — we've got some serious problem.
+    time.sleep(20) # If they still live - we've got some serious problem.
     for workprc in workerlist:
         if workprc.is_alive():
             server.log.err(" W: finishworkersgracefully: killing "+
@@ -80,7 +81,7 @@ def finishworkersgracefully(workerlist, inqueue):
 def sighuphandler(signum, frame):
     # reload!
     # Shouldn't be executed in child processes, btw.
-    global inqueue, outqueue, workerlist, nworkers
+    global inqueue, outqueue, workerlist, NWORKERS
     try:
         reload(xmppworker)
     except:
@@ -89,7 +90,7 @@ def sighuphandler(signum, frame):
         return
     inqueueold, workerlistold = inqueue, workerlist
     workerlist, inqueue = createworkerpool(xmppworker.worker, 
-      outqueue, nworkers)
+      outqueue, NWORKERS)
     while not inqueueold.empty():
         try:
             r=inqueueold.get_nowait()
@@ -105,7 +106,7 @@ signal.signal(signal.SIGHUP, sighuphandler)
 # Starting workers...
 outqueue = Queue()
 start_new_thread(returner, (outqueue, ))
-workerlist, inqueue = createworkerpool(xmppworker.worker, outqueue, nworkers)
+workerlist, inqueue = createworkerpool(xmppworker.worker, outqueue, NWORKERS)
 
 # Protocol handlers
 
@@ -223,8 +224,8 @@ class MessageHandler(xmppim.MessageProtocol):
             # Might it be not 'message'?
             server.log.err(" D: message name: %r." % message.name)
                     
-            inqueue.put_nowait({'src': src, 'dst': dst, 'cmd': cmd,
-              'ext': {'id': id, 'name': name, 'type': }})
+            inqueue.put_nowait({'src': src, 'dst': dst, 'cmd': cmd, \
+              'ext': {'id': id, 'name': name, 'type': type}})
         except:
             # Something went pretty.wrong.
             server.log.err(" E: onMessage: exception.")

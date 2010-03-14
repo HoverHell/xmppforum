@@ -35,17 +35,20 @@ def processcmd(src, dst, cmd, ext = None):
     """
     Gets a source jid and command text and returns XmppResponse.
     """
-    #print("D: src: %r; cmd: %r" % (src, cmd))
-    # Note: src may contain a resource.
-    request=XmppRequest(src)
+    sys.stderr.write("\nD: src: %r; cmd: %r\n" % (src, cmd))
+    # src may contain a resource.
+    srcbarejid = src.split("/")[0]
+    request=XmppRequest(srcbarejid)
+    cmd = str(cmd) # Make a string from it?
+    sys.stderr.write("\nD: cmdstr: cmd: %r\n" % (cmd))
     try:
         # ! State-changing might be required, e.g. for multi-part commands.
-        #print("D: resolving...")
+        #sys.stderr.write("\nD: resolving...")
         callback, callback_args, callback_kwargs = cmdresolver.resolve(cmd)
         # Populate request.POST from cmd? Or modify views instead?
         
-        #print("D: callback: %r; args: %r; kwargs: %r" % (callback,
-        #  callback_args, callback_kwargs))
+        sys.stderr.write("\nD: callback: %r; args: %r; kwargs: %r\n" % (callback,
+          callback_args, callback_kwargs))
         
         # ...Also, middleware? it's not likely to support XmppResponse though.
         
@@ -54,9 +57,9 @@ def processcmd(src, dst, cmd, ext = None):
             
             # ! We do expect an XmppResponse here.
             if not isinstance(response, XmppResponse):
-                print(" E: callback (%r (%r, %r))" % (callback, callback_args,
+                sys.stderr.write("\n E: callback (%r (%r, %r))" % (callback, callback_args,
                   callback_kwargs) + " returned non-XmppResponse "+
-                  "object %r." % response)
+                  "object %r.\n" % response)
                 raise TypeError("Response is not response!")
             
             # May also add registration offer to anonymous users.
@@ -74,8 +77,8 @@ def processcmd(src, dst, cmd, ext = None):
             responsestr = _("Sorry, something went wrong!")
             response = XmppResponse(responsestr)
             # Debug
-            print(" E: Exception when calling callback:")
-            traceback.print_exc()
+            sys.stderr.write("\n E: Exception when calling callback:")
+            sys.stderr.write(traceback.format_exc())
         # Not final. Also, toResponse(), part 1.
     except django.http.Http404, e:
         # No such command, eh?
