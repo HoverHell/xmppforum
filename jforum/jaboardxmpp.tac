@@ -8,7 +8,7 @@ send back messages sent to it.
 """
 
 from twisted.application import service, strports
-from twisted.words.xish import domish # for creating messages... hopefully.
+from twisted.words.xish import domish  # For creating messages to send.
 from twisted.words.protocols.jabber.xmlstream import toResponse
 from wokkel import component, server, xmppim
 from sys import stdout, stderr
@@ -21,67 +21,101 @@ DOMAIN = 'bot.hell.orts.ru'
 LOG_TRAFFIC = True
 NWORKERS = 4
 
+# Global address of socket interface for sending XMPP messages.
+# Only AF_UNIX socket for now. Non-crossplatform but somewhat easy to fix.
+SOCKET_ADDRESS = 'xmppoutqueue'
+
+
 ## External: xmppworkerpool
 from multiprocessing import Process, Queue, active_children, current_process
 from thread import start_new_thread
-import traceback # Debug on exceptions.
-import signal # Sigint handler.
-import time # Old processes killing timeout.
+import traceback  # Debug on exceptions.
+import signal  # Sigint handler.
+import time  # Old processes killing timeout.
+
+import socket  # outqueue.
+import os  # For screwing with the socket file
+import simplejson  # Decoding of IPC data.
 
 import xmppworker
 
-def returner(outqueue):
-    while True:
-        z = outqueue.get()
-        server.log.err(" D: Processed: z is %r.\n" % type(z))
-        server.log.err(" D: Processed: " + z.__str__().split('\n')[0] +
-          "\n.")
-        # Create and send a response.
-        # ! Should probably handle most of this in XmppResponse class.
-        response = domish.Element((None, 'message'))
-        response['to'] = z.dst
-        response['from'] = z.src
-        response['type'] = 'chat'
-        # ! TODO: Add a html-formatted message representation.
-        response.addElement('body', content=z.__str__())
-        msgHandler.send(response)
 
-def createworkerpool(targetfunc, outqueue, nworkers):
+def returner():
+    # Socket init happens here.
+    try:
+        # It's /probably/ unused.
+        # ! Should check that, actually.
+        os.remove(SOCKET_ADDRESS)
+    except:
+        pass  # We don't care.
+    outqueue = socket.socket(socket.AF_UNIX, socket.SOCK_DGRAM)
+    outqueue.bind(SOCKET_ADDRESS)
+    try:
+        # Should prefer more secure mode when possible.
+        os.chmod(fname, 0770)
+    except:
+        server.log.err(" W: Could not chmod socket file.\n")
+    while True:
+        indata = outqueue.recv(65535)  # ! We have a limit here
+        server.log.err(" D: Outqueue data: %r.\n" % indata)
+        # We expect it to be simplejson data, possibly multiple lines (since
+        # simplejson here shouldn't contain newlines itself).
+        for dataline in indata.split("\n"):
+            try:
+                x = simplejson.loads(dataline)
+                # Create and send a response.
+                response = domish.Element((None, 'message'))
+                response['type'] = 'chat'
+                # Values are supposed to be always present here:
+                response['to'] = x['dst']
+                response['from'] = x['src']
+                if 'subject' in x:
+                    response['subject'] = x['subject']
+                response.addElement('body', content=x['body'])
+                # ? Should also be able to add <html><body> ... part.
+                msgHandler.send(response)
+            except ValueError:
+                server.log.err(" E: Failed processing: %r" % dataline)
+
+
+def createworkerpool(targetfunc, nworkers):
     """
-    Creates nworkers of workers, running func. Also starts returner thread.
-    
-    func should take (inqueue, outqueue) as arguments.
-    
+    Creates nworkers of workers, running func.
+
+    func should take (inqueue, ) as arguments.
+
     Returns tuple (workerlist, inqueue)
     """
     inqueue = Queue()
-    workerlist=[]
+    workerlist = []
     for i in xrange(nworkers):
-        w1=Process(target=targetfunc, args=(inqueue, outqueue))
+        w1 = Process(target=targetfunc, args=(inqueue, ))
         w1.start()
         workerlist.append(w1)
     return (workerlist, inqueue)
 
 # ! terminate() was not added here because it seems not very necessary.
 
+
 def finishworkersgracefully(workerlist, inqueue):
-    for i in xrange(len(workerlist)+1): # +1 is doubtul
+    for i in xrange(len(workerlist) + 1):  # +1 is doubtul
         inqueue.put("QUIT")
     # Does that do something?
     inqueue.close()
     inqueue.join_thread()
-    time.sleep(20) # If they still live - we've got some serious problem.
+    time.sleep(20)  # If they still live - we've got some serious problem.
     for workprc in workerlist:
         if workprc.is_alive():
-            server.log.err(" W: finishworkersgracefully: killing "+
+            server.log.err(" W: finishworkersgracefully: killing " \
              "still-alive worker %r." % workprc)
             workprc.terminate()
         del(workprc)
 
+
 def sighuphandler(signum, frame):
     # reload!
     # Shouldn't be executed in child processes, btw.
-    global inqueue, outqueue, workerlist, NWORKERS
+    global inqueue, workerlist, NWORKERS
     try:
         reload(xmppworker)
     except:
@@ -89,27 +123,18 @@ def sighuphandler(signum, frame):
         traceback.print_exc()
         return
     inqueueold, workerlistold = inqueue, workerlist
-    workerlist, inqueue = createworkerpool(xmppworker.worker, 
-      outqueue, NWORKERS)
+    workerlist, inqueue = createworkerpool(xmppworker.worker, NWORKERS)
     while not inqueueold.empty():
         try:
-            r=inqueueold.get_nowait()
+            r = inqueueold.get_nowait()
             inqueue.put_nowait(r)
         except Empty:
             break
     start_new_thread(finishworkersgracefully, (workerlistold, inqueueold))
-
 signal.signal(signal.SIGHUP, sighuphandler)
 
-# * Use twistd's --pidfile to write PID.
-
-# Starting workers...
-outqueue = Queue()
-start_new_thread(returner, (outqueue, ))
-workerlist, inqueue = createworkerpool(xmppworker.worker, outqueue, NWORKERS)
 
 # Protocol handlers
-
 class PresenceHandler(xmppim.PresenceProtocol):
     """
     Presence accepting XMPP subprotocol handler.
@@ -123,11 +148,11 @@ class PresenceHandler(xmppim.PresenceProtocol):
     def __init__(self):
         """
         Some data to store.
-        
+
         # ? Should dump it to/from database also, maybe?
         """
-        self.statustext=u"Greetings"
-        self.subsribedto={}
+        self.statustext = u"Greetings"
+        self.subsribedto = {}
 
     def subscribedReceived(self, presence):
         server.log.err(" D: A: subscribedReceived.")
@@ -139,7 +164,6 @@ class PresenceHandler(xmppim.PresenceProtocol):
         self.subscribedto[presence.sender] = True
         pass
 
-
     def unsubscribedReceived(self, presence):
         server.log.err(" D: A: unsubscribedReceived.")
         """
@@ -150,7 +174,6 @@ class PresenceHandler(xmppim.PresenceProtocol):
         if presence.sender in self.subscribedto:
             del(self.subscribedto[presence.sender])
         pass
-
 
     def subscribeReceived(self, presence):
         server.log.err(" D: A: subscribeReceived.")
@@ -166,7 +189,6 @@ class PresenceHandler(xmppim.PresenceProtocol):
                        status=self.statustext,
                        sender=presence.recipient)
 
-
     def unsubscribeReceived(self, presence):
         server.log.err(" D: A: unsubscribeReceived.")
         """
@@ -176,8 +198,6 @@ class PresenceHandler(xmppim.PresenceProtocol):
         """
         self.unsubscribed(recipient=presence.sender,
                           sender=presence.recipient)
-
-
 
     def probeReceived(self, presence):
         server.log.err(" D: A: probeReceived.")
@@ -189,7 +209,6 @@ class PresenceHandler(xmppim.PresenceProtocol):
         self.available(recipient=presence.sender,
                        status=self.statustext,
                        sender=presence.recipient)
-
 
 
 class MessageHandler(xmppim.MessageProtocol):
@@ -207,7 +226,7 @@ class MessageHandler(xmppim.MessageProtocol):
         if message.getAttribute('type') == 'error':
             server.log.err(" D: W: error-type message.")
             return
-        
+
         ## Note: possible types are 'chat' and no type (ergo, plain non-chat
         ## message).
         ## But are there other types besides those and 'error'?
@@ -223,7 +242,7 @@ class MessageHandler(xmppim.MessageProtocol):
             name = message.name
             # Might it be not 'message'?
             server.log.err(" D: message name: %r." % message.name)
-                    
+
             inqueue.put_nowait({'src': src, 'dst': dst, 'cmd': cmd, \
               'ext': {'id': id, 'name': name, 'type': type}})
         except:
@@ -231,17 +250,15 @@ class MessageHandler(xmppim.MessageProtocol):
             server.log.err(" E: onMessage: exception.")
             traceback.print_exc()
 
-        # Echo incoming messages, if they have a body.
-        #if message.body and unicode(message.body):
-        #    print(" D: M: message = %r" % message)
-        #    print(" D: M: ...type = %r" % message.getAttribute('type'))
-        #    print(" D: M: ...body = %r" % message.body)
-        #    response = toResponse(message, message.getAttribute('type'))
-        #    response.addElement('body', content=u'Confirmed: '+unicode(message.body))
-        #    self.send(response)
+
+# * Use twistd's --pidfile to write PID.
+
+# Starting workers...
+start_new_thread(returner, ())
+workerlist, inqueue = createworkerpool(xmppworker.worker, NWORKERS)
+
 
 # Set up the Twisted application
-
 application = service.Application("Jaboard Server")
 
 router = component.Router()
@@ -263,11 +280,3 @@ presenceHandler.setHandlerParent(echoComponent)
 
 msgHandler = MessageHandler()
 msgHandler.setHandlerParent(echoComponent)
-
-#server.log.startLogging(stdout)
-#server.log.startLogging(stderr)
-#server.log.startLogging(open("debug1.log", "w"))
-#echoComponent.startService()
-#s2sService.startService()
-#s2sFactory.startFactory()
-

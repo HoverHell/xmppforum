@@ -11,6 +11,8 @@ ADMINS = (
 
 MANAGERS = ADMINS
 
+SOCKET_ADDRESS = 'xmppoutqueue'  # Should not be relative, actually.
+
 DATABASE_ENGINE = 'sqlite3'
 DATABASE_NAME = 'dev.db'
 DATABASE_USER = ''

@@ -2,7 +2,8 @@
 This module is an unfinished (yet) attempt to add XMPP/IM/cmd support to
 django in the same way that it implements HTTP/HTML.
 
-This is the base-part, that provides some classes and wrappers necessary for that.
+This is the base-part, that provides some classes and wrappers necessary for
+that.
 """
 
 import django
@@ -10,7 +11,10 @@ from django.shortcuts import render_to_response as render_to_response_orig
 from django.template import loader
 #from django.contrib.auth.models import User
 # User class is customized, so...
-from models import User 
+from models import User
+
+import simplejson  # For serialization of XmppResponse
+
 
 class XmppRequest(object):
     """
@@ -29,68 +33,61 @@ class XmppRequest(object):
             self.user = User.objects.get(sb_usersettings__jid__exact=srcjid)
         except User.DoesNotExist:
             self.user = django.contrib.auth.models.AnonymousUser()
-            # Just create one? Or it should be 
+            # ? Just create one? Or he should be offered to register?
         # Populating extra fields:
         self.META = {'REMOTE_ADDR': srcjid}
         # Stuff ftom HttpRequest:
-        #self.GET, self.POST, self.COOKIES, self.META, self.FILES = None, None, None, {}, {}, \
-        #  {}, {}, {}
+        #self.GET, self.POST, self.COOKIES, self.META, self.FILES = None, \
+        #  None, None, {}, {}, {}, {}, {}
 
-class XmppResponse(object):
+
+class XmppResponse(dict):
     """
     Possibly unnecessary object, analogous to HttpResponse.
-    
-    But may be used for rendering the response (XML?) with consideration of
-    in-message formatting.
-    
-    May add a subject, too.
+
+    Can be used for any XMPP message.
+
+    Currently it is a subclass of dict with few extras.
     """
-    def __init__(self, body=None):
-        self.body = body
-        # Source address to use. Have to be in XMPP server's domain, at
+    def __init__(self, body=None, src=None, dst=None, id=None):
+        self['body'] = body
+        # ! Source address to use has to be in XMPP server's domain, at
         # least.  Should usually be created from request message's
-        # destination or some default value
+        # destination or some default value.
+        self['src'] = src
         # ? May contain a resource?
-        self.src = None
-        # Destination address.
-        # ! Somewhere it should be checked for having XMPP-authenticated the
-        # server's contact, probably.
-        self.dst = None
-        # ? thread id?
-        self.id = None
-        
+        # ! Destination address should be ckecked somewhere for having
+        # XMPP-authenticated any jid on this server, probably.
+        self['dst'] = dst
+        # ! Id doesn't seem to change much, but might happen to be
+        # necessary.
+        self['id'] = id
+
     def __str__(self):
         """
-        Just returns the content for now.
+        Serializes itself into simplejson string.
         """
-        return str(self.body) # String for sure.
+        return simplejson.dumps(self)  # Should be string.
+
 
 def render_to_response(*args, **kwargs):
     """
     A render_to_response wrapper that allows using it for both HttpRequest
     and XmppRequest.
     """
-    
-    """
-    is_xmpp = False
-    if 'context_instance' in kwargs:
-        # We have something, yes.
-        context_instance = kwargs['context_instance']
-        if 'request' in context_instance:
-            # 'They' even provided a request to 'us'.
-            request = context_instance['request']
-            if isinstance(request, XmppRequest):
-                is_xmpp = True
+
     # There should be other ways to determine an Xmpp request, no?
     # Or it would be 'other function'.
-    # May args[0] not possibly contain template name?
-    if is_xmpp:
-    """
-    if isinstance(kwargs['context_instance']['request'], XmppRequest):
-        args = (args[0] + '.xmpp',) + args[1:] # ! Fix template name. 
-        # Return some XmppResponse.
+    # Also, may args[0] not possibly contain template name?
+    try:
+        IsXmpp = isinstance(kwargs['context_instance']['request'], XmppRequest)
+    except:
+        IsXmpp = False
+    if IsXmpp:
+        args = (args[0] + '.xmpp',) + args[1:]  # Fix template name.
+        # Return some XmppResponse with rendered template.
         return XmppResponse(loader.render_to_string(*args, **kwargs))
     else:
         # Not Xmpp. Not our business.
-        args = (args[0] + '.html',) + args[1:] # ... 
+        args = (args[0] + '.html',) + args[1:]  # ...
         return render_to_response_orig(*args, **kwargs)
