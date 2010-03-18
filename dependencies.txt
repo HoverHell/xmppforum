@@ -1,0 +1,22 @@
+
+Wokkel (linked to in jforum/): mercurial repository at
+ http://hg.ik.nu/wokkel
+
+Twisted: required by wokkel and jaboardxmpp. Version 10.0.0 tested.
+
+
+* Exact list of django dependencies is not clear. Some of them:
+
+django-mailer: git://github.com/jtauber/django-mailer.git
+
+django-notification: git://github.com/jtauber/django-notification.git
+
+django-pagination: subversion at
+ http://django-pagination.googlecode.com/svn/trunk
+
+django-registration: mercurial at
+ http://bitbucket.org/ubernostrum/django-registration/
+
+simplejson: likely available in packages.
+
+possibly some more.
