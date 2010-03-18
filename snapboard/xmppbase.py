@@ -36,6 +36,7 @@ class XmppRequest(object):
             # ? Just create one? Or he should be offered to register?
         # Populating extra fields:
         self.META = {'REMOTE_ADDR': srcjid}
+        self.POST = None
         # Stuff ftom HttpRequest:
         #self.GET, self.POST, self.COOKIES, self.META, self.FILES = None, \
         #  None, None, {}, {}, {}, {}, {}

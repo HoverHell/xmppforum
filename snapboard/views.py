@@ -530,6 +530,26 @@ def get_user_settings(user):
     except UserSettings.DoesNotExist:
         return DEFAULT_USER_SETTINGS
 
+
+def xmpp_get_help(request, subject=None):
+    '''
+    Returns help message to the user, possibly on the specific subject.
+
+    Can theoretically be used in the web view as well.
+    '''
+    return render_to_response('snapboard/xmpp_help',
+      None,
+      context_instance=RequestContext(request, processors=extra_processors))
+
+
+def home_redirect_response(request):
+    '''
+    Returns a redirect to the board home (SNAP_PREFIX).
+    '''
+    return HttpResponseRedirect(SNAP_PREFIX)
+
+
+
 def _brand_view(func):
     '''
     Mark a view as belonging to SNAPboard.
@@ -539,11 +559,6 @@ def _brand_view(func):
     '''
     setattr(func, '_snapboard', True)
 
-def home_redirect_response(request):
-    '''
-    Returns a redirect to the board home (SNAP_PREFIX).
-    '''
-    return HttpResponseRedirect(SNAP_PREFIX)
 
 _brand_view(rpc)
 _brand_view(thread)
