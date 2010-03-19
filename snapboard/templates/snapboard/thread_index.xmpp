@@ -1,5 +1,0 @@
-{% load i18n pagination_tags %}{% load extras %}{# % autopaginate threads user_settings.tpp % #}{# % paginate % #}{% if threads %}{% for thread in threads %}#{{ thread.id }} {{ thread.subject }}
-{{ thread.post_count }} {% trans "posts" %}, {% trans "started by" %} {{ thread.starter }}, {% trans "last updated" %} {{ thread.date|date:"r T" }}{% ifnotequal thread.last_poster thread.starter %} {% trans "by" %} {{ thread.last_poster }}{% endifnotequal %}. {% if thread.gsticky %}{% trans "STICKY" %}{% else %}{% if category and thread.csticky %}{% trans "STICKY" %}{% endif %}{% endif %} {% if thread.closed %}{% trans "CLOSED" %}{% endif %}
-in #c{{ thread.category.id }} {{ thread.category }}
-
-{% endfor %}{% else %}{% trans "No threads are available." %}{% endif %}

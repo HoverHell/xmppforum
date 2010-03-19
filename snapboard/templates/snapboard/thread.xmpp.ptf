@@ -1,0 +1,53 @@
+{% load i18n plaintexttags %}
+{% load extras %}
+
+#c{{ thr.category.id }} {{ thr.category }}:
+{%br%}{%ws%}{%ws%}{%ws%}{%ws%}{{ thr.subject }}
+
+{%br%}{%br%}
+{# ! No includes here because of plaintextformatting. #}
+{# ! Need non-relative URLs here for XHTML #}
+
+{% for post in posts %}
+    <a href="#snap_post{{ post.id }}">#{{ thread.id }}/{{ post.id }}</a>
+    {%ws%}by {{ post.user }}
+
+    {% if post.private.all %}
+        {%ws%}{% trans "to" %}
+        {% for rec in post.private.all %}
+            {%ws%}{{ rec }}
+            {% if not forloop.last %},{% endif %}
+        {% endfor %}
+    {% endif %}
+
+    {%ws%}at {{ post.date|date:"r T" }} 
+
+    {% if post.censor %}
+        {%ws%}(CENSORED)
+    {% else %}
+        {% ifnotequal post.abuse 0 %}
+            {%ws%}(REPORTED)
+        {% endifnotequal %}
+    {% endif %}
+
+    {% if post.previous %}
+        {%ws%}(REVISED)
+    {% endif %}
+
+    {%br%}
+    
+    {# can actually use XMPP XHTML to send avatar. But should be
+    configurable to avoid unpleasant results like image placeholders...
+    {% if post.avatar %}
+        <img src="{{ SNAP_MEDIA_PREFIX }}/{{ post.avatar }}" />
+    {% endif %}
+    #}
+
+    {# The post text itself $}
+    {{ post.text|striptags|render_post|safe }}
+
+    {% if not forloop.last %}
+        {%br%}{%br%}
+    {% endif %}
+
+{% endfor %} {# iterate through posts #}

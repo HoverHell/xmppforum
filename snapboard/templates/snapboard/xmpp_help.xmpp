@@ -1,0 +1,4 @@
+# — show 20 posts
+# <N> <M> — show N posts starting with M
+#1234 — show thread 1234
+HELP — this help message

@@ -1,0 +1,35 @@
+{% load i18n plaintexttags %}
+{% load extras %}
+{% if threads %}
+    {% for thread in threads %}
+        #{{ thread.id }} {{ thread.subject }}
+        
+        {% br %}
+        
+        {{ thread.post_count }} {% trans "posts"%},
+        {%ws%}{% trans "started by" %} {{ thread.starter }}
+
+        {%ws%}{% trans "last updated" %} {{ thread.date|date:"r T" }}
+        {% ifnotequal thread.last_poster thread.starter %}
+            {%ws%}{% trans "by" %} {{ thread.last_poster }}
+        {% endifnotequal %}
+        
+        {% if thread.gsticky %}
+            {%ws%}{% trans "STICKY" %}
+        {% else %}{% if category and thread.csticky %}
+            {%ws%}{% trans "STICKY" %}
+        {% endif %}{% endif %}
+
+        {% if thread.closed %}
+            {%ws%}{% trans "CLOSED" %}
+        {% endif %}
+        
+        {% br %}
+        
+        #c{{ thread.category.id }} {{ thread.category }}
+        
+        {% if not forloop.last %}{% br %} {% br %}{% endif %}
+    {% endfor %}
+{% else %}
+    {% trans "No threads are available." %}
+{% endif %}

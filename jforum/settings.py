@@ -58,7 +58,8 @@ ADMIN_MEDIA_PREFIX = '/media/admin/'
 SECRET_KEY = '[VEbSn9HbEOn}xtp4;owriKKzWp!r/iLo,GUnJOI^?Gn2H4Oz^'
 
 # List of callables that know how to import templates from various sources.
-# ! Might be preferrable to use ('django.template.loaders.cached.Loader', (...)),
+# In django 1.2 cached loader can be used:
+#  ('django.template.loaders.cached.Loader', (...)),
 TEMPLATE_LOADERS = (
     'snapboard.template.ptftemplateloader.load_template_source',
     'django.template.loaders.filesystem.load_template_source',

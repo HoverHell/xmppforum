@@ -19,7 +19,7 @@ S2S_PORT = 'tcp:5279:interface=0.0.0.0'
 SECRET = 'secret'
 DOMAIN = 'bot.hell.orts.ru'
 LOG_TRAFFIC = True
-NWORKERS = 4
+NWORKERS = 2
 
 # Global address of socket interface for sending XMPP messages.
 # Only AF_UNIX socket for now. Non-crossplatform but somewhat easy to fix.

@@ -7,13 +7,9 @@ import re
 import sys  # Debug
 
 from django.template import TemplateDoesNotExist
-from django.template.loaders.filesystem import load_template_source \
-  as load_template_source_filesystem
 
-#from django.template.loaders.app_directories import load_template_source \
-#  as load_template_source_appdir
-
-# Might prefer to use django.template.loader.find_template_source, actually.
+# Not very good but should works.
+from django.template.loader import find_template_source
 
 # Another way:
 #tagspacere = re.compile('}\s\s+{')
@@ -23,10 +19,12 @@ newlinere = re.compile('\n')
 
 def load_template_source(template_name, template_dirs=None):
     try:
+        if template_name.endswith(".ptf"):
+            # Really not neat hack. Avoid recursion...
+            raise TemplateDoesNotExist, "not me!"
         sys.stderr.write("ptftemplateloader: loading %r\n" % template_name +
           " ...from %r\n" % template_dirs)
-        s, f = load_template_source_filesystem(template_name+".ptf",
-          template_dirs)
+        s, f = find_template_source(template_name+".ptf", template_dirs)
         sys.stderr.write("Loaded successfully.\n")
     except Exception, e:
         sys.stderr.write("Failure: %s\n" % e)
