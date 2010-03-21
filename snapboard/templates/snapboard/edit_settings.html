@@ -1,18 +1,40 @@
 {% extends "snapboard/base_forum.html" %}
 {% load i18n %}
-
+{% load avatar_tags %}
 {% block snapboard_main %}
     <div class="index_title">
         <h2 style="font-size: 152%;">
             {% trans "Boards preferences" %}
         </h2>
     </div>
+    <!-- <a href="{% url avatar_change %}">Change your avatar.</a> -->
+    <div class="avatar_settings">
+    <p>Your current avatar: </p>
+    {% avatar user %}
+    {% if not avatars %}
+        <p>You do not yet have an avatar.  You can upload one here.</p>
+    {% else %}
+        <form method="POST" action="">
+            <ul>
+                {{ primary_avatar_form.as_ul }}
+            </ul>
+            <input type="submit" name="defaultavatar" value="Choose as Default" />
+            <input type="submit" name="deleteavatar" value="Delete Selected" />
+        </form>
+    {% endif %}
+    <form enctype="multipart/form-data" method="POST" action="">
+        <input type="file" name="avatar" value="Avatar Image" />
+        <input type="submit" name="avatarsubmit" value="Upload New Image" />
+    </form>
+    </div>
+    <div class="snapboard_settings">
     <form method="post" action="">
         <table>
-            {{ form }}
-            <tr><th></th><td><input type="submit" value="{% trans "Update" %}" /></td></tr>
+            {{ settings_form }}
+            <tr><th></th><td><input type="submit" name="updatesettings" value="{% trans "Update" %}" /></td></tr>
         </table>
     </form>
+    </div>
 {% endblock %}
 <!--
 vim: ai ts=4 sts=4 et sw=4 

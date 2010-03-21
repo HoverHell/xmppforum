@@ -47,7 +47,7 @@ MEDIA_ROOT = ''
 
 # URL that handles the media served from MEDIA_ROOT.
 # Example: "http://media.lawrence.com"
-MEDIA_URL = ''
+MEDIA_URL = '/media/'
 
 # URL prefix for admin media -- CSS, JavaScript and images. Make sure to use a
 # trailing slash.
@@ -127,6 +127,7 @@ INSTALLED_APPS = (
     'notification',
     'mailer',
     'registration',
+    'avatar',
     'snapboard',
 )
 
@@ -167,3 +168,9 @@ ACCOUNT_ACTIVATION_DAYS = 5
 ## Other settings
 DEFAULT_FROM_EMAIL = "jfu@hell.orts.ru"
 SERVER_EMAIL = "jfu@hell.orts.ru"
+
+
+## Avatars
+AVATAR_DEFAULT_URL = MEDIA_URL + "img/default_avatar.jpg"
+AVATAR_GRAVATAR_BACKUP = True
+# AVATAR_STORAGE_DIR = SNAP_MEDIA_PREFIX+"/avatars"

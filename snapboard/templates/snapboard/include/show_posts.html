@@ -1,5 +1,6 @@
 {% load i18n %}
 {% load extras %}
+{% load avatar_tags %}
 <div>
 <hr class="firstpost" />
 {% for post in posts %}
@@ -45,9 +46,10 @@
                 {% endif %}
             </span>
 
-            {% if post.avatar %}
-                <img src="{{ SNAP_MEDIA_PREFIX }}/{{ post.avatar }}" />
-            {% endif %}
+            <span class="avatar">
+                {% avatar post.user %}
+            </span>
+            
             <b>
                 <a href="#snap_post{{ post.id }}" onclick="toggle_post('{{ post.id }}');">
                     <span class="popup" title="Author">{{ post.user }}</span>

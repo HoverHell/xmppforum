@@ -15,6 +15,10 @@ from django.template import RequestContext
 from django.utils import simplejson
 from django.utils.translation import ugettext as _
 
+# Avatar form in UserSettings
+from avatar.models import Avatar, avatar_file_path
+from avatar.forms import PrimaryAvatarForm, DeleteAvatarForm
+
 # XmppFace
 from xmppbase import XmppRequest, XmppResponse, render_to_response
 
@@ -351,20 +355,69 @@ def category_index(request):
 def edit_settings(request):
     '''
     Allow user to edit his/her profile. Requires login.
+
+    There are 4 buttons on this page: choose avatar, delete avatar, upload
+    avatar, change settings.
     '''
     try:
         userdata = UserSettings.objects.get(user=request.user)
     except UserSettings.DoesNotExist:
         userdata = UserSettings.objects.create(user=request.user)
-    if request.method == 'POST':
-        form = UserSettingsForm(request.POST, instance=userdata, user=request.user)
-        if form.is_valid():
-            form.save(commit=True)
+    avatars = Avatar.objects.filter(user=request.user).order_by('-primary')
+    if avatars.count() > 0:
+        avatar = avatars[0]
+        kwargs = {'initial': {'choice': avatar.id}}
     else:
-        form = UserSettingsForm(instance=userdata, user=request.user)
+        avatar = None
+        kwargs = {} 
+    settings_form = None
+    primary_avatar_form = None
+    # ! Actually, the avatars code was mostly copied from avatar/views.py
+    if request.method == 'POST':
+        if 'updatesettings' in request.POST:  # Settings were edited.
+            settings_form = UserSettingsForm(request.POST,
+              instance=userdata, user=request.user)
+            if settings_form.is_valid():
+                settings_form.save(commit=True)
+        else:  # Avatar business.
+            primary_avatar_form = PrimaryAvatarForm(request.POST or None,
+              user=request.user, **kwargs)  # The form is common to those.
+            if 'avatar' in request.FILES:  # New avatar upload submit.
+                # Also 'avatarsubmit' in request.POST is assumed.
+                path = avatar_file_path(user=request.user,
+                    filename=request.FILES['avatar'].name)
+                avatar = Avatar(user=request.user, primary=True,
+                  avatar=path, )
+                new_file = avatar.avatar.storage.save(path, request.FILES['avatar'])
+                avatar.save()
+                request.user.message_set.create(
+                    message=_("Successfully uploaded a new avatar."))
+                return HttpResponseRedirect(request.path)  # Send to update page.
+            elif 'choice' in request.POST \
+              and primary_avatar_form.is_valid():  # Selection / deletion form.
+                avatar = Avatar.objects.get(id=
+                    primary_avatar_form.cleaned_data['choice'])
+                if 'defaultavatar' in request.POST:  # "choose" was pressed
+                    avatar.primary = True
+                    avatar.save()
+                    request.user.message_set.create(
+                      message=_("Successfully updated your avatar."))
+                    # No need for redirect here, seemingly.
+                elif 'deleteavatar' in request.POST:  # "delete" was pressed
+                    avatar.delete()
+                    request.user.message_set.create(
+                      message=_("Deletion successful."))
+                    return HttpResponseRedirect(request.path)  # Go update page.
+    # ! Create what was not created
+    settings_form = settings_form or UserSettingsForm(None,
+      instance=userdata, user=request.user)
+    primary_avatar_form = primary_avatar_form or PrimaryAvatarForm(None,
+      user=request.user, **kwargs)
     return render_to_response(
             'snapboard/edit_settings',
-            {'form': form},
+            {'settings_form': settings_form,
+             'primary_avatar_form': primary_avatar_form,
+             'avatar': avatar,  'avatars': avatars, },
             context_instance=RequestContext(request, processors=extra_processors))
 edit_settings = login_required(edit_settings)
 

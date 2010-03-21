@@ -41,3 +41,8 @@ urlpatterns += patterns('',
 urlpatterns += patterns('',
     (r'^$', 'snapboard.views.home_redirect_response'),
 )
+
+## Avatar
+urlpatterns += patterns('',
+    (r'^avatar/', include('avatar.urls')),
+)
