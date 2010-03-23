@@ -82,6 +82,7 @@ def processcmd(src, dst, cmd, ext=None):
     # Return back with exactly the same full JIDs.
     response['src'] = dst
     response['dst'] = src
+    response['subject'] = "Jaboard: XMPP"
     # ! May populate other values from a possible 'ext' here.
     return response
 

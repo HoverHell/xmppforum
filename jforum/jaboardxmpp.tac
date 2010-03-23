@@ -70,8 +70,14 @@ def returner():
                 response['to'] = x['dst']
                 response['from'] = x['src']
                 if 'subject' in x:
-                    response['subject'] = x['subject']
+                    response.addElement('subject', content=x['subject'])
                 response.addElement('body', content=x['body'])
+                if 'html' in x:
+                    htmlbody = domish.Element(('http://www.w3.org/1999/xhtml', 'body'))
+                    htmlbody.addRawXml(x['html'])
+                    response.addChild(domish.Element(
+                      ('http://jabber.org/protocol/xhtml-im', 
+                      'html')).addChild(htmlbody))
                 # ? Should also be able to add <html><body> ... part.
                 msgHandler.send(response)
             except ValueError:

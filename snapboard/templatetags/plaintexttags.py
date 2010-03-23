@@ -10,9 +10,9 @@ import re
 
 register = Library()
 
-
+# XHTML-XMPP-template compatible.
 def br():
-    return "\n"
+    return "<br />\n"
 br = register.simple_tag(br)
 
 

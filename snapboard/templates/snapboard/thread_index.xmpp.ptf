@@ -2,31 +2,32 @@
 {% load extras %}
 {% if threads %}
     {% for thread in threads %}
-        #{{ thread.id }} {{ thread.subject }}
-        
+        <strong>#{{ thread.id }}</strong>
+        {%ws%}<a href="{% url snapboard_thread thread.id %}">
+          {{ thread.subject }}</a>
+
         {% br %}
         
         {{ thread.post_count }} {% trans "posts"%},
-        {%ws%}{% trans "started by" %} {{ thread.starter }}
-
+        {%ws%}{% trans "started by" %} <strong>{{ thread.starter }}</strong>
         {%ws%}{% trans "last updated" %} {{ thread.date|date:"r T" }}
         {% ifnotequal thread.last_poster thread.starter %}
-            {%ws%}{% trans "by" %} {{ thread.last_poster }}
+            {%ws%}{% trans "by" %} <strong>{{ thread.last_poster }}</strong>
         {% endifnotequal %}
-        
         {% if thread.gsticky %}
-            {%ws%}{% trans "STICKY" %}
+            {%ws%}<em>{% trans "STICKY" %}</em>
         {% else %}{% if category and thread.csticky %}
-            {%ws%}{% trans "STICKY" %}
+            {%ws%}<em>{% trans "STICKY" %}</em>
         {% endif %}{% endif %}
-
         {% if thread.closed %}
-            {%ws%}{% trans "CLOSED" %}
+            <em>{%ws%}{% trans "CLOSED" %}</em>
         {% endif %}
         
         {% br %}
         
-        #c{{ thread.category.id }} {{ thread.category }}
+        <strong>#c{{ thread.category.id }}</strong>
+        {%ws%}<a href="{% url snapboard_category_thread_index thread.category.id %}">
+           {{ thread.category }}</a>
         
         {% if not forloop.last %}{% br %} {% br %}{% endif %}
     {% endfor %}

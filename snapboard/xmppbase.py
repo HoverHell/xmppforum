@@ -8,9 +8,7 @@ that.
 
 import django
 from django.shortcuts import render_to_response as render_to_response_orig
-from django.template import loader
-#from django.contrib.auth.models import User
-# User class is customized, so...
+# User class is customized, so not importing it from django itself.
 from models import User
 
 import simplejson  # For serialization of XmppResponse
@@ -50,8 +48,18 @@ class XmppResponse(dict):
 
     Currently it is a subclass of dict with few extras.
     """
-    def __init__(self, body=None, src=None, dst=None, id=None):
-        self['body'] = body
+    def __init__(self, html=None, body=None, src=None, dst=None, id=None):
+        # Current default is to create XHTML-message and construct plaintext
+        # message from it.
+        self['html'] = html
+        if body == None:
+            # ?? Have to do something else?
+            self['body'] = django.utils.encoding.force_unicode(
+              django.utils.html.strip_tags(html)).replace(
+                '&amp;', '&').replace('&lt;', '<').replace(
+                  '&gt;', '>').replace('&quot;', '"').replace('&#39;', "'")
+        else:
+            self['body'] = body
         # ! Source address to use has to be in XMPP server's domain, at
         # least.  Should usually be created from request message's
         # destination or some default value.
@@ -87,7 +95,7 @@ def render_to_response(*args, **kwargs):
     if IsXmpp:
         args = (args[0] + '.xmpp',) + args[1:]  # Fix template name.
         # Return some XmppResponse with rendered template.
-        return XmppResponse(loader.render_to_string(*args, **kwargs))
+        return XmppResponse(django.template.loader.render_to_string(*args, **kwargs))
     else:
         # Not Xmpp. Not our business.
         args = (args[0] + '.html',) + args[1:]  # ...
