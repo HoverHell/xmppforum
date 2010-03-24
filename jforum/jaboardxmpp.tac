@@ -69,16 +69,23 @@ def returner():
                 # Values are supposed to be always present here:
                 response['to'] = x['dst']
                 response['from'] = x['src']
-                if 'subject' in x:
-                    response.addElement('subject', content=x['subject'])
-                response.addElement('body', content=x['body'])
-                if 'html' in x:
-                    htmlbody = domish.Element(('http://www.w3.org/1999/xhtml', 'body'))
-                    htmlbody.addRawXml(x['html'])
-                    response.addChild(domish.Element(
-                      ('http://jabber.org/protocol/xhtml-im', 
-                      'html')).addChild(htmlbody))
-                # ? Should also be able to add <html><body> ... part.
+                if 'content' in x:
+                    # We're provided with raw content already.
+                    response.addRawXml(x['content'])
+                else:  # Construct it then.
+                    # ! this all might be not really necessary.
+                    if 'subject' in x:
+                        response.addElement('subject', content=x['subject'])
+                    # Body content is xml-escaped - likely, more than needed.
+                    response.addElement('body', content=x['body'])
+                    if 'html' in x:
+                        htmlbody = domish.Element(
+                          ('http://www.w3.org/1999/xhtml', 'body'))
+                        htmlbody.addRawXml(x['html'])
+                        htmlpart = domish.Element(
+                          ('http://jabber.org/protocol/xhtml-im', 'html'))
+                        htmlpart.addChild(htmlbody)
+                        response.addChild(htmlpart)
                 msgHandler.send(response)
             except ValueError:
                 server.log.err(" E: Failed processing: %r" % dataline)

@@ -51,15 +51,13 @@ class XmppResponse(dict):
     def __init__(self, html=None, body=None, src=None, dst=None, id=None):
         # Current default is to create XHTML-message and construct plaintext
         # message from it.
-        self['html'] = html
-        if body == None:
-            # ?? Have to do something else?
-            self['body'] = django.utils.encoding.force_unicode(
-              django.utils.html.strip_tags(html)).replace(
-                '&amp;', '&').replace('&lt;', '<').replace(
-                  '&gt;', '>').replace('&quot;', '"').replace('&#39;', "'")
-        else:
+        if html is not None:
+            self.setxhtml(html)
+            # ! Don't usually allow to set both body and html like that.
+        elif body is not None:
             self['body'] = body
+        else:
+            self['body'] = '(something went wrong?)'
         # ! Source address to use has to be in XMPP server's domain, at
         # least.  Should usually be created from request message's
         # destination or some default value.
@@ -71,12 +69,39 @@ class XmppResponse(dict):
         # ! Id doesn't seem to change much, but might happen to be
         # necessary.
         self['id'] = id
+        
+    def setxhtml(self, html):
+        self['html'] = html
+        # Body is set forcibly for ess possible confusion. Although, some
+        # alteration (warning, for example) is possible here.
+        # Note: in Psi, non-XHTML body is used in displayed notifications.
+        # ? Add warning message to the end?
+        # Remove formatting. Also, it should be XML-compatible.
+        self['body'] = django.utils.encoding.force_unicode(
+          django.utils.html.strip_tags(html))
 
     def __str__(self):
         """
-        Serializes itself into simplejson string.
+        Serializes itself into string.
         """
-        return simplejson.dumps(self)  # Should be string.
+        # For optimization, some XML serialization happens here.
+        # Parse self, hah.
+        selfrepr = {}
+        content = ''
+        for key, value in self.iteritems():
+            if key == 'html':
+                content = content + "<html xmlns='"\
+                  "http://jabber.org/protocol/xhtml-im'><body "\
+                  "xmlns='http://www.w3.org/1999/xhtml'>" + value + \
+                  "</body></html>"
+            elif key == "body":
+                content = "<body>" + value + "</body>" + content
+            elif key == "subject":
+                content = "<subject>" + value + "</subject>" + content
+            else:
+                selfrepr[key] = value  # Handle everything else over there.
+        selfrepr['content'] = content
+        return simplejson.dumps(selfrepr)  # Should be string.
 
 
 def render_to_response(*args, **kwargs):

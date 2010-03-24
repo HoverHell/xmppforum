@@ -5,15 +5,12 @@ setup_environ(settings)
 # outqueue
 outqueueaddr = settings.SOCKET_ADDRESS
 import socket
-import simplejson  # ! Doubtfully it should happen here!
 
 import snapboard.xmppface
-
-# gets worse
-reload(snapboard.xmppface)
+reload(snapboard.xmppface)  # Support deep reloading...
 
 from multiprocessing import current_process
-import sys
+from sys import stderr
 
 
 def worker(inqueue):
@@ -32,5 +29,5 @@ def worker(inqueue):
             return
         result = snapboard.xmppface.processcmd(**z)
         # We expect it to be a dict with specific fields.
-        sys.stderr.write("\nResult type %r: %r." % (type(result), result))
-        outqueue.send(simplejson.dumps(result))
+        stderr.write("\nResult type %r: %r." % (type(result), result))
+        outqueue.send(str(result))  # It decides itself on how to be dumped.
