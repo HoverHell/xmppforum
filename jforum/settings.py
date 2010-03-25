@@ -47,7 +47,8 @@ MEDIA_ROOT = ''
 
 # URL that handles the media served from MEDIA_ROOT.
 # Example: "http://media.lawrence.com"
-MEDIA_URL = '/media/'
+# Full URI required for XMPP images to have any chances of working.
+MEDIA_URL = 'http://hell.orts.ru:8004/media/'
 
 # URL prefix for admin media -- CSS, JavaScript and images. Make sure to use a
 # trailing slash.
@@ -98,7 +99,7 @@ TEMPLATE_DIRS = (
     # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
     # Always use forward slashes, even on Windows.
     # Don't forget to use absolute paths, not relative paths.
-    "/opt/jfu/sys/lib/python2.5/site-packages/sbextras/registration/templates",
+    #"/opt/jfu/sys/lib/python2.5/site-packages/sbextras/registration/templates",
 )
 
 use_mailer = False

@@ -63,6 +63,7 @@ def returner():
         for dataline in indata.split("\n"):
             try:
                 x = simplejson.loads(dataline)
+                server.log.err(" D: Got JSON of length %d" % len(dataline))
                 # Create and send a response.
                 response = domish.Element((None, 'message'))
                 response['type'] = 'chat'

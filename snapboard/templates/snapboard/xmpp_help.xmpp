@@ -1,4 +1,4 @@
-# — show 20 posts
-# <N> <M> — show N posts starting with M
-#1234 — show thread 1234
-HELP — this help message
+<strong>#</strong> — show ast 20 threads<br />
+<strong># &lt;N&gt; &lt;M&gt;</strong> — show N threads starting with M<br />
+<strong>#1234</strong> — show thread 1234<br />
+<strong>HELP</strong> — this help message

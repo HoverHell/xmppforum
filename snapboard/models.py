@@ -440,8 +440,22 @@ class UserSettings(models.Model):
             default = 20,
             help_text = _('Threads per page'), verbose_name=_('threads per page'))
     jid = models.EmailField(
-            unique = True,
+            unique = True, blank = True,
             help_text = _('Jabber ID'), verbose_name=_('jid'))
+    disable_xmpp_xhtml = models.BooleanField(
+            default = False,
+            help_text = _('Do not send XHTML subpart (formatted message)'),
+            verbose_name = _("disable xhtml formatting"))
+    #skip_xmpp_body = models.BooleanField(
+    #        default = False,
+    #        help_text = _('Do not send non-XHTML body '\
+    #        '(fallback/unformatted). Do not set this with previous '\
+    #        'setting together'),
+    #        verbose_name = _("disable non-xhtml body"))
+    disable_xmpp_images = models.BooleanField(
+            default = True,  # Not much clients support them properly
+            help_text = _("Do not send XHTML img tags."),
+            verbose_name = _("disable xhtml images"))
 #    notify_email = models.BooleanField(default=False, blank=True,
 #            help_text = "Email notifications for watched discussions.", verbose_name=_('notify'))
     reverse_posts = models.BooleanField(
