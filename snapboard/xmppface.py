@@ -27,6 +27,22 @@ import traceback
 import re
 lastnewlinere = re.compile("\n+$")
 
+def process_post_kwargs(request, kwargs):
+    """
+    Retreives all 'POST_' keys from kwargs and adds them to the request's
+    POST data. Returns tuple of (request, kwargs) modifying actual request.
+    """
+    newkwargs={}
+    if request.POST is None:
+        request.POST = {}
+    for key, value in kwargs.iteritems():
+        if key.startswith('POST_'):
+            request.POST[key] = value
+        else:
+            newkwargs[key] = value
+    return (request, newkwargs)
+        
+
 def processcmd(src, dst, cmd, ext=None):
     """
     Gets a source jid and command text and returns XmppResponse.
@@ -42,7 +58,10 @@ def processcmd(src, dst, cmd, ext=None):
         # ! State-changing might be required, e.g. for multi-part commands.
         #sys.stderr.write("\nD: resolving...")
         callback, callback_args, callback_kwargs = cmdresolver.resolve(cmd)
-        # Populate request.POST from cmd? Or modify views instead?
+        
+        # Populate request.POST from cmd
+        request, callback_kwargs = process_post_kwargs(request,
+          callback_kwargs)
 
         sys.stderr.write("\nD: callback: %r; args: %r; kwargs: %r\n" % \
           (callback, callback_args, callback_kwargs))

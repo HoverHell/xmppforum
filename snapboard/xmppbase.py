@@ -77,20 +77,15 @@ class XmppResponse(dict):
 
     def setuser(self, user):
         # Defaults here apply to AnonymousUsers, in particular.
+        from views import get_user_settings  # ! ...
         self.user = user
-        self.u_disable_xmpp_xhtml = False
-        self.u_disable_xmpp_images = True
-        if hasattr(user, "sb_usersettings"):
-            self.u_disable_xmpp_xhtml = \
-              user.sb_usersettings.disable_xmpp_xhtml
-            self.u_disable_xmpp_images = \
-              user.sb_usersettings.disable_xmpp_images
+        self.usersettings = get_user_settings(user)
         
     def setxhtml(self, html):
         # Usersettings are considered here
         # ! Note that changing user afterwards wouldn't change this.
-        if not(self.u_disable_xmpp_xhtml):
-            if (self.u_disable_xmpp_images):
+        if not(self.usersettings.disable_xmpp_xhtml):
+            if (self.usersettings.disable_xmpp_images):
                 self['html'] = self.imgfix(html)
             else:
                 self['html'] = html
@@ -174,11 +169,11 @@ def render_to_response(*args, **kwargs):
     except:
         request = None
         IsXmpp = False
-    if IsXmpp:
+    if IsXmpp:  # Return some XmppResponse with rendered template.
         args = (args[0] + '.xmpp',) + args[1:]  # Fix template name.
-        # Return some XmppResponse with rendered template.
-        return XmppResponse(django.template.loader.render_to_string(*args, **kwargs), user=request.user)
-    else:
-        # Not Xmpp. Not our business.
+        return XmppResponse(
+          django.template.loader.render_to_string(*args, **kwargs), 
+          user=request.user)
+    else:  # Not Xmpp. Not our business.
         args = (args[0] + '.html',) + args[1:]  # ...
         return render_to_response_orig(*args, **kwargs)

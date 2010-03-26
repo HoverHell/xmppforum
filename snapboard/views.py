@@ -310,8 +310,8 @@ def thread_index(request, num_limit=None, num_start=None):
     else:
         thread_list = Thread.view_manager.get_query_set()
     thread_list = filter(lambda t: t.category.can_view(request.user), thread_list)
-    if isinstance(request, XmppRequest):
-        # Apply Xmpp-specific limits
+    # ! This should be common with few more views, probably.
+    if isinstance(request, XmppRequest):  # Apply Xmpp-specific limits
         # ? int() failure would mean programming error... or not?
         num_start=int(num_start or 1)-1 # Starting from humanized '1'.
         num_limit=int(num_limit or 20)
