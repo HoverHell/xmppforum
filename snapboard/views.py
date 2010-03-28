@@ -20,7 +20,8 @@ from avatar.models import Avatar, avatar_file_path
 from avatar.forms import PrimaryAvatarForm, DeleteAvatarForm
 
 # XmppFace
-from xmppbase import XmppRequest, XmppResponse, render_to_response
+from xmppbase import XmppRequest, XmppResponse
+from xmppbase import render_to_response, success_or_reverse_redirect
 
 try:
     from notification import models as notification
@@ -163,7 +164,8 @@ def thread(request, thread_id):
                 postobj.is_private = True
                 postobj.save()
             postobj.notify()
-            return HttpResponseRedirect(reverse('snapboard_locate_post', args=(postobj.id,)))
+            return success_or_reverse_redirect('snapboard_locate_post',
+              args=(postobj.id,), req=request, msg="Posted successfully.")
     else:
         postform = PostForm()
 
@@ -218,10 +220,11 @@ def edit_post(request, original, next=None):
     else:
         div_id_num = orig_post.id
 
-    try:
+    try:  # Shouldn't ever succeed with XmppRequest.
         next = request.POST['next'].split('#')[0] + '#snap_post' + str(div_id_num)
     except KeyError:
-        next = reverse('snapboard_locate_post', args=(orig_post.id,))
+        return success_or_reverse_redirect('snapboard_locate_post',
+          args=(orig_post.id,), req=request, msg="Message updated.")
 
     return HttpResponseRedirect(next)
 
@@ -253,8 +256,9 @@ def new_thread(request, cat_id):
                     )
             post.save()
 
-            # redirect to new thread
-            return HttpResponseRedirect(reverse('snapboard_thread', args=(thread.id,)))
+            # redirect to new thread / return success message
+            return success_or_reverse_redirect('snapboard_thread',
+              args=(thread.id,), req=request, msg="Thread created.")
     else:
         threadform = ThreadForm()
 
@@ -392,7 +396,7 @@ def edit_settings(request):
                 avatar.save()
                 request.user.message_set.create(
                     message=_("Successfully uploaded a new avatar."))
-                return HttpResponseRedirect(request.path)  # Send to update page.
+                return HttpResponseRedirect(request.path)  # (reload)
             elif 'choice' in request.POST \
               and primary_avatar_form.is_valid():  # Selection / deletion form.
                 avatar = Avatar.objects.get(id=
@@ -407,7 +411,7 @@ def edit_settings(request):
                     avatar.delete()
                     request.user.message_set.create(
                       message=_("Deletion successful."))
-                    return HttpResponseRedirect(request.path)  # Go update page.
+                    return HttpResponseRedirect(request.path)  # (reload)
     # ! Create what was not created
     settings_form = settings_form or UserSettingsForm(None,
       instance=userdata, user=request.user)

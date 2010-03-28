@@ -8,6 +8,11 @@ that.
 
 import django
 from django.shortcuts import render_to_response as render_to_response_orig
+
+# For success_or_reverse_redirect:
+from django.core.urlresolvers import reverse
+from django.http import HttpResponseRedirect
+
 # User class is customized, so not importing it from django itself.
 from models import User
 import re  # Stripping XHTML images.
@@ -177,3 +182,13 @@ def render_to_response(*args, **kwargs):
     else:  # Not Xmpp. Not our business.
         args = (args[0] + '.html',) + args[1:]  # ...
         return render_to_response_orig(*args, **kwargs)
+
+
+def success_or_reverse_redirect(*args, **kwargs):
+    # Remove reverse()-irrelevant parts of kwargs:
+    req = kwargs.pop("req")  # Should always be present, actually.
+    msg = kwargs.pop("msg", "Success.")
+    if isinstance(request, XmppRequest):
+        return XmppResponse(msg)
+    else:  # HTTP / redirect to reverse of view.
+        return HttpResponseRedirect(reverse(*args, **kwargs))
