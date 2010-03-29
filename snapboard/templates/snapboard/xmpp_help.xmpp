@@ -1,4 +1,6 @@
 <strong>#</strong> — show ast 20 threads<br />
 <strong># &lt;N&gt; &lt;M&gt;</strong> — show N threads starting with M<br />
 <strong>#1234</strong> — show thread 1234<br />
+<strong>#c7</strong> — show threads in category 7<br />
+<strong>#c9 Subj</strong> — create new thread in category 9 with subject "Subj" and remaining message as content<br />
 <strong>HELP</strong> — this help message

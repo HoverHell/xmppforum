@@ -251,7 +251,7 @@ class MessageHandler(xmppim.MessageProtocol):
         try:
             src = message.getAttribute('from')
             dst = message.getAttribute('to')
-            cmd = message.body
+            cmd = message.body.children[0]  # ! Not really clear on this.
             id = message.getAttribute('id')
             name = message.name
             # Might it be not 'message'?

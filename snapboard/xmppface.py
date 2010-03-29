@@ -37,7 +37,7 @@ def process_post_kwargs(request, kwargs):
         request.POST = {}
     for key, value in kwargs.iteritems():
         if key.startswith('POST_'):
-            request.POST[key] = value
+            request.POST[key[5:]] = value
         else:
             newkwargs[key] = value
     return (request, newkwargs)
@@ -51,9 +51,10 @@ def processcmd(src, dst, cmd, ext=None):
     # src may contain a resource.
     srcbarejid = src.split("/")[0]
     request = XmppRequest(srcbarejid)
-    cmd = str(cmd)  # Make sure it's a string.
-    # ! Also, it might be multiline.
-    sys.stderr.write("\nD: cmdstr: cmd: %r\n" % (cmd))
+    
+    # ! cmd should always be an unicode string here. If not - should change
+    # ! processcmd's callers.
+    #sys.stderr.write("\nD: cmdstr: cmd: %r\n" % (cmd))
     try:
         # ! State-changing might be required, e.g. for multi-part commands.
         #sys.stderr.write("\nD: resolving...")
@@ -63,8 +64,9 @@ def processcmd(src, dst, cmd, ext=None):
         request, callback_kwargs = process_post_kwargs(request,
           callback_kwargs)
 
-        sys.stderr.write("\nD: callback: %r; args: %r; kwargs: %r\n" % \
-          (callback, callback_args, callback_kwargs))
+        sys.stderr.write(("\nD: callback: %r; args: %r; kwargs: %r; "+\
+          " post: %r\n") % \
+          (callback, callback_args, callback_kwargs, request.POST))
 
         # ...Also, middleware? it's not likely to support XmppResponse though.
 
@@ -85,8 +87,9 @@ def processcmd(src, dst, cmd, ext=None):
 
             # ? Not sure what would it take to make 404-message view-specific.
             # (ex.: "Thread not found")
-            response = XmppResponse(_("Not found."))
-
+            response = XmppResponse(_("404 Not found."))
+        except django.core.exceptions.PermissionDenied, e:
+            response = XmppResponse(_("Access Denied."))
         except Exception, e:
             response = XmppResponse(_("Sorry, something went wrong!\n" \
               "Don't worry, admins weren't notified!"))

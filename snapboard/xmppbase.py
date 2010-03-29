@@ -81,10 +81,9 @@ class XmppResponse(dict):
         self['id'] = id
 
     def setuser(self, user):
-        # Defaults here apply to AnonymousUsers, in particular.
-        from views import get_user_settings  # ! ...
-        self.user = user
-        self.usersettings = get_user_settings(user)
+        from views import get_user_settings  # beware of cyclic imports
+        self.user = user or django.contrib.auth.models.AnonymousUser()
+        self.usersettings = get_user_settings(self.user)
         
     def setxhtml(self, html):
         # Usersettings are considered here
@@ -188,7 +187,7 @@ def success_or_reverse_redirect(*args, **kwargs):
     # Remove reverse()-irrelevant parts of kwargs:
     req = kwargs.pop("req")  # Should always be present, actually.
     msg = kwargs.pop("msg", "Success.")
-    if isinstance(request, XmppRequest):
+    if isinstance(req, XmppRequest):
         return XmppResponse(msg)
     else:  # HTTP / redirect to reverse of view.
         return HttpResponseRedirect(reverse(*args, **kwargs))
