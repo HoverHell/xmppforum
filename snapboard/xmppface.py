@@ -99,12 +99,12 @@ def processcmd(src, dst, cmd, ext=None):
     except django.http.Http404, e:
         # Http404 from resolver.
         response = XmppResponse(_("No such command. Try 'HELP', maybe?"))
-    # Fix possible extraneous newlines.
+    # ! Fix possible extraneous newlines. ! shouldn't be done here, probably.
     response['body'] = lastnewlinere.sub(u'', response['body'])
     # Return back with exactly the same full JIDs.
     response['src'] = dst
     response['dst'] = src
-    response['subject'] = "Jaboard: XMPP"
+    #response['subject'] = "Jaboard: XMPP"
     # ! May populate other values from a possible 'ext' here.
     return response
 

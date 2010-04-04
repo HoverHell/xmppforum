@@ -23,8 +23,9 @@ else:
     urlpatterns += patterns('',
         # As long as we don't include django-notification's urlconf, we must define the URL for 
         # 'notification_notices' ourselves because of notification/models.py:251.
-        (r'^notices/', 'django.views.generic.simple.redirect_to', {'url': '/snapboard/'}, 'notification_notices'),
-#       (r'^notices/', include('notification.urls')),
+        #(r'^notices/', 'django.views.generic.simple.redirect_to', 
+        #  {'url': '/snapboard/'}, 'notification_notices'),
+        (r'^notices/', include('notification.urls')),
     )
 
 if settings.DEBUG:

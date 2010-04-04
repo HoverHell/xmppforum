@@ -21,13 +21,9 @@ def load_template_source(template_name, template_dirs=None):
     try:
         if template_name.endswith(".ptf"):
             # Really not neat hack. Avoid recursion...
-            raise TemplateDoesNotExist, "not me!"
-        sys.stderr.write("ptftemplateloader: loading %r\n" % template_name +
-          " ...from %r\n" % template_dirs)
+            raise TemplateDoesNotExist, "Already ptf requested."
         s, f = find_template_source(template_name+".ptf", template_dirs)
-        sys.stderr.write("Loaded successfully.\n")
     except Exception, e:
-        sys.stderr.write("Failure: %s\n" % e)
         raise TemplateDoesNotExist, str(e)
     return (spacere.sub(u'', newlinere.sub(u'', s)), f)
 load_template_source.is_usable = True

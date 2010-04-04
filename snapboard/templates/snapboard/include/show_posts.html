@@ -45,6 +45,8 @@
                 </span>
                 {% endif %}
             </span>
+            
+            {{ page_obj.start_index|add:forloop.counter|add:-1 }}
 
             <span class="avatar">
                 {% avatar post.user %}

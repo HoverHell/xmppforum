@@ -10,10 +10,7 @@ from django.db.models import signals, Q
 from django.dispatch import dispatcher
 from django.utils.translation import ugettext_lazy as _
 
-try:
-    from notification import models as notification
-except ImportError:
-    notification = None
+from xmppbase import send_notifications
 
 from snapboard import managers
 from snapboard.middleware import threadlocals
@@ -125,10 +122,8 @@ class Invitation(models.Model):
         '''
         Notifies of new invitations.
         '''
-        if not notification:
-            return
         if instance.accepted is None:
-            notification.send(
+            send_notifications(
                 [instance.sent_to],
                 'group_invitation_received',
                 {'invitation': instance})
@@ -138,10 +133,8 @@ class Invitation(models.Model):
         '''
         Notifies of cancelled invitations.
         '''
-        if not notification:
-            return
         if instance.accepted is None:
-            notification.send(
+            send_notifications(
                 [instance.sent_to],
                 'group_invitation_cancelled',
                 {'invitation': instance})
@@ -353,14 +346,12 @@ class Post(models.Model):
         super(Post, self).save(False, False)
 
     def notify(self, **kwargs):
-        if not notification:
-            return
         if not self.previous:
             all_recipients = set()
             if self.is_private:
                 recipients = set(self.private.all())
                 if recipients:
-                    notification.send(
+                    send_notifications(
                         recipients,
                         'private_post_received',
                         {'post': self}
@@ -368,7 +359,7 @@ class Post(models.Model):
                     all_recipients = all_recipients.union(recipients)
             recipients = set((wl.user for wl in WatchList.objects.filter(thread=self.thread) if wl.user not in all_recipients))
             if recipients:
-                notification.send(
+                send_notifications(
                     recipients,
                     'new_post_in_watched_thread',
                     {'post': self}

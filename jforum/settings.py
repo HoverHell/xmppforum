@@ -110,12 +110,13 @@ except ImportError:
     print 'django-notification not found: email notifications to users will not be available'
 else:
     use_notification = True
-    try:
-        import mailer
-    except ImportError:
-        pass
-    else:
-        use_mailer = True
+    # ! Mail message queueing doesn't look good.
+    #try:
+    #    import mailer
+    #except ImportError:
+    #    pass
+    #else:
+    #    use_mailer = True
 
 INSTALLED_APPS = (
     'django.contrib.admin',
@@ -126,7 +127,6 @@ INSTALLED_APPS = (
     'django.contrib.sites',
     'pagination',
     'notification',
-    'mailer',
     'registration',
     'avatar',
     'snapboard',

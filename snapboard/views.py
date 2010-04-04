@@ -373,7 +373,7 @@ def edit_settings(request):
         kwargs = {'initial': {'choice': avatar.id}}
     else:
         avatar = None
-        kwargs = {} 
+        kwargs = {}
     settings_form = None
     primary_avatar_form = None
     # ! Actually, the avatars code was mostly copied from avatar/views.py
@@ -415,8 +415,10 @@ def edit_settings(request):
     # ! Create what was not created
     settings_form = settings_form or UserSettingsForm(None,
       instance=userdata, user=request.user)
+    #primary_avatar_form = primary_avatar_form or PrimaryAvatarForm(None,
+    #  user=request.user, **kwargs)
     primary_avatar_form = primary_avatar_form or PrimaryAvatarForm(None,
-      user=request.user, **kwargs)
+      user=request.user, avatars=avatars, **kwargs)
     return render_to_response(
             'snapboard/edit_settings',
             {'settings_form': settings_form,

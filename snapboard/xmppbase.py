@@ -7,11 +7,30 @@ that.
 """
 
 import django
+
+# For send_xmpp_message
+from django.conf import settings
+# ! AF_UNIX socket is currently used.
+XMPPOUTQUEUEADDR = getattr(settings, 'SOCKET_ADDRESS', 'xmppoutqueue')
+import socket
+xmppoutqueue = socket.socket(socket.AF_UNIX, socket.SOCK_DGRAM)
+# Also, only one connection call. Might be insufficiently reliable.
+xmppoutqueue.connect(XMPPOUTQUEUEADDR)
+        
+
+# For render_to_response wrapper
 from django.shortcuts import render_to_response as render_to_response_orig
 
-# For success_or_reverse_redirect:
+# For success_or_reverse_redirect
 from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect
+
+# For notification sending wrapper
+try:
+    from notification import models as notification
+except ImportError:
+    notification = None
+
 
 # User class is customized, so not importing it from django itself.
 from models import User
@@ -131,7 +150,9 @@ class XmppResponse(dict):
                 return result
             else:  # No src? Not a proper image (or a closing tag)
                 return ''
-        return img_tag_re.sub(lambda x: img_repr(x.groups()[0]), htmlsource);
+        #return img_tag_re.sub(lambda x: img_repr(x.groups()[0]), htmlsource);
+        # !! More simple version - for now.
+        return img_tag_re.sub(u"[img]", htmlsource);
         #  Yeah, couldn't figure out how to do all that with one regexp.
 
     def __str__(self):
@@ -157,6 +178,14 @@ class XmppResponse(dict):
         selfrepr['content'] = content
         return simplejson.dumps(selfrepr)  # Should be string.
 
+def send_xmpp_message(msg):
+    """
+    Common function to send a XMPP message through running XMPP connection
+    provider. Should generally be called with XmppResponse argument with all
+    necessary fields set.
+    """
+    # It uses global pre-initialized xmppoutqueue connection.
+    xmppoutqueue.send(str(msg))  # It decides itself on how to be dumped.
 
 def render_to_response(*args, **kwargs):
     """
@@ -170,7 +199,7 @@ def render_to_response(*args, **kwargs):
     try:
         request = kwargs['context_instance']['request']
         IsXmpp = isinstance(request, XmppRequest)
-    except:
+    except:  # Something is not right, but it's probably not XMPP anyway.
         request = None
         IsXmpp = False
     if IsXmpp:  # Return some XmppResponse with rendered template.
@@ -191,3 +220,87 @@ def success_or_reverse_redirect(*args, **kwargs):
         return XmppResponse(msg)
     else:  # HTTP / redirect to reverse of view.
         return HttpResponseRedirect(reverse(*args, **kwargs))
+
+
+def send_notifications(users, label, extra_context=None, on_site=True,
+  **etckwargs):
+    if not notification:
+        return
+    from notification.models import Notice, NoticeType, Site, get_language,\
+      get_notification_language, activate, get_formatted_messages, \
+      should_send, send_mail, LanguageStoreNotAvailable, Context, ugettext
+    
+    remaining_users = []
+    print(" D: Notifier: users: %r" % users)
+    # ! Note: queueing is disregarded for XMPP notifications.
+    # !!! Most of this is copied from send_now
+    if extra_context is None:
+        extra_context = {}
+
+    notice_type = NoticeType.objects.get(label=label)
+
+    current_site = Site.objects.get_current()
+    notices_url = u"http://%s%s" % (
+        unicode(current_site),
+        reverse("notification_notices"),
+    )
+
+    current_language = get_language()
+
+    for user in users:
+        
+        jid = None
+        try:
+            jid = user.sb_usersettings.jid
+        except:
+            pass
+        if not jid: # Not jid available. Leave him to usual notification.
+            remaining_users.append(user)
+            continue  # ! What if it's not XMPP-related notification at all?
+        # !!! Also, should check if user is authorized in XMPP and (maybe)
+        # !!! is online (which may better be configurable).
+        
+        # get user language for user from language store defined in
+        # NOTIFICATION_LANGUAGE_MODULE setting
+        try:
+            language = get_notification_language(user)
+        except LanguageStoreNotAvailable:
+            language = None
+        if language is not None:
+            # activate the user's language
+            activate(language)
+
+        # update context with user specific translations
+        context = Context({
+            "user": user,
+            "notice": ugettext(notice_type.display),
+            "notices_url": notices_url,
+            "current_site": current_site,
+        })
+        context.update(extra_context)
+
+        # Strip newlines from subject
+        #subject = ''.join(render_to_string('notification/email_subject.txt', {
+        #    'message': messages['short.txt'],
+        #}, context).splitlines())
+        body = django.template.loader.render_to_string(
+          'notification/%s/xmpp.html'%label,
+          context_instance=context)
+
+        #notice = Notice.objects.create(user=user, message=messages['notice.html'],
+        #    notice_type=notice_type, on_site=on_site)
+        #if should_send(user, notice_type, "1") and user.email: # Email
+        #    recipients.append(user.email)
+        # !!!
+        noticemsg = XmppResponse(body, src="bot@bot.hell.orts.ru", dst=jid,
+          user=user)
+        send_xmpp_message(noticemsg)
+
+    # reset environment to original language
+    activate(current_language)
+
+    print(" D: Notifier: remaining users: %r" % remaining_users)
+    
+    # Send remaining (non-XMPP) notifications.
+    notification.send(remaining_users, label, extra_context, on_site,
+      **etckwargs)

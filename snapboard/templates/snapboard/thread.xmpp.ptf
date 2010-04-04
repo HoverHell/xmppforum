@@ -32,6 +32,5 @@
 
     {%br%}
     
-    {% avatar post.user %}
     {{ post.text|striptags|render_post|safe }}
 {% endfor %}
