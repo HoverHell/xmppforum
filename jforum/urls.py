@@ -34,7 +34,12 @@ if settings.DEBUG:
     )
 
 ## Registration:
+import snapboard.forms
+#import registration.views
 urlpatterns += patterns('',
+    (r'^accounts/register/$', 'registration.views.register', 
+      {"form_class": snapboard.forms.RegistrationFormEmailFree},
+      'registration_register'),  # ! Maybe should be in snapboard.urls
     (r'^accounts/', include('registration.urls')),
 )
 
