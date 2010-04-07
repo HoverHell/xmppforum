@@ -31,9 +31,6 @@ try:
 except ImportError:
     notification = None
 
-
-# User class is customized, so not importing it from django itself.
-from models import User
 import re  # Stripping XHTML images.
 
 import sys
@@ -54,6 +51,8 @@ class XmppRequest(object):
         # This isn't really meant for anything yet.
         self.srcjid = srcjid
         # "Authentication":
+        # User class is customized, so not importing it from django itself.
+        from models import User  # Also, avoiding circular imports.
         try:
             self.user = User.objects.get(sb_usersettings__jid__exact=srcjid)
         except User.DoesNotExist:
@@ -220,7 +219,6 @@ def success_or_reverse_redirect(*args, **kwargs):
         return XmppResponse(msg)
     else:  # HTTP / redirect to reverse of view.
         return HttpResponseRedirect(reverse(*args, **kwargs))
-
 
 def send_notifications(users, label, extra_context=None, on_site=True,
   **etckwargs):

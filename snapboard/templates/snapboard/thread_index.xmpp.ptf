@@ -23,11 +23,12 @@
             <em>{%ws%}{% trans "CLOSED" %}</em>
         {% endif %}
         
-        {% br %}
-        
-        <strong>#c{{ thread.category.id }}</strong>
-        {%ws%}<a href="{% url snapboard_category_thread_index thread.category.id %}">
-           {{ thread.category }}</a>
+        {% block thread_category_optional %}
+            {% br %}
+            <strong>#c{{ thread.category.id }}</strong>
+            {%ws%}<a href="{% url snapboard_category_thread_index
+              thread.category.id %}">{{ thread.category }}</a>
+        {% endblock %}
         
         {% if not forloop.last %}{% br %} {% br %}{% endif %}
     {% endfor %}

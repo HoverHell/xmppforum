@@ -26,35 +26,38 @@ NWORKERS = 2
 SOCKET_ADDRESS = 'xmppoutqueue'
 
 
+
 ## External: xmppworkerpool
+import socket  # outqueue.
+import os  # For screwing with the socket file
+import simplejson  # Decoding of IPC data.
+
+# Socket init happens here.
+try:
+    # It's /probably/ unused.
+    # ! Should check that, actually.
+    os.remove(SOCKET_ADDRESS)
+except:
+    pass  # We don't care.
+outqueue = socket.socket(socket.AF_UNIX, socket.SOCK_DGRAM)
+outqueue.bind(SOCKET_ADDRESS)
+try:
+    # Should prefer more secure mode when possible.
+    os.chmod(fname, 0770)
+except:
+    server.log.err(" W: Could not chmod socket file.\n")
+
 from multiprocessing import Process, Queue, active_children, current_process
 from thread import start_new_thread
 import traceback  # Debug on exceptions.
 import signal  # Sigint handler.
 import time  # Old processes killing timeout.
 
-import socket  # outqueue.
-import os  # For screwing with the socket file
-import simplejson  # Decoding of IPC data.
 
 import xmppworker
 
 
 def returner():
-    # Socket init happens here.
-    try:
-        # It's /probably/ unused.
-        # ! Should check that, actually.
-        os.remove(SOCKET_ADDRESS)
-    except:
-        pass  # We don't care.
-    outqueue = socket.socket(socket.AF_UNIX, socket.SOCK_DGRAM)
-    outqueue.bind(SOCKET_ADDRESS)
-    try:
-        # Should prefer more secure mode when possible.
-        os.chmod(fname, 0770)
-    except:
-        server.log.err(" W: Could not chmod socket file.\n")
     while True:
         indata = outqueue.recv(65535)  # ! We have a limit here
         server.log.err(" D: Outqueue data: %r.\n" % indata)

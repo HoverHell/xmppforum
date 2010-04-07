@@ -303,7 +303,7 @@ def category_thread_index(request, cat_id):
         render_dict = ({'title': ''.join((_("Category: "), cat.label)), 'category': cat, 'threads': thread_list})
     except Category.DoesNotExist:
         raise Http404
-    return render_to_response('snapboard/thread_index',
+    return render_to_response('snapboard/thread_index_categoryless',
             render_dict,
             context_instance=RequestContext(request, processors=extra_processors))
 

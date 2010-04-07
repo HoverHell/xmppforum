@@ -41,12 +41,14 @@
                 {% trans "by" %} {{ thread.last_poster }}
                 {% endifnotequal %}
             </span>
+            {% block thread_category_optional %}
             <span style="color: #888; padding-left: 2em; font-size:small;">
                 {% trans "category" %}:
                 <a href="{% url snapboard_category_thread_index thread.category.id %}">
                     {{ thread.category }}
                 </a>
             </span>
+            {% endblock %}
         </div>
         {% endfor %}
         {% paginate %}{# XXX It's inefficient calling that twice for the same result #}

@@ -1,0 +1,1 @@
+{% extends "snapboard/thread_index.xmpp" %}{% block thread_category_optional %}{% endblock %}
