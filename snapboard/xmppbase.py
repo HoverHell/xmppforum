@@ -8,6 +8,8 @@ that.
 
 import django
 
+import sys
+
 # For send_xmpp_message
 from django.conf import settings
 # ! AF_UNIX socket is currently used.
@@ -15,8 +17,10 @@ XMPPOUTQUEUEADDR = getattr(settings, 'SOCKET_ADDRESS', 'xmppoutqueue')
 import socket
 xmppoutqueue = socket.socket(socket.AF_UNIX, socket.SOCK_DGRAM)
 # Also, only one connection call. Might be insufficiently reliable.
-xmppoutqueue.connect(XMPPOUTQUEUEADDR)
-        
+try:
+    xmppoutqueue.connect(XMPPOUTQUEUEADDR)
+except:
+    sys.stderr.write(" ERROR: could not connect to xmppoutqueue!\n")
 
 # For render_to_response wrapper
 from django.shortcuts import render_to_response as render_to_response_orig
@@ -27,13 +31,13 @@ from django.http import HttpResponseRedirect
 
 # For notification sending wrapper
 try:
+    from notification.models import send as notification_send_orig
     from notification import models as notification
 except ImportError:
     notification = None
 
 import re  # Stripping XHTML images.
 
-import sys
 
 import simplejson  # For serialization of XmppResponse
 
@@ -53,6 +57,7 @@ class XmppRequest(object):
         # "Authentication":
         # User class is customized, so not importing it from django itself.
         from models import User  # Also, avoiding circular imports.
+        # ! Maybe it should be done in xmppface?
         try:
             self.user = User.objects.get(sb_usersettings__jid__exact=srcjid)
         except User.DoesNotExist:
@@ -184,7 +189,12 @@ def send_xmpp_message(msg):
     necessary fields set.
     """
     # It uses global pre-initialized xmppoutqueue connection.
-    xmppoutqueue.send(str(msg))  # It decides itself on how to be dumped.
+    try:
+        # msg decides itself on how to be dumped.
+        xmppoutqueue.send(str(msg))  
+    except:  # ! Should do more reliability increasing here.
+        sys.stderr.write(" ERROR: Could not write to xmppoutqueue!\n")
+        sys.stderr.write("    Message was: %s.\n" % str(msg))
 
 def render_to_response(*args, **kwargs):
     """
@@ -300,5 +310,7 @@ def send_notifications(users, label, extra_context=None, on_site=True,
     print(" D: Notifier: remaining users: %r" % remaining_users)
     
     # Send remaining (non-XMPP) notifications.
-    notification.send(remaining_users, label, extra_context, on_site,
+    notification_send_orig(remaining_users, label, extra_context, on_site,
       **etckwargs)
+if notification:  # ! Deeping the hax in.
+    notification.send = send_notifications

@@ -10,7 +10,7 @@ from django.db.models import signals, Q
 from django.dispatch import dispatcher
 from django.utils.translation import ugettext_lazy as _
 
-from xmppstuff import send_notifications
+from xmppbase import send_notifications
 
 from snapboard import managers
 from snapboard.middleware import threadlocals

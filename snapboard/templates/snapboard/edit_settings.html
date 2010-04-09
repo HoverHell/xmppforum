@@ -23,8 +23,8 @@
         </form>
     {% endif %}
     <form enctype="multipart/form-data" method="POST" action="">
-        <input type="file" name="avatar" value="Avatar Image" />
-        <input type="submit" name="avatarsubmit" value="Upload New Image" />
+        {{ upload_avatar_form.as_p }}
+        <p><input type="submit" name="avatarsubmit" value="Upload New Image" /></p>
     </form>
     </div>
     <div class="snapboard_settings">

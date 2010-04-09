@@ -15,18 +15,15 @@ from django.template import RequestContext
 from django.utils import simplejson
 from django.utils.translation import ugettext as _
 
-# Avatar form in UserSettings
-from avatar.models import Avatar, avatar_file_path
-from avatar.forms import PrimaryAvatarForm, DeleteAvatarForm
-
 # XmppFace
 from xmppbase import XmppRequest, XmppResponse
 from xmppbase import render_to_response, success_or_reverse_redirect
+from xmppbase import send_notifications
 
-try:
-    from notification import models as notification
-except ImportError:
-    notification = None
+# Avatar form in UserSettings
+from avatar.models import Avatar, avatar_file_path
+from avatar.forms import PrimaryAvatarForm, UploadAvatarForm
+from avatar.views import _get_avatars, _notification_updated
 
 from snapboard.forms import *
 from snapboard.models import *
@@ -54,7 +51,7 @@ RPC_ACTION_MAP = {
         "watch": rpc_watch,
         "quote": rpc_quote,
         }
-
+        
 def snapboard_default_context(request):
     """
     Provides some default information for all templates.
@@ -367,47 +364,56 @@ def edit_settings(request):
         userdata = UserSettings.objects.get(user=request.user)
     except UserSettings.DoesNotExist:
         userdata = UserSettings.objects.create(user=request.user)
-    avatars = Avatar.objects.filter(user=request.user).order_by('-primary')
-    if avatars.count() > 0:
-        avatar = avatars[0]
+    avatar, avatars = _get_avatars(request.user)
+    if avatar:
         kwargs = {'initial': {'choice': avatar.id}}
     else:
-        avatar = None
         kwargs = {}
-    settings_form = None
-    primary_avatar_form = None
+    settings_form, primary_avatar_form, upload_avatar_form = None, None, None
     # ! Actually, the avatars code was mostly copied from avatar/views.py
+    # ! Which is problematic if avatar module is updated
+    # ! but blends in much better.
     if request.method == 'POST':
         if 'updatesettings' in request.POST:  # Settings were edited.
             settings_form = UserSettingsForm(request.POST,
               instance=userdata, user=request.user)
             if settings_form.is_valid():
                 settings_form.save(commit=True)
-        else:  # Avatar business.
-            primary_avatar_form = PrimaryAvatarForm(request.POST or None,
-              user=request.user, **kwargs)  # The form is common to those.
-            if 'avatar' in request.FILES:  # New avatar upload submit.
-                # Also 'avatarsubmit' in request.POST is assumed.
-                path = avatar_file_path(user=request.user,
-                    filename=request.FILES['avatar'].name)
-                avatar = Avatar(user=request.user, primary=True,
-                  avatar=path, )
-                new_file = avatar.avatar.storage.save(path, request.FILES['avatar'])
+        elif 'avatar' in request.FILES:  # New avatar upload submitted.
+            # Also 'avatarsubmit' in request.POST is assumed.
+            upload_avatar_form = UploadAvatarForm(request.POST,
+              request.FILES, user=request.user)
+            if upload_avatar_form.is_valid():
+                avatar = Avatar(user = request.user, primary = True)
+                image_file = request.FILES['avatar']
+                avatar.avatar.save(image_file.name, image_file)
                 avatar.save()
                 request.user.message_set.create(
                     message=_("Successfully uploaded a new avatar."))
+                _notification_updated(request, avatar)
                 return HttpResponseRedirect(request.path)  # (reload)
-            elif 'choice' in request.POST \
-              and primary_avatar_form.is_valid():  # Selection / deletion form.
-                avatar = Avatar.objects.get(id=
-                    primary_avatar_form.cleaned_data['choice'])
+        elif 'choice' in request.POST:
+            primary_avatar_form = PrimaryAvatarForm(request.POST,
+              user=request.user, avatars=avatars, **kwargs)
+            if primary_avatar_form.is_valid():  # Selection / deletion form.
+                avatar = Avatar.objects.get(id=primary_avatar_form.cleaned_data['choice'])
                 if 'defaultavatar' in request.POST:  # "choose" was pressed
+                    # ! Maybe should check if it's the same avatar.
                     avatar.primary = True
                     avatar.save()
+                    _notification_updated(request, avatar)
                     request.user.message_set.create(
                       message=_("Successfully updated your avatar."))
                     # No need for redirect here, seemingly.
                 elif 'deleteavatar' in request.POST:  # "delete" was pressed
+                    if unicode(avatar.id) == id and avatars.count() > 1:
+                        # Find the next best avatar, and set it as the new primary
+                        for a in avatars:
+                            if unicode(a.id) != id:
+                                a.primary = True
+                                a.save()
+                                _notification_updated(request, a)
+                                break
                     avatar.delete()
                     request.user.message_set.create(
                       message=_("Deletion successful."))
@@ -415,13 +421,14 @@ def edit_settings(request):
     # ! Create what was not created
     settings_form = settings_form or UserSettingsForm(None,
       instance=userdata, user=request.user)
-    #primary_avatar_form = primary_avatar_form or PrimaryAvatarForm(None,
-    #  user=request.user, **kwargs)
+    upload_avatar_form = upload_avatar_form or UploadAvatarForm(None,
+      user=request.user)
     primary_avatar_form = primary_avatar_form or PrimaryAvatarForm(None,
       user=request.user, avatars=avatars, **kwargs)
     return render_to_response(
             'snapboard/edit_settings',
             {'settings_form': settings_form,
+             'upload_avatar_form': upload_avatar_form,
              'primary_avatar_form': primary_avatar_form,
              'avatar': avatar,  'avatars': avatars, },
             context_instance=RequestContext(request, processors=extra_processors))
@@ -486,11 +493,8 @@ def remove_user_from_group(request, group_id):
             done = True
         if group.has_admin(user):
             group.admins.remove(user)
-            if notification:
-                notification.send(
-                    [user],
-                    'group_admin_rights_removed',
-                    {'group': group})
+            send_notifications([user], 'group_admin_rights_removed',
+              {'group': group})
             done = True
         if done:
             if only_admin:
@@ -521,15 +525,10 @@ def grant_group_admin_rights(request, group_id):
         else:
             group.admins.add(user)
             request.user.message_set.create(message=_('The user %s is now a group admin.') % user)
-            if notification:
-                notification.send(
-                    [user],
-                    'group_admin_rights_granted',
-                    {'group': group})
-                notification.send(
-                    list(group.admins.all()),
-                    'new_group_admin',
-                    {'new_admin': user, 'group': group})
+            send_notifications([user], 'group_admin_rights_granted',
+              {'group': group})
+            send_notifications(list(group.admins.all()), 'new_group_admin',
+              {'new_admin': user, 'group': group})
     else:
         raise Http404
     return HttpResponse('ok')
@@ -564,11 +563,9 @@ def answer_invitation(request, invitation_id):
                 invitation.group.users.add(request.user)
                 invitation.accepted = True
                 request.user.message_set.create(message=_('You are now a member of the group %s.') % invitation.group.name)
-                if notification:
-                    notification.send(
-                        list(invitation.group.admins.all()),
-                        'new_group_member',
-                        {'new_member': request.user, 'group': invitation.group})
+                send_notifications( list(invitation.group.admins.all()),
+                  'new_group_member', {'new_member': request.user,
+                  'group': invitation.group})
             else:
                 invitation.accepted = False
                 request.user.message_set.create(message=_('The invitation has been declined.'))
