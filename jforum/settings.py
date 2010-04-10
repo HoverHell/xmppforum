@@ -129,6 +129,7 @@ INSTALLED_APPS = (
     'notification',
     'registration',
     'avatar',
+    'treebeard',
     'snapboard',
 )
 

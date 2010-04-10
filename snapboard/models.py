@@ -10,6 +10,8 @@ from django.db.models import signals, Q
 from django.dispatch import dispatcher
 from django.utils.translation import ugettext_lazy as _
 
+from treebeard import mp_tree
+
 from xmppbase import send_notifications
 
 from snapboard import managers
@@ -281,7 +283,7 @@ class Thread(models.Model):
         return qs.count()
 
 
-class Post(models.Model):
+class Post(mp_tree.MP_Node):
     """
     Post objects store information about revisions.
 
@@ -293,7 +295,7 @@ class Post(models.Model):
 
     thread = models.ForeignKey(Thread, verbose_name=_('thread'))
     text = models.TextField(verbose_name=_('text'))
-    date = models.DateTimeField(editable=False,auto_now_add=True, verbose_name=_('date'))
+    date = models.DateTimeField(editable=False, auto_now_add=True, verbose_name=_('date'))
     ip = models.IPAddressField(verbose_name=_('ip address'), blank=True, null=True)
 
     private = models.ManyToManyField(User,
@@ -316,8 +318,12 @@ class Post(models.Model):
     censor = models.BooleanField(default=False, verbose_name=_('censored'))  # moderator level access
     freespeech = models.BooleanField(default=False, verbose_name=_('protected'))  # superuser level access
 
-    objects = models.Manager()  # needs to be explicit due to below
-    view_manager = managers.PostManager()
+    #objects = models.Manager()  # needs to be explicit due to below
+    #view_manager = managers.PostManager()
+    
+    # ! Tree
+    # ! Incompatible with date.auto_now_add=True
+    #node_order_by = ['date']
 
     def save(self, force_insert=False, force_update=False):
         _log.debug('user = %s, ip = %s' % (threadlocals.get_current_ip(),

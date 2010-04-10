@@ -6,10 +6,11 @@ from django.conf import settings
 from snapboard import models as snapboard_app
 
 def test_setup(**kwargs):
-    from random import choice
+    from random import choice, randrange
     from django.contrib.auth.models import User
     from snapboard.models import Thread, Post, Category
     from snapboard import sampledata
+
 
     if not settings.DEBUG:
         return 
@@ -44,26 +45,40 @@ def test_setup(**kwargs):
     for c in cats:
         cat = Category.objects.get_or_create(label=c)
 
+    def make_random_post_tree(parent_post, amount, thread):
+        text = '\n\n'.join([sampledata.sample_data() for x in range(0, choice(range(2, 5)))])
+        # the post data
+        postdata = {
+          "user": choice(User.objects.all()),
+          "thread": thread,
+          "text": text,
+          "ip": '.'.join([str(choice(range(1,255))) for x in (1,2,3,4)]),
+        }
+        # Create a post in tree.
+        if parent_post is None:  # Root node.
+            post = Post.add_root(**postdata)
+        else:
+            post = parent_post.add_child(**postdata)
+        # allows setting of arbitrary ip
+        post.management_save()
+        posts_remain = amount - 1  # Minus just-created one
+        while posts_remain > 0:  # Distribute remnants
+            next_tree_posts = randrange(1, posts_remain+1)
+            #print(" D: delegating %d,   %d remain " % (xx, x-xx))
+            make_random_post_tree(post, next_tree_posts, thread)
+            posts_remain -= next_tree_posts
+
     # create up to 30 posts
     tc = range(1, 50)
     for i in range(0, 35):
-        print 'thread ', i, 'created'
-        cat= choice(Category.objects.all())
+        cat = choice(Category.objects.all())
         subj = choice(sampledata.objects.split('\n'))
         thread = Thread(subject=subj, category=cat)
         thread.save()
-
-        for j in range(0, choice(tc)):
-            text = '\n\n'.join([sampledata.sample_data() for x in range(0, choice(range(2, 5)))])
-            # create a post
-            post = Post(
-                    user=choice(User.objects.all()),
-                    thread=thread,
-                    text=text,
-                    ip='.'.join([str(choice(range(1,255))) for x in (1,2,3,4)]),
-                    )
-            # allows setting of arbitrary ip
-            post.management_save()
+        print 'thread ', i, 'created'
+        
+        n = choice(tc)  # Amount of posts in whole tread tree
+        make_random_post_tree(None, n, thread)
 
 signals.post_syncdb.connect(test_setup, sender=snapboard_app) 
 # vim: ai ts=4 sts=4 et sw=4
