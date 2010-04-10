@@ -87,9 +87,9 @@ def processcmd(src, dst, cmd, ext=None):
 
             # ? Not sure what would it take to make 404-message view-specific.
             # (ex.: "Thread not found")
-            response = XmppResponse(_("404 Not found."))
+            response = XmppResponse("404: %s" % e)
         except django.core.exceptions.PermissionDenied, e:
-            response = XmppResponse(_("Access Denied."))
+            response = XmppResponse(_("Access Denied.") + " %s"%e)
         except Exception, e:
             response = XmppResponse(_("Sorry, something went wrong!\n" \
               "Don't worry, admins weren't notified!"))

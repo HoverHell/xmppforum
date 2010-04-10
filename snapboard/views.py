@@ -134,10 +134,10 @@ def thread(request, thread_id):
     try:
         thr = Thread.view_manager.get(pk=thread_id)
     except Thread.DoesNotExist:
-        raise Http404
+        raise Http404, "Thread not found"
 
     if not thr.category.can_read(request.user):
-        raise PermissionError
+        raise PermissionError, "You are not allowed to read this thread"
 
     render_dict = {}
 
@@ -146,7 +146,7 @@ def thread(request, thread_id):
 
     if request.POST:
         if not thr.category.can_post(request.user):
-            raise PermissionError
+            raise PermissionError, "You are not allowed to post in this thread"
         postform = PostForm(request.POST)
         if postform.is_valid():
             postobj = Post(thread = thr,
@@ -198,15 +198,15 @@ def edit_post(request, original, next=None):
     Edit an existing post.decorators in python
     '''
     if not request.method == 'POST':
-        raise Http404
+        raise Http404, "It ain't here!"  # !
 
     try:
         orig_post = Post.view_manager.get(pk=int(original))
     except Post.DoesNotExist:
-        raise Http404
+        raise Http404 # ?
         
     if orig_post.user != request.user or not orig_post.thread.category.can_post(request.user):
-        raise PermissionError
+        raise PermissionError, "It's not your post!"
 
     postform = PostForm(request.POST)
     if postform.is_valid():
@@ -245,7 +245,7 @@ def new_thread(request, cat_id):
     '''
     category = get_object_or_404(Category, pk=cat_id)
     if not category.can_create_thread(request.user):
-        raise PermissionError
+        raise PermissionError, "You cannost post in this category"
 
     if request.POST:
         threadform = ThreadForm(request.POST)
@@ -307,11 +307,11 @@ def category_thread_index(request, cat_id):
     try:
         cat = Category.objects.get(pk=cat_id)
         if not cat.can_read(request.user):
-            raise PermissionError
+            raise PermissionError, "You cannot list this category"
         thread_list = Thread.view_manager.get_category(cat_id)
         render_dict = ({'title': ''.join((_("Category: "), cat.label)), 'category': cat, 'threads': thread_list})
     except Category.DoesNotExist:
-        raise Http404
+        raise Http404, "Category not found."
     return render_to_response('snapboard/thread_index_categoryless',
             render_dict,
             context_instance=RequestContext(request, processors=extra_processors))
@@ -340,9 +340,9 @@ def locate_post(request, post_id):
     '''
     post = get_object_or_404(Post, pk=post_id)
     if not post.thread.category.can_read(request.user):
-        raise PermissionError
+        raise PermissionError, "You cannot see it"
     if post.is_private and not (post.user==request.user or post.private.filter(pk=request.user.id).count()):
-        raise PermissionError
+        raise PermissionError, "What?"
     # Count the number of visible posts before the one we are looking for, 
     # as well as the total
     total = post.thread.count_posts(request.user)
@@ -449,7 +449,7 @@ edit_settings = login_required(edit_settings)
 def manage_group(request, group_id):
     group = get_object_or_404(Group, pk=group_id)
     if not group.has_admin(request.user):
-        raise PermissionError
+        raise PermissionError, "What?"
     render_dict = {'group': group, 'invitation_form': InviteForm()}
     if request.GET.get('manage_users', False):
         render_dict['users'] = group.users.all()
@@ -468,7 +468,7 @@ manage_group = login_required(manage_group)
 def invite_user_to_group(request, group_id):
     group = get_object_or_404(Group, pk=group_id)
     if not group.has_admin(request.user):
-        raise PermissionError
+        raise PermissionError, "What?"
     if request.method == 'POST':
         form = InviteForm(request.POST)
         if form.is_valid():
@@ -495,7 +495,7 @@ invite_user_to_group = login_required(invite_user_to_group)
 def remove_user_from_group(request, group_id):
     group = get_object_or_404(Group, pk=group_id)
     if not group.has_admin(request.user):
-        raise PermissionError
+        raise PermissionError, "What?"
     if request.method == 'POST':
         done = False
         user = User.objects.get(pk=int(request.POST.get('user_id', 0)))
@@ -516,7 +516,7 @@ def remove_user_from_group(request, group_id):
         else:
             request.user.message_set.create(message=_('There was nothing to do for user %s.') % user)
     else:
-        raise Http404
+        raise Http404, "Ain't here!"  # ?
     return HttpResponse('ok')
 remove_user_from_group = login_required(remove_user_from_group)
 
@@ -527,7 +527,7 @@ def grant_group_admin_rights(request, group_id):
     '''
     group = get_object_or_404(Group, pk=group_id)
     if not group.has_admin(request.user):
-        raise PermissionError
+        raise PermissionError, "What?"
     if request.method == 'POST':
         user = User.objects.get(pk=int(request.POST.get('user_id', 0)))
         if not group.has_user(user):
@@ -542,16 +542,16 @@ def grant_group_admin_rights(request, group_id):
             send_notifications(list(group.admins.all()), 'new_group_admin',
               {'new_admin': user, 'group': group})
     else:
-        raise Http404
+        raise Http404, "Ain't here!"
     return HttpResponse('ok')
 grant_group_admin_rights = login_required(grant_group_admin_rights)
 
 def discard_invitation(request, invitation_id):
     if not request.method == 'POST':
-        raise Http404
+        raise Http404, "Ain't here!"
     invitation = get_object_or_404(Invitation, pk=invitation_id)
     if not invitation.group.has_admin(request.user):
-        raise PermissionError
+        raise PermissionError, "You can't!"
     was_pending = invitation.accepted is not None
     invitation.delete()
     if was_pending:
@@ -563,8 +563,8 @@ discard_invitation = login_required(discard_invitation)
 
 def answer_invitation(request, invitation_id):
     invitation = get_object_or_404(Invitation, pk=invitation_id)
-    if request.user != invitation.sent_to:
-        raise Http404
+    if request.user != invitation.sent_to:  # Probably should be included into above.
+        raise Http404, "No Invitation matches the given query."
     form = None
     if request.method == 'POST':
         if invitation.accepted is not None:
