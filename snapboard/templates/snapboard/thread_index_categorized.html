@@ -1,0 +1,12 @@
+{% extends "snapboard/thread_index.html" %}
+{% block thread_category_optional %}
+<span style="color: #888; padding-left: 2em; font-size:small;">
+    {% trans "category" %}:
+    <a href="{% url snapboard_category_thread_index thread.category.id %}">
+        {{ thread.category }}
+    </a>
+</span>
+{% endblock %}
+<!--
+vim: ai ts=4 sts=4 et sw=4 
+-->
