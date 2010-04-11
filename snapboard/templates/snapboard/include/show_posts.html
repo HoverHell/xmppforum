@@ -4,7 +4,7 @@
 {% load debug %}
 <div>
 <hr class="firstpost" />
-{% for post in posts %}
+{% for post, info in posts %}
     <div id="snap_post{{ post.id }}" style="margin-left: {{ post.get_depth }}0px">
 
         {% if post.censor %}
@@ -106,7 +106,9 @@
                 </div>
             {% endifnotequal %}
         {% endif %}
-    </div>
+    {% for close in info.close %}
+        </div>
+    {% endfor %}
     <hr class="postend" />
 {% endfor %} {# iterate through posts #}
 </div>

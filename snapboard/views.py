@@ -168,7 +168,7 @@ def thread(request, thread_id):
 
     # this must come after the post so new messages show up
     
-    post_list = Post.get_tree(Post.objects.get(thread=thread_id, depth=1))
+    post_list = Post.get_annotated_list(Post.objects.get(thread=thread_id, depth=1))
     if get_user_settings(request.user).reverse_posts:
         post_list = post_list.order_by('-odate')
 
