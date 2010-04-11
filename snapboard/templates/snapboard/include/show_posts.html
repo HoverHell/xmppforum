@@ -1,11 +1,119 @@
 {% load i18n %}
 {% load extras %}
 {% load avatar_tags %}
+{% load recurse %}
 {% load debug %}
 <div>
 <hr class="firstpost" />
-{% for post in posts %}
-    <div id="snap_post{{ post.id }}" style="margin-left: {{ post.get_depth }}0px">
+  <div id="snap_top_post">
+    <div id="snap_post{{ post.id }}" style="border-left: 3px dotted red;">
+
+        {% if top_post.censor %}
+            <div class="post_censored">
+        {% else %}
+            {% ifnotequal top_post.abuse 0 %}
+                <div class="post_reported">
+            {% endifnotequal %}
+        {% endif %}
+
+        <div id="post_rpc_feedback{{ top_post.id }}" class="rpc_message">
+            <!-- This DIV is for RPC feedback messages for individual posts -->
+        </div>
+        <p class="post_header">
+            <span class="post_menuright">
+                {% if user.is_authenticated  %}
+                <span class="popup">
+                    <a href="#post_form" onclick="return do_quote('{{ top_post.id }}');">{% trans "quote" %}</a>
+                </span>
+                {% endif %}
+                {% ifequal top_post.user_id user.id %}
+                &#149;
+                <span title="{% trans "Edit this post.  All revisions are saved!" %}" class="popup">
+                    <a href="#snap_post{{ top_post.id }}" onclick="toggle_edit('{{ top_post.id }}')">{% trans "edit post" %}</a>
+                </span>
+                {% endifequal %}
+                {% if user.is_staff %}
+                &#149;
+                <span title="{% trans "ADMIN: mark this post for censorship" %}" class="popup">
+                    <a id="censor{{ top_post.id }}" href="#snap_post{{ top_post.id }}" onclick="set_censor('{{ top_post.id }}');">
+                        {{ top_post.censor|yesno:_("uncensor,censor") }}
+                    </a>
+                </span>
+                {% endif %}
+                {% if user.is_authenticated and not top_post.freespeech %}
+                &#149;
+                <span title="{% trans "Report this post for violation of forum policies." %}" class="popup">
+                    <a id="abuse{{ top_post.id }}" href="#snap_post{{ top_post.id }}" onclick="set_abuse('{{ top_post.id }}');">{% trans "report abuse" %}</a>
+                </span>
+                {% endif %}
+            </span>
+            
+            <span class="avatar">
+                {% avatar top_post.user %}
+            </span>
+            
+            <b>
+                <a href="#snap_post{{ top_post.id }}" onclick="toggle_post('{{ top_post.id }}');">
+                    <span class="popup" title="Author">{{ top_post.user }}</span>
+                </a>
+            </b>
+
+            {% if top_post.private.all %}
+                {% trans "to" %} {% for rec in top_post.private.all %}
+                {{ rec }}{% if not forloop.last %},{% endif %}
+                {% endfor %}
+            {% endif %}
+
+            <span class="timesince">
+                <span class="datetime">{{ top_post.date|date:"r T" }}<span class="timestamp">{{ top_post.date|timestamp }}</span></span>
+            </span>
+            <span class="post_summary" style="display:none;" id="snap_post_sum{{ top_post.id }}">:
+                {{ top_post.text|post_summary:"30"|safe }}
+            </span>
+        </p>
+
+        <div style="display:block" id="snap_post_view{{ top_post.id }}">
+            <div class="post_text" style="display:block" id="snap_post_text{{ top_post.id }}">
+                {{ top_post.text|striptags|render_post|safe }}
+            </div>
+            {% if top_post.previous %}
+            <span id="post_revision_links{{ top_post.id }}" class="post_menuleft">
+                <a href="#snap_post_view{{ top_post.id }}" onclick="revision('{{ top_post.id }}','{{ top_post.previous.id }}');">&#171; {% trans "previous" %}</a>
+                <b style="color: #c00">{% trans "This message has been revised" %}</b>
+            </span>
+
+
+            <br />
+            {% endif %}
+
+            {% ifequal top_post.user_id user.id %}
+            <div style="display:none" id="snap_post_edit{{ top_post.id }}">
+                <form action="{% url snapboard_edit_post top_post.id %}" method="post">
+                <p><b>{% trans "All revisions of this post are stored and publicly viewable." %}</b></p>
+                <p>{{ top_post.get_edit_form.post }} {# TODO: what about errors? #}</p>
+                <p>
+                <input type="submit" value="{% trans "Update" %}" />
+                <input type="hidden" name="next" value="{{ request.path }}" />
+                </p>
+                </form>
+            </div>
+            {% endifequal %}
+            <br />
+        </div>
+
+        {% if top_post.censor %}
+            </div>
+        {% else %}
+            {% ifnotequal top_post.abuse 0 %}
+                </div>
+            {% endifnotequal %}
+        {% endif %}
+
+
+{% try %}
+{% recurse post in posts children="get_children" %}
+    {% try %}
+    <div id="snap_post{{ post.id }}" style="border-left: 3px dotted red;">
 
         {% if post.censor %}
             <div class="post_censored">
@@ -46,10 +154,11 @@
                 </span>
                 {% endif %}
             </span>
-
+            
             <span class="avatar">
                 {% avatar post.user %}
             </span>
+            
             <b>
                 <a href="#snap_post{{ post.id }}" onclick="toggle_post('{{ post.id }}');">
                     <span class="popup" title="Author">{{ post.user }}</span>
@@ -106,9 +215,15 @@
                 </div>
             {% endifnotequal %}
         {% endif %}
+        {% endtry %}
+    {% yield %}
     </div>
     <hr class="postend" />
-{% endfor %} {# iterate through posts #}
+{% endrecurse %} {# iterate/recurse through paged posts #}
+{% endtry %}
+    </div>
+    <hr class="postend" />
+  </div>
 </div>
 <!--
 vim: ai ts=4 sts=4 et sw=4
