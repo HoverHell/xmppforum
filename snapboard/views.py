@@ -167,23 +167,12 @@ def thread(request, thread_id):
         postform = PostForm()
 
     # this must come after the post so new messages show up
-
-    # ! Should be retreived from the thread object, actually.
-    top_post = Post.objects.get(thread=thread_id, depth=1)  # Assumed to be unique.
-    post_list = top_post.get_children()  # Paginated by this list.
-    if get_user_settings(request.user).reverse_posts:  # ! Might not be supported now.
+    
+    post_list = Post.get_tree(Post.objects.get(thread=thread_id, depth=1))
+    if get_user_settings(request.user).reverse_posts:
         post_list = post_list.order_by('-odate')
-    
-    def postresolver(post):
-        post.get_children = post.get_children()
-        for subpost in post.get_children:
-            postresolver(subpost)
-    
-    for post in post_list:
-        postresolver(post)  # Make it lists, not functions.
 
     render_dict.update({
-            'top_post': top_post,
             'posts': post_list,
             'thr': thr,
             'postform': postform,
