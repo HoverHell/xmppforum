@@ -15,6 +15,11 @@ urlpatterns = patterns('',
     (r'^admin/(.*)', admin.site.root),
 )
 
+urlpatterns += patterns('',
+    ## Redirect to snapboard home by default.
+    (r'^$', 'django.views.generic.simple.redirect_to', {'url': '/snapboard'}),
+)
+
 try:
     import notification
 except ImportError:
@@ -41,11 +46,6 @@ urlpatterns += patterns('',
       {"form_class": snapboard.forms.RegistrationFormEmailFree},
       'registration_register'),  # ! Maybe should be in snapboard.urls
     (r'^accounts/', include('registration.urls')),
-)
-
-## Homeredirect?
-urlpatterns += patterns('',
-    (r'^$', 'snapboard.views.home_redirect_response'),
 )
 
 ## Avatar

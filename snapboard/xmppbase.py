@@ -25,6 +25,9 @@ except:
 # For render_to_response wrapper
 from django.shortcuts import render_to_response as render_to_response_orig
 
+# for login_required wrapper
+from django.contrib.auth.decorators import login_required as login_required_orig
+
 # For success_or_reverse_redirect
 from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect
@@ -37,6 +40,8 @@ except ImportError:
     notification = None
 
 import re  # Stripping XHTML images.
+
+#lastnewlinere = re.compile("\n+$")  # Stripping extraneous newlines.
 
 
 import simplejson  # For serialization of XmppResponse
@@ -88,7 +93,7 @@ class XmppResponse(dict):
             self.setxhtml(html)
             # ! Don't usually allow to set both body and html.
         elif body is not None:
-            self['body'] = body
+            self['body'] = body.rstrip()  # ! Is rstrip certainly not problematic?
         else:
             self['body'] = '(something went wrong?)'
         # ! Source address to use has to be in XMPP server's domain, at
@@ -124,7 +129,7 @@ class XmppResponse(dict):
         # ! Probably should replace <a> tags with some link representation.
         # ! Or even always add actual link to the tag.
         self['body'] = django.utils.encoding.force_unicode(
-          django.utils.html.strip_tags(self.imgfix(html)))
+          django.utils.html.strip_tags(self.imgfix(html))).rstrip()  # ! See above on rstrip.
           
     def imgfix(self, htmlsource):
         """
@@ -220,6 +225,25 @@ def render_to_response(*args, **kwargs):
         args = (args[0] + '.html',) + args[1:]  # ...
         return render_to_response_orig(*args, **kwargs)
 
+def login_required(function=None):
+    http_login_required = login_required_orig(function)
+    def decorate(request, *args, **kwargs):  # request is explicit.
+        if isinstance(request, XmppRequest):
+            if request.user.is_authenticated:
+                function(*args, **kwargs)
+            else:
+                pass  # ! Access denied and offer registration here.
+        else:  # Not XMPP. use original decorated.
+            http_login_required(request, *args, **kwargs)
+    return decorate
+
+def direct_to_template(request, template):
+    if isinstance(request, XmppRequest):  # At least it's XMPP.
+        # Not adding '.xmpp' here.
+        return XmppResponse(
+          django.template.loader.render_to_string(template,
+          context_instance=django.template.RequestContext(request)))
+    # ! May need direct_to_template_orig?
 
 def success_or_reverse_redirect(*args, **kwargs):
     # Remove reverse()-irrelevant parts of kwargs:

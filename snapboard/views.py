@@ -610,14 +610,6 @@ def xmpp_get_help(request, subject=None):
       context_instance=RequestContext(request, processors=extra_processors))
 
 
-def home_redirect_response(request):
-    '''
-    Returns a redirect to the board home (SNAP_PREFIX).
-    '''
-    return HttpResponseRedirect(SNAP_PREFIX)
-
-
-
 def _brand_view(func):
     '''
     Mark a view as belonging to SNAPboard.

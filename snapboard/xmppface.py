@@ -73,7 +73,7 @@ def processcmd(src, dst, cmd, ext=None):
         try:
             response = callback(request, *callback_args, **callback_kwargs)
 
-            # ! We do expect an XmppResponse here.
+            # ! We do expect an XmppResponse here. May construct one, but...
             if not isinstance(response, XmppResponse):
                 sys.stderr.write("\n E: callback (%r (%r, %r))" % \
                   (callback, callback_args, callback_kwargs) + \
