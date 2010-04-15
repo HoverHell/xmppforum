@@ -68,9 +68,9 @@ def test_setup(**kwargs):
             make_random_post_tree(post, next_tree_posts, thread)
             posts_remain -= next_tree_posts
 
-    # create up to 30 posts
-    tc = range(1, 50)
-    for i in range(0, 35):
+    # create up to 80 posts
+    tc = range(1, 80)
+    for i in range(0, 3):
         cat = choice(Category.objects.all())
         subj = choice(sampledata.objects.split('\n'))
         thread = Thread(subject=subj, category=cat)
@@ -82,4 +82,3 @@ def test_setup(**kwargs):
 
 signals.post_syncdb.connect(test_setup, sender=snapboard_app) 
 # vim: ai ts=4 sts=4 et sw=4
-

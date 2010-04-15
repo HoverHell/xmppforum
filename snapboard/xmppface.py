@@ -23,10 +23,6 @@ cmdresolver = RegexURLResolver("", cmdpatterns)
 import sys
 import traceback
 
-# Fixin'
-import re
-lastnewlinere = re.compile("\n+$")
-
 def process_post_kwargs(request, kwargs):
     """
     Retreives all 'POST_' keys from kwargs and adds them to the request's
@@ -99,8 +95,6 @@ def processcmd(src, dst, cmd, ext=None):
     except django.http.Http404, e:
         # Http404 from resolver.
         response = XmppResponse(_("No such command. Try 'HELP', maybe?"))
-    # ! Fix possible extraneous newlines. ! shouldn't be done here, probably.
-    response['body'] = lastnewlinere.sub(u'', response['body'])
     # Return back with exactly the same full JIDs.
     response['src'] = dst
     response['dst'] = src

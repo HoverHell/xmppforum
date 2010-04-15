@@ -1,9 +1,9 @@
 {% load i18n %}
 <div class="forummenu-first">
-    {% if user.is_authenticated %}
+    {% if user.is_authenticated and not user.really_anonymous %}
         <p>
 	{# TODO: The next line used to be in a blocktrans before using the url tag #}
-	    {% trans "You are signed in as" %} <a href="{% url snapboard_edit_settings %}">{{ user.username }}</a>
+	    {% trans "Greetings, " %} <a href="{% url snapboard_edit_settings %}">{{ user.username }}</a>
             {% if user.is_staff %}
             <b>{% trans "(STAFF)" %}</b>
             {% endif %}
@@ -26,7 +26,9 @@
         </form>
         <br />
 
-        <p>{% trans "You need to have a user account in order to contribute to discussions on this forum." %}</p>
+        {% if user.really_anonymous %}
+            <p>{% trans "You can be an anonymous poster." %}</p>
+        {% endif %}
         <p style="font-size:small"><a href="/accounts/register/">{% trans "Create an account" %}</a></p>
     {% endif %}
 </div>

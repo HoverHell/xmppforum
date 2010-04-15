@@ -37,6 +37,7 @@ DEFAULT_USER_SETTINGS  = UserSettings()
 # USE_SNAPBOARD_LOGIN_FORM, USE_SNAPBOARD_SIGNIN should probably be removed
 USE_SNAPBOARD_SIGNIN = getattr(settings, 'USE_SNAPBOARD_SIGNIN', False)
 USE_SNAPBOARD_LOGIN_FORM = getattr(settings, 'USE_SNAPBOARD_LOGIN_FORM', False)
+ANONYMOUS_NAME = getattr(settings, 'ANONYMOUS_NAME', 'Anonymous')
 
 RPC_OBJECT_MAP = {
         "thread": Thread,
@@ -78,7 +79,9 @@ if USE_SNAPBOARD_LOGIN_FORM:
         that are also publicly viewable should have a login form in the side panel.
         '''
         response_dict = {}
-        if not request.user.is_authenticated():
+        if not request.user.is_authenticated() \
+          or getattr(request.user, "really_anonymous", False):
+            # Anonuser can login, too.
             response_dict.update({
                     'login_form': LoginForm(),
                     })
@@ -306,6 +309,7 @@ def private_index(request):
 private_index = login_required(private_index)
 
 def category_thread_index(request, cat_id):
+    print(" D: cat_index. user: %r" % request.user)
     try:
         cat = Category.objects.get(pk=cat_id)
         if not cat.can_read(request.user):
@@ -317,6 +321,7 @@ def category_thread_index(request, cat_id):
     return render_to_response('snapboard/thread_index_categoryless',
             render_dict,
             context_instance=RequestContext(request, processors=extra_processors))
+category_thread_index = anonymous_login_required(category_thread_index)
 
 def thread_index(request, num_limit=None, num_start=None):
     if request.user.is_authenticated():
@@ -565,7 +570,7 @@ discard_invitation = login_required(discard_invitation)
 
 def answer_invitation(request, invitation_id):
     invitation = get_object_or_404(Invitation, pk=invitation_id)
-    if request.user != invitation.sent_to:  # Probably should be included into above.
+    if request.user != invitation.sent_to:  # ! Probably should be included into above.
         raise Http404, "No Invitation matches the given query."
     form = None
     if request.method == 'POST':

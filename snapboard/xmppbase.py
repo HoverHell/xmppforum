@@ -26,6 +26,7 @@ except:
 from django.shortcuts import render_to_response as render_to_response_orig
 
 # for login_required wrapper
+from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required as login_required_orig
 
 # For success_or_reverse_redirect
@@ -60,7 +61,7 @@ class XmppRequest(object):
         # This isn't really meant for anything yet.
         self.srcjid = srcjid
         # "Authentication":
-        # User class is customized, so not importing it from django itself.
+        # User class might be customized, so not importing it from django itself.
         from models import User  # Also, avoiding circular imports.
         # ! Maybe it should be done in xmppface?
         try:
@@ -230,21 +231,26 @@ def login_required(function=None):
     def decorate(request, *args, **kwargs):  # request is explicit.
         if isinstance(request, XmppRequest):
             if request.user.is_authenticated:
-                function(request, *args, **kwargs)
+                return function(request, *args, **kwargs)
             else:
                 pass  # ! Access denied and offer registration here.
         else:  # Not XMPP. use original decorated.
-            http_login_required(request, *args, **kwargs)
+            return http_login_required(request, *args, **kwargs)
     return decorate
 
+# !!! This shouldn't really be here.
+ANONYMOUS_NAME = getattr(settings, 'ANONYMOUS_NAME', 'Anonymous')
 def anonymous_login_required(function=None):
     def decorate(request, *args, **kwargs):
-        if request.user.is_authenticated:
-            function(request, *args, **kwargs)
+        if request.user.is_authenticated() or not ANONYMOUS_NAME:
+            print(" D: User %r is authenticated already." % request.user)
+            return function(request, *args, **kwargs)
         else:  # Use Anonymous!
             # Just for this request, of course.
-            request.user = User.objects.get(username=settings.ANONYMOUS_NAME)
-            function(request, *args, **kwargs)
+            request.user = User.objects.get(username=ANONYMOUS_NAME)
+            request.user.really_anonymous = True
+            print(" D: Replaced request user with %r" % request.user)
+            return function(request, *args, **kwargs)
     return decorate
 
 def direct_to_template(request, template):
