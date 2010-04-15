@@ -230,11 +230,21 @@ def login_required(function=None):
     def decorate(request, *args, **kwargs):  # request is explicit.
         if isinstance(request, XmppRequest):
             if request.user.is_authenticated:
-                function(*args, **kwargs)
+                function(request, *args, **kwargs)
             else:
                 pass  # ! Access denied and offer registration here.
         else:  # Not XMPP. use original decorated.
             http_login_required(request, *args, **kwargs)
+    return decorate
+
+def anonymous_login_required(function=None):
+    def decorate(request, *args, **kwargs):
+        if request.user.is_authenticated:
+            function(request, *args, **kwargs)
+        else:  # Use Anonymous!
+            # Just for this request, of course.
+            request.user = User.objects.get(username=settings.ANONYMOUS_NAME)
+            function(request, *args, **kwargs)
     return decorate
 
 def direct_to_template(request, template):

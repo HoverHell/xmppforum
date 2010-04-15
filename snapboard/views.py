@@ -4,7 +4,6 @@ import datetime
 from django import forms
 from django.conf import settings
 from django.contrib.auth import decorators
-from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse
 from django.db import connection
@@ -19,6 +18,8 @@ from django.utils.translation import ugettext as _
 from xmppbase import XmppRequest, XmppResponse
 from xmppbase import render_to_response, success_or_reverse_redirect
 from xmppbase import send_notifications
+#from django.contrib.auth.decorators import login_required
+from xmppbase import login_required, anonymous_login_required
 
 # Avatar form in UserSettings
 from avatar.models import Avatar, avatar_file_path
@@ -192,6 +193,7 @@ def thread(request, thread_id):
     return render_to_response('snapboard/thread',
             render_dict,
             context_instance=RequestContext(request, processors=extra_processors))
+thread = anonymous_login_required(thread)
 
 def edit_post(request, original, next=None):
     '''
@@ -276,7 +278,7 @@ def new_thread(request, cat_id):
             'form': threadform,
             },
             context_instance=RequestContext(request, processors=extra_processors))
-new_thread = login_required(new_thread)
+new_thread = anonymous_login_required(new_thread)
 
 
 def favorite_index(request):

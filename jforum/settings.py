@@ -171,9 +171,11 @@ ACCOUNT_ACTIVATION_DAYS = 5
 DEFAULT_FROM_EMAIL = "jfu@hell.orts.ru"
 SERVER_EMAIL = "jfu@hell.orts.ru"
 
-
 ## Avatars
 AVATAR_DEFAULT_URL = MEDIA_URL + "img/default_avatar.jpg"
 AVATAR_GRAVATAR_BACKUP = True
 AVATAR_GRAVATAR_DEFAULT = "identicon"
 # AVATAR_STORAGE_DIR = SNAP_MEDIA_PREFIX+"/avatars"
+
+## Anonymous! Configurable common option.
+ANONYMOUS_NAME = "Anonymous"
