@@ -238,21 +238,6 @@ def login_required(function=None):
             return http_login_required(request, *args, **kwargs)
     return decorate
 
-# !!! This shouldn't really be here.
-ANONYMOUS_NAME = getattr(settings, 'ANONYMOUS_NAME', 'Anonymous')
-def anonymous_login_required(function=None):
-    def decorate(request, *args, **kwargs):
-        if request.user.is_authenticated() or not ANONYMOUS_NAME:
-            print(" D: User %r is authenticated already." % request.user)
-            return function(request, *args, **kwargs)
-        else:  # Use Anonymous!
-            # Just for this request, of course.
-            request.user = User.objects.get(username=ANONYMOUS_NAME)
-            request.user.really_anonymous = True
-            print(" D: Replaced request user with %r" % request.user)
-            return function(request, *args, **kwargs)
-    return decorate
-
 def direct_to_template(request, template):
     if isinstance(request, XmppRequest):  # At least it's XMPP.
         # Not adding '.xmpp' here.

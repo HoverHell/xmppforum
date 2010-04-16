@@ -1,4 +1,4 @@
-import logging
+iimport logging
 import datetime
 
 from django import forms
@@ -53,6 +53,21 @@ RPC_ACTION_MAP = {
         "watch": rpc_watch,
         "quote": rpc_quote,
         }
+
+def anonymous_login_required(function=None):
+    """
+    Decorator to replace auth's AnonymousUser with an actual usable user for
+    particular views. Sets user.realy_anonymous if replaced. Configurable by
+    ANONYMOUS_NAME in the settings.
+    """
+    def anon_decorate(request, *args, **kwargs):
+        if request.user.is_authenticated() or not ANONYMOUS_NAME:
+            return function(request, *args, **kwargs)
+        else:  # Use Anonymous! Just for this request, of course.
+            request.user = User.objects.get(username=ANONYMOUS_NAME)
+            request.user.really_anonymous = True
+            return function(request, *args, **kwargs)
+    return anon_decorate
         
 def snapboard_default_context(request):
     """
