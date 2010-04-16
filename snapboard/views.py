@@ -168,11 +168,22 @@ def thread(request, thread_id):
 
     # this must come after the post so new messages show up
     
-    post_list = Post.get_annotated_list(Post.objects.get(thread=thread_id, depth=1))
-    if get_user_settings(request.user).reverse_posts:
-        post_list = post_list.order_by('-odate')
+    top_post = Post.objects.get(thread=thread_id, depth=1)
+    post_list = Post.get_annotated_list(top_post)
+    index = 0
+    post_list.__delitem__(index)
+    while index < post_list.__len__():
+        parent_index = index
+        index += 1
+        post_children = []
+        while index < post_list.__len__() and post_list[index][1]['level'] != 1:
+            post_children.append(post_list[index])
+            post_list.__delitem__(index)
+        list = [post_list[parent_index][0], post_list[parent_index][1], post_children]
+        post_list[parent_index] = list
 
     render_dict.update({
+            'top_post': top_post,
             'posts': post_list,
             'thr': thr,
             'postform': postform,
