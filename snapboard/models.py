@@ -211,7 +211,7 @@ class Category(models.Model):
         if self.post_perms == ALL:
             flag = True # Anonymous supported.
         elif self.post_perms == USERS:
-            flag = user.is_authenticated() and not getattr(request.user, "really_anonymous", False)
+            flag = user.is_authenticated() and not getattr(user, "really_anonymous", False)
         elif self.post_perms == CUSTOM:
             flag = user.is_superuser or (user.is_authenticated() and self.post_group.has_user(user))
         return flag
@@ -221,7 +221,7 @@ class Category(models.Model):
         if self.new_thread_perms == ALL:
             flag = True # Anonymous supported.
         if self.new_thread_perms == USERS:
-            flag = user.is_authenticated() and not getattr(request.user, "really_anonymous", False)
+            flag = user.is_authenticated() and not getattr(user, "really_anonymous", False)
         elif self.new_thread_perms == CUSTOM:
             flag = user.is_superuser or (user.is_authenticated() and self.new_thread_group.has_user(user))
         return flag
