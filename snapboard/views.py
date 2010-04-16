@@ -1,4 +1,4 @@
-iimport logging
+import logging
 import datetime
 
 from django import forms
@@ -19,7 +19,7 @@ from xmppbase import XmppRequest, XmppResponse
 from xmppbase import render_to_response, success_or_reverse_redirect
 from xmppbase import send_notifications
 #from django.contrib.auth.decorators import login_required
-from xmppbase import login_required, anonymous_login_required
+from xmppbase import login_required
 
 # Avatar form in UserSettings
 from avatar.models import Avatar, avatar_file_path
