@@ -14,6 +14,7 @@ from django.shortcuts import render_to_response, get_object_or_404
 from django.template import RequestContext
 from django.utils import simplejson
 from django.utils.translation import ugettext as _
+from django.core.paginator import Paginator, InvalidPage, EmptyPage
 
 # XmppFace
 from xmppbase import XmppRequest, XmppResponse
@@ -169,22 +170,37 @@ def thread(request, thread_id):
     # this must come after the post so new messages show up
     
     top_post = Post.objects.get(thread=thread_id, depth=1)
-    post_list = Post.get_annotated_list(top_post)
-    index = 0
-    post_list.__delitem__(index)
-    while index < post_list.__len__():
-        parent_index = index
-        index += 1
-        post_children = []
-        while index < post_list.__len__() and post_list[index][1]['level'] != 1:
-            post_children.append(post_list[index])
-            post_list.__delitem__(index)
-        list = [post_list[parent_index][0], post_list[parent_index][1], post_children]
-        post_list[parent_index] = list
+    q_list = Post.get_children(top_post)
+    
+    #Change MP_NodeQuerySet to list
+    post_list = []
+    for post in q_list:
+        post_list.append(post)
+        
+    paginator = Paginator(post_list, 1) # Show just one second-level post per page, for test purposes
+    
+    # Make sure page request is an int. If not, deliver first page.
+    try:
+        page = int(request.GET.get('page', '1'))
+    except ValueError:
+        page = 1
+    
+
+    # If page request (9999) is out of range, deliver last page of results.
+    try:
+        posts = paginator.page(page)
+    except (EmptyPage, InvalidPage):
+        posts = paginator.page(paginator.num_pages)
+    
+    # Load children for that page
+    for index in range(len(posts.object_list)):
+        children = Post.get_annotated_list(posts.object_list[index])
+        children.__delitem__(0)
+        posts.object_list[index] = [posts.object_list[index], children]
 
     render_dict.update({
             'top_post': top_post,
-            'posts': post_list,
+            'posts': posts,
             'thr': thr,
             'postform': postform,
             })
