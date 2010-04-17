@@ -10,6 +10,10 @@ div.snapboard .post_text strong {
 font-weight:700;
 }
 
+div.snapboard div.snap_post {
+border-left: 3px solid green;
+}
+
 div.snapboard .post_text h1 {
 font-size:130%;
 }

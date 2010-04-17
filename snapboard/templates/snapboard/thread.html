@@ -48,13 +48,10 @@
         </b>
     </p>
     <br />
-
-    {% autopaginate posts user_settings.ppp %}
+    {% autopaginate post_list user_settings.ppp %}
     {% paginate %}
 
     {% include "snapboard/include/show_posts.html" %}
-
-    {% paginate %}
 
     <br />
     {% include "snapboard/include/addpost.html" %}

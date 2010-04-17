@@ -187,23 +187,12 @@ def thread(request, thread_id):
 
     # this must come after the post so new messages show up
 
-    # ! Should be retreived from the thread object, actually.
     top_post = Post.objects.get(thread=thread_id, depth=1)  # Assumed to be unique.
-    post_list = top_post.get_children()  # Paginated by this list.
-    if get_user_settings(request.user).reverse_posts:  # ! Might not be supported now.
-        post_list = post_list.order_by('-odate')
+    post_list = Post.get_children(top_post)  # Paginated by this list.
     
-    def postresolver(post):
-        post.get_children = post.get_children()
-        for subpost in post.get_children:
-            postresolver(subpost)
-    
-    for post in post_list:
-        postresolver(post)  # Make it lists, not functions.
-
     render_dict.update({
             'top_post': top_post,
-            'posts': post_list,
+            'post_list': post_list,
             'thr': thr,
             'postform': postform,
             })
@@ -212,6 +201,7 @@ def thread(request, thread_id):
             render_dict,
             context_instance=RequestContext(request, processors=extra_processors))
 thread = anonymous_login_required(thread)
+
 
 def edit_post(request, original, next=None):
     '''
@@ -256,6 +246,7 @@ def edit_post(request, original, next=None):
           args=(orig_post.id,), req=request, msg="Message updated.")
 
     return HttpResponseRedirect(next)
+
 
 ##
 # Should new discussions be allowed to be private?  Leaning toward no.
@@ -324,7 +315,6 @@ def private_index(request):
 private_index = login_required(private_index)
 
 def category_thread_index(request, cat_id):
-    print(" D: cat_index. user: %r" % request.user)
     try:
         cat = Category.objects.get(pk=cat_id)
         if not cat.can_read(request.user):

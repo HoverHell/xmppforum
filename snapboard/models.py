@@ -12,6 +12,11 @@ from django.utils.translation import ugettext_lazy as _
 
 from treebeard import mp_tree
 
+# Fix it, mkay.
+def get_rly_annotated_list(self):
+    return super(mp_tree.MP_Node, self).get_annotated_list(self)
+mp_tree.MP_Node.get_annotated_list = get_rly_annotated_list
+
 from xmppbase import send_notifications
 
 from snapboard import managers
@@ -434,7 +439,7 @@ class UserSettings(models.Model):
             verbose_name=_('user'), related_name='sb_usersettings')
     ppp = models.IntegerField(
             choices = ((5, '5'), (10, '10'), (20, '20'), (50, '50')),
-            default = 20,
+            default = 4,
             help_text = _('Posts per page'), verbose_name=_('posts per page'))
     tpp = models.IntegerField(
             choices = ((5, '5'), (10, '10'), (20, '20'), (50, '50')),
