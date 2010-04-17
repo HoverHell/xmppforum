@@ -1,4 +1,4 @@
-{% load i18n %}
+u{% load i18n %}
 {% load extras %}
 {% load avatar_tags %}
 {% load debug %}
@@ -113,7 +113,7 @@
         </div>
         {% if post.censor %}</div>{% else %}{% ifnotequal post.abuse 0 %}</div>{% endifnotequal %}{% endif %}<hr class="postend" />
         
-        {% for close in post_indo.close %}
+        {% for close in post_info.close %}
             </div>
         {% endfor %}
     {% endfor %}

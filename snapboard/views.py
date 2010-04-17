@@ -168,23 +168,8 @@ def thread(request, thread_id):
 
     # this must come after the post so new messages show up
     
-    from django.db import connection
-    def p(a=""):
-        print(" ------- Queries [ %s ] (%d):" % (a, len(connection.queries)))
-        for a in connection.queries:
-            print("%s\n" % a['sql'])
-        connection.queries = []
-    
-    p("PRE")
-
     top_post = Post.objects.get(thread=thread_id, depth=1)
-    p("TOP")
-    
-    
     post_list = Post.get_children(top_post)
-    p("LIST")
-    
-    # print("D: posts len: %d" % len(post_list))
     
     render_dict.update({
             'top_post': top_post,
@@ -192,15 +177,10 @@ def thread(request, thread_id):
             'thr': thr,
             'postform': postform,
             })
-    p("DICT")
     
-    resp = render_to_response('snapboard/thread',
+    return render_to_response('snapboard/thread',
             render_dict,
             context_instance=RequestContext(request, processors=extra_processors))
-
-    p("RENDER")
-
-    return resp
     
 
 def edit_post(request, original, next=None):
