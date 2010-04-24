@@ -1,10 +1,5 @@
 """
-An XMPP echo server as a standalone server via s2s.
-
-This echo server accepts and initiates server-to-server connections using
-dialback and listens on C{127.0.0.1} with the domain C{localhost}. It will
-accept subscription requests for any potential entity at the domain and
-send back messages sent to it.
+A jaboard XMPP face server as a standalone server via s2s.
 """
 
 from twisted.application import service, strports
@@ -45,7 +40,7 @@ try:
     # Should prefer more secure mode when possible.
     os.chmod(fname, 0770)
 except:
-    server.log.err(" W: Could not chmod socket file.\n")
+    server.log.err(" ------- W: Could not chmod socket file.\n")
 
 from multiprocessing import Process, Queue, active_children, current_process
 from thread import start_new_thread
@@ -66,7 +61,7 @@ def returner():
         for dataline in indata.split("\n"):
             try:
                 x = simplejson.loads(dataline)
-                server.log.err(" D: Got JSON of length %d" % len(dataline))
+                server.log.err(" ------- D: Got JSON of length %d" % len(dataline))
                 # Create and send a response.
                 response = domish.Element((None, 'message'))
                 response['type'] = 'chat'
@@ -92,7 +87,7 @@ def returner():
                         response.addChild(htmlpart)
                 msgHandler.send(response)
             except ValueError:
-                server.log.err(" E: Failed processing: %r" % dataline)
+                server.log.err(" -------------- E: Failed processing: %r" % dataline)
 
 
 def createworkerpool(targetfunc, nworkers):
@@ -123,7 +118,7 @@ def finishworkersgracefully(workerlist, inqueue):
     time.sleep(20)  # If they still live - we've got some serious problem.
     for workprc in workerlist:
         if workprc.is_alive():
-            server.log.err(" W: finishworkersgracefully: killing " \
+            server.log.err(" ------- W: finishworkersgracefully: killing " \
              "still-alive worker %r." % workprc)
             workprc.terminate()
         del(workprc)
@@ -136,7 +131,7 @@ def sighuphandler(signum, frame):
     try:
         reload(xmppworker)
     except:
-        server.log.err("E: Reload FAILED.")
+        server.log.err(" -------------- E: Reload FAILED.")
         traceback.print_exc()
         return
     inqueueold, workerlistold = inqueue, workerlist
@@ -165,64 +160,90 @@ class PresenceHandler(xmppim.PresenceProtocol):
     def __init__(self):
         """
         Some data to store.
-
-        # ? Should dump it to/from database also, maybe?
         """
         self.statustext = u"Greetings"
-        self.subsribedto = {}
+        self.subscribedto = {}
+        # ! Ask django-xmppface to ask self to send presences.
 
     def subscribedReceived(self, presence):
-        server.log.err(" D: A: subscribedReceived.")
         """
         Subscription approval confirmation was received.
 
-        This is just a confirmation. Don't respond.
+        Saves that information.
         """
-        self.subscribedto[presence.sender] = True
-        pass
+        server.log.err(" ------- D: A: subscribedReceived.")
+        inqueue.put_nowait({'auth': 'subscribed',
+           'src': presence.sender.full(), 'dst': presence.recipient.full()})
+
 
     def unsubscribedReceived(self, presence):
-        server.log.err(" D: A: unsubscribedReceived.")
         """
         Unsubscription confirmation was received.
 
-        This is just a confirmation. Don't respond.
+        Save (update) that information.
         """
-        if presence.sender in self.subscribedto:
-            del(self.subscribedto[presence.sender])
-        pass
+        server.log.err(" ------- D: A: unsubscribedReceived.")
+        inqueue.put_nowait({'auth': 'unsubscribed',
+           'src': presence.sender.full(), 'dst': presence.recipient.full()})
+
 
     def subscribeReceived(self, presence):
-        server.log.err(" D: A: subscribeReceived.")
         """
         Subscription request was received.
 
         Always grant permission to see our presence.
         """
-        # ? Should also ask for subscription in turn?
+        server.log.err(" ------- D: A: subscribeReceived.")
         self.subscribed(recipient=presence.sender,
                         sender=presence.recipient)
         self.available(recipient=presence.sender,
                        status=self.statustext,
                        sender=presence.recipient)
+        # Ask for subscription in turn.
+        # ? Need some extracheckings for that?
+        self.subscribe(recipient=presence.sender,
+                        sender=presence.recipient)
+        inqueue.put_nowait({'auth': 'subscribe',
+           'src': presence.sender.full(), 'dst': presence.recipient.full()})
+
 
     def unsubscribeReceived(self, presence):
-        server.log.err(" D: A: unsubscribeReceived.")
         """
         Unsubscription request was received.
 
         Always confirm unsubscription requests.
         """
+        server.log.err(" ------- D: A: unsubscribeReceived.")
         self.unsubscribed(recipient=presence.sender,
                           sender=presence.recipient)
+        inqueue.put_nowait({'auth': 'unsubscribe',
+           'src': presence.sender.full(), 'dst': presence.recipient.full()})
+
+    def availableReceived(self, presence):
+        """
+        Available presence was received.
+        """
+        server.log.err(" ------- D: A: availableReceived.")
+        show = presence.show.children[0] if presence.show else "online"
+        inqueue.put_nowait({'stat': show,
+           'src': presence.sender.full(), 'dst': presence.recipient.full()})
+
+
+    def unavailableReceived(self, presence):
+        """
+        Unavailable presence was received.
+        """
+        server.log.err(" ------- D: A: unavailableReceived.")
+        inqueue.put_nowait({'stat': 'unavail',
+           'src': presence.sender.full(), 'dst': presence.recipient.full()})
 
     def probeReceived(self, presence):
-        server.log.err(" D: A: probeReceived.")
         """
         A presence probe was received.
 
         Always send available presence to whoever is asking.
         """
+        server.log.err(" ------- D: A: probeReceived.")
         self.available(recipient=presence.sender,
                        status=self.statustext,
                        sender=presence.recipient)
@@ -234,37 +255,40 @@ class MessageHandler(xmppim.MessageProtocol):
     """
 
     def onMessage(self, message):
-        server.log.err(" D: A: onMessage.")
         """
         Called when a message stanza was received.
         """
+        server.log.err(" ------- D: A: onMessage.")
 
         # Ignore error messages
         if message.getAttribute('type') == 'error':
-            server.log.err(" D: W: error-type message.")
+            server.log.err(" -------------- D: W: error-type message.")
             return
 
         ## Note: possible types are 'chat' and no type (ergo, plain non-chat
         ## message).
-        ## But are there other types besides those and 'error'?
-        type = message.getAttribute('type')
-        if not (type == 'chat'):
-            # For now - log them.
-            server.log.err(" D: message of type %r." % type)
+        # ? But are there other types besides those and 'error'?
         try:
-            src = message.getAttribute('from')
-            dst = message.getAttribute('to')
-            cmd = message.body.children[0]  # ! Not really clear on this.
-            id = message.getAttribute('id')
+            type = message.getAttribute('type')
+            if not (type == 'chat'):
+                # For now - log them.
+                server.log.err(" ------- !! D: message of type %r." % type)
             name = message.name
             # Might it be not 'message'?
-            server.log.err(" D: message name: %r." % message.name)
+            if not (name == 'message'):
+                server.log.err(" ------- !! D: message name: %r." % message.name)
 
-            inqueue.put_nowait({'src': src, 'dst': dst, 'cmd': cmd, \
-              'ext': {'id': id, 'name': name, 'type': type}})
+            # Dump all the interesting parts of data to the processing.
+            inqueue.put_nowait(
+              {'src': message.getAttribute('from'),
+               'dst': message.getAttribute('to'),
+               'body': message.body.children[0],  # ! Not really clear here.
+               'id': message.getAttribute('id'),
+               'type': message.getAttribute('type'),
+              })
         except:
             # Something went pretty.wrong.
-            server.log.err(" E: onMessage: exception.")
+            server.log.err(" -------------- E: onMessage: exception.")
             traceback.print_exc()
 
 

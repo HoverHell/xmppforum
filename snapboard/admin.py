@@ -42,6 +42,11 @@ class GroupAdmin(admin.ModelAdmin):
     filter_horizontal = ('users', 'admins')
 
 
+class XMPPContactAdmin(admin.ModelAdmin):
+    model = XMPPContact
+    list_display = ('remote', 'local', 'auth_to', 'auth_from', 'status_type')
+
+
 admin.site.register(Category)
 admin.site.register(Moderator)
 admin.site.register(Post, PostAdmin)
@@ -51,5 +56,6 @@ admin.site.register(UserSettings)
 admin.site.register(UserBan, UserBanAdmin)
 admin.site.register(IPBan, IPBanAdmin)
 admin.site.register(Group, GroupAdmin)
+admin.site.register(XMPPContact, XMPPContactAdmin)
 
 # vim: ai ts=4 sts=4 et sw=4

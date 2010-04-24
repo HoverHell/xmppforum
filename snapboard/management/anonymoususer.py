@@ -10,9 +10,12 @@ from snapboard import models as snapboard_app
 def add_anonymous(**kwargs):
     ANONYMOUS_NAME = getattr(settings, 'ANONYMOUS_NAME', 'Anonymous')
 
-    if ANONYMOUS_NAME:  # It is set. Create one.
+    if ANONYMOUS_NAME:  # It is set. Create one if there's none.
+        from snapboard.models import User
+        if User.objects.filter(username=ANONYMOUS_NAME):
+            # It exists already.
+            return
         print("Creating anonymous user named \"%s\":" % ANONYMOUS_NAME)
-        from snapboard.models import Group, User
         anonuser = User.objects.create_user(ANONYMOUS_NAME, "", None)
         print("  ...done.")
         

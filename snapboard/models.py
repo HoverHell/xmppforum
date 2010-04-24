@@ -28,6 +28,7 @@ __all__ = [
     'PermissionError', 'is_user_banned', 'is_ip_banned',
     'Category', 'Invitation', 'Group', 'Thread', 'Post', 'Moderator',
     'WatchList', 'AbuseReport', 'UserSettings', 'IPBan', 'UserBan',
+    'XMPPContact',
     ]
 
 _log = logging.getLogger('snapboard.models')
@@ -540,6 +541,38 @@ class IPBan(models.Model):
         c.execute('SELECT address FROM %s;' % cls._meta.db_table)
         settings.SNAP_BANNED_IPS = set((x for (x,) in c.fetchall()))
 
+
+class XMPPContact(models.Model):
+    '''
+    Contains authentication status and contact's status for all known XMPP
+    contacts.
+    '''
+    # Length is increased to reduce chance of problems with *very* long JIDs.
+    remote = models.EmailField(max_length=100,
+      verbose_name=_('remote jid'))
+    local = models.EmailField(max_length=85, 
+      verbose_name=_('local jid'))
+    # Determines if bot has subsctiption to this contact.
+    auth_to = models.BooleanField(default=False, 
+      verbose_name=_('subscribed to'))
+    # ...and if the contact is subscribed to bot's (local) jid.
+    # ? In which case it can really be 'false', actually?
+    auth_from = models.BooleanField(default=False,
+      verbose_name=_('subscribed from'))
+    # Status type: online / chat / away / xa / dnd / unavail.
+    status_type = models.CharField(max_length=10,
+      verbose_name=_('current status'))
+    # ? Need any other fields?
+
+    def __unicode__(self):
+        return _('XMPP Contact %s') % self.remote
+
+    class Meta:
+        verbose_name = _('xmpp contact')
+        verbose_name_plural = _('xmpp contacts')
+        unique_together = ("remote", "local")
+
+    
 signals.post_save.connect(IPBan.update_cache, sender=IPBan)
 signals.post_delete.connect(IPBan.update_cache, sender=IPBan)
 

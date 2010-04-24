@@ -72,6 +72,7 @@ class XmppRequest(object):
         # Populating extra fields:
         self.META = {'REMOTE_ADDR': srcjid}
         self.POST = None
+        self.GET = None
         # Stuff ftom HttpRequest:
         #self.GET, self.POST, self.COOKIES, self.META, self.FILES = None, \
         #  None, None, {}, {}, {}, {}, {}

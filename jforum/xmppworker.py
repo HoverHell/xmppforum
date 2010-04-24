@@ -22,6 +22,8 @@ def worker(inqueue):
             print("Process %r: received QUIT." % current_process())
             return
         result = snapboard.xmppface.processcmd(**z)
-        # We expect it to be a dict with specific fields.
         stderr.write("\nResult type %r: %r." % (type(result), result))
-        send_xmpp_message(result)
+        if result:  # Actually, may prefer to move that away.
+            send_xmpp_message(result)
+        else:
+            stderr.write("\nResult is empty. Ignoring.\n");
