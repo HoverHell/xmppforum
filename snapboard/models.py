@@ -565,7 +565,7 @@ class XMPPContact(models.Model):
     # ? Need any other fields?
 
     def __unicode__(self):
-        return _('XMPP Contact %s') % self.remote
+        return '%s - %s' % (self.remote, self.local)
 
     class Meta:
         verbose_name = _('xmpp contact')

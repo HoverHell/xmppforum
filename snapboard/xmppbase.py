@@ -263,6 +263,7 @@ def send_notifications(users, label, extra_context=None, on_site=True,
     from notification.models import Notice, NoticeType, Site, get_language,\
       get_notification_language, activate, get_formatted_messages, \
       should_send, send_mail, LanguageStoreNotAvailable, Context, ugettext
+    from models import XMPPContact
     
     remaining_users = []
     print(" D: Notifier: users: %r" % users)
@@ -284,15 +285,26 @@ def send_notifications(users, label, extra_context=None, on_site=True,
     for user in users:
         
         jid = None
-        try:
+        try:  # If user has got jid at all.
             jid = user.sb_usersettings.jid
         except:
             pass
-        if not jid: # Not jid available. Leave him to usual notification.
-            remaining_users.append(user)
+
+        # If user has authenticated some bot.
+        # ? Is it auth_to we need?
+        ucontacts = XMPPContact.objects.filter(remote=jid, auth_to=True)
+        # Also, we don't care about user's status now.
+        
+        if not (jid and ucontacts):
+            # Not jid/contact available. Leave him to e-mail notification.
+            if user.email:  
+                remaining_users.append(user)
+            # Or to none/on-site.
+            # ! Will on-site notifications work with that?
             continue  # ! What if it's not XMPP-related notification at all?
-        # !!! Also, should check if user is authorized in XMPP and (maybe)
-        # !!! is online (which may better be configurable).
+        
+        srcjid = ucontacts[0].local  # Choose first available authenticated bot JID.
+        # ! Custom thread-resource relation should be set here.
         
         # get user language for user from language store defined in
         # NOTIFICATION_LANGUAGE_MODULE setting

@@ -52,6 +52,7 @@ def processcmd(**indata):
     Should get no unkeyworded arguments.
     """
     src = indata.get('src')
+    srcbarejid = src.split("/")[0]  # Strip the resource if any.
     dst = indata.get('dst')
     body = indata.get('body')
     sys.stderr.write(" -+-+-+-+-+- D: indata: %r.\n" % indata)
@@ -74,21 +75,23 @@ def processcmd(**indata):
             sys.stderr.write(' ....... unsubscribe ')
         sys.stderr.write(' ....... changed contact data. ')
         contact.save()  # Update the data
-        sys.stderr.write(' ....... saved. ')
+        sys.stderr.write(' ....... saved. \n')
         return  # Nothing else should be in there.
     if 'stat' in indata:  # Got contact status. Save it.
+        sys.stderr.write(' ....... status message. ')
+        # ! ^ Don't really care about status now. But save the last status
+        # for now anyway.
         statustype = indata['stat']
         contact, created = XMPPContact.objects.get_or_create(
-          local=dst, remote=src)
+          local=dst, remote=srcbarejid)
         contact.status_type = statustype
         sys.stderr.write(' ....... changed contact status. ')
         contact.save()
         sys.stderr.write(' ....... saved. ')
         return
-    # ... otherwise it's a user command.
+    # ... otherwise it's probably a user command.
 
     sys.stderr.write("\n ------- D: src: %r; body: %r\n" % (src, body))
-    srcbarejid = src.split("/")[0]  # Strip the resource if any.
     request = XmppRequest(srcbarejid)
     
     # ! body should always be an unicode string here. If not - should change
