@@ -10,7 +10,7 @@ from django.db import connection
 from django.db.models import Q
 from django.http import HttpResponse, HttpResponseRedirect, Http404, HttpResponseServerError
 from django.shortcuts import render_to_response, get_object_or_404
-from django.template import RequestContext
+from django.template import RequestContext, TemplateDoesNotExist
 from django.utils import simplejson
 from django.utils.translation import ugettext as _
 
@@ -269,7 +269,7 @@ def new_thread(request, cat_id):
             thread.save()
 
             # create the post
-            post = Post(
+            post = Post.add_root(
                     user = request.user,
                     thread = thread,
                     text = threadform.cleaned_data['post'],
@@ -602,14 +602,6 @@ def answer_invitation(request, invitation_id):
             context_instance=RequestContext(request, processors=extra_processors))
 answer_invitation = login_required(answer_invitation)
 
-def get_user_settings(user):
-    if not user.is_authenticated():
-        return DEFAULT_USER_SETTINGS
-    try:
-        return user.sb_usersettings
-    except UserSettings.DoesNotExist:
-        return DEFAULT_USER_SETTINGS
-
 
 def xmpp_get_help(request, subject=None):
     '''
@@ -617,10 +609,53 @@ def xmpp_get_help(request, subject=None):
 
     Can theoretically be used in the web view as well.
     '''
-    return render_to_response('snapboard/xmpp_help',
-      None,
-      context_instance=RequestContext(request, processors=extra_processors))
+    subject = subject or "main"
+    try:
+        return render_to_response('snapboard/xmpp_help/%s'%subject, 
+          None,
+          context_instance=RequestContext(request,
+            processors=extra_processors))
+    except TemplateDoesNotExist:
+        raise Http404, "No such help subject"
 
+def xmpp_register_cmd(request, nickname=None, password=None):
+    '''
+    Provides all necessart registration-related functionality for XMPP.
+
+    XMPP-only view.
+    '''
+    if nickname is None:  # Allow registration w/o specifying nickname.
+        nickname = request.srcjid
+    # We're going to register one anyway.
+    ruser, created = User.objects.get_or_create(username=nickname)
+    if created:  # Okay, registered one.
+        ruser.sb_usersettings.jid = request.srcjid
+        # ! Hopefully you can't authenticate with password=None
+        ruser.set_password(password)
+        ruser.save()
+        return XmppResponse(_("Registration successful."))
+    else:
+        # Note: check_password can be True if passord is None
+        if (password is not None) and ruser.check_password(password):
+            if request.user.is_authenticated():
+                # ? What to do here, really?
+                return XmppResponse(_("You are already registered"))
+            else:
+                ruser.sb_usersettings.jid = request.srcjid  # replace its JID
+                ruser.save()
+                return XmppResponse(_("JID setting updated successfully."))
+        else:
+            raise PermissionError, "Authentication to existing user failed"
+    # Optional: change state to 'password input' if no password
+    # !! Possible problem if password (or, esp., both) contain spaces.
+
+def get_user_settings(user):
+    if not user.is_authenticated():
+        return DEFAULT_USER_SETTINGS
+    try:
+        return user.sb_usersettings
+    except UserSettings.DoesNotExist:
+        return DEFAULT_USER_SETTINGS
 
 def _brand_view(func):
     '''
@@ -649,5 +684,7 @@ _brand_view(remove_user_from_group)
 _brand_view(grant_group_admin_rights)
 _brand_view(discard_invitation)
 _brand_view(answer_invitation)
+_brand_view(xmpp_get_help)
+_brand_view(xmpp_register_cmd)
 
 # vim: ai ts=4 sts=4 et sw=4

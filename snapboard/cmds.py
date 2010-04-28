@@ -8,6 +8,7 @@ import xmppbase
 cmdpatterns = patterns('',
     (r'^HELP ?(?P<subject>.+)?$', xmpp_get_help, {}, 'snapboard_xmpp_help'),
     (r'^WHOAMI$', xmppbase.direct_to_template, {'template': 'snapboard/whoami.xmpp'}),
+    (r'^REGISTER( (?P<nickname>.+)( (?P<password>[^ ]+))?)?$', xmpp_register_cmd, {}, 'snapboard_xmpp_register_cmd'),
     (r'^#(?P<thread_id>\d+)$', thread, {}, 'snapboard_thread'),
     (r'^#( (?P<num_limit>\d+)?( (?P<num_start>\d+)?)?)?$', \
       thread_index, {}, 'snapboard_thread_index'),  # spaces!
