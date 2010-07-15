@@ -17,7 +17,7 @@ from django.utils.translation import ugettext as _
 # XmppFace
 from xmppbase import XmppRequest, XmppResponse
 from xmppbase import render_to_response, success_or_reverse_redirect
-from xmppbase import send_notifications
+from xmppstuff import send_notifications
 #from django.contrib.auth.decorators import login_required
 from xmppbase import login_required
 
@@ -28,11 +28,11 @@ from avatar.views import _get_avatars, _notification_updated
 
 from snapboard.forms import *
 from snapboard.models import *
+from snapboard.models import AnonymousUser
 from snapboard.rpc import *
 
 _log = logging.getLogger('snapboard.views')
 
-DEFAULT_USER_SETTINGS  = UserSettings()
 
 # USE_SNAPBOARD_LOGIN_FORM, USE_SNAPBOARD_SIGNIN should probably be removed
 USE_SNAPBOARD_SIGNIN = getattr(settings, 'USE_SNAPBOARD_SIGNIN', False)
@@ -54,6 +54,7 @@ RPC_ACTION_MAP = {
         "quote": rpc_quote,
         }
 
+ANONYMOUS_USER = User.objects.get(username=ANONYMOUS_NAME)
 def anonymous_login_required(function=None):
     """
     Decorator to replace auth's AnonymousUser with an actual usable user for
@@ -64,7 +65,7 @@ def anonymous_login_required(function=None):
         if request.user.is_authenticated() or not ANONYMOUS_NAME:
             return function(request, *args, **kwargs)
         else:  # Use Anonymous! Just for this request, of course.
-            request.user = User.objects.get(username=ANONYMOUS_NAME)
+            request.user = ANONYMOUS_USER
             request.user.really_anonymous = True
             return function(request, *args, **kwargs)
     return anon_decorate
@@ -84,7 +85,7 @@ def snapboard_default_context(request):
 
 
 def user_settings_context(request):
-    return {'user_settings': get_user_settings(request.user)}
+    return {'user_settings': request.user.get_user_settings()}
 
 if USE_SNAPBOARD_LOGIN_FORM:
     from snapboard.forms import LoginForm
@@ -360,7 +361,7 @@ def locate_post(request, post_id):
     total = post.thread.count_posts(request.user)
     preceding_count = post.thread.count_posts(request.user, before=post.date)
     # Check the user's settings to locate the post in the various pages
-    settings = get_user_settings(request.user)
+    settings = request.user.get_user_settings()
     ppp = settings.ppp
     if total < ppp:
         page = 1
@@ -384,10 +385,7 @@ def edit_settings(request):
     There are 4 buttons on this page: choose avatar, delete avatar, upload
     avatar, change settings.
     '''
-    try:
-        userdata = UserSettings.objects.get(user=request.user)
-    except UserSettings.DoesNotExist:
-        userdata = UserSettings.objects.create(user=request.user)
+    userdata, userdatacreated = UserSettings.objects.get_or_create(user=request.user)
     avatar, avatars = _get_avatars(request.user)
     if avatar:
         kwargs = {'initial': {'choice': avatar.id}}
@@ -628,11 +626,13 @@ def xmpp_register_cmd(request, nickname=None, password=None):
         nickname = request.srcjid
     # We're going to register one anyway.
     ruser, created = User.objects.get_or_create(username=nickname)
+    rusersettings, c = UserSettings.objects.get_or_create(user=ruser)
     if created:  # Okay, registered one.
-        ruser.sb_usersettings.jid = request.srcjid
-        # ! Hopefully you can't authenticate with password=None
-        ruser.set_password(password)
+        rusersettings.jid = request.srcjid
+        if password is not None:
+            ruser.set_password(password)
         ruser.save()
+        rusersettings.save()
         return XmppResponse(_("Registration successful."))
     else:
         # Note: check_password can be True if passord is None
@@ -641,21 +641,14 @@ def xmpp_register_cmd(request, nickname=None, password=None):
                 # ? What to do here, really?
                 return XmppResponse(_("You are already registered"))
             else:
-                ruser.sb_usersettings.jid = request.srcjid  # replace its JID
-                ruser.save()
+                rusersettings.jid = request.srcjid  # replace its JID
+                rusersettings.save()
                 return XmppResponse(_("JID setting updated successfully."))
         else:
             raise PermissionError, "Authentication to existing user failed"
     # Optional: change state to 'password input' if no password
     # !! Possible problem if password (or, esp., both) contain spaces.
 
-def get_user_settings(user):
-    if not user.is_authenticated():
-        return DEFAULT_USER_SETTINGS
-    try:
-        return user.sb_usersettings
-    except UserSettings.DoesNotExist:
-        return DEFAULT_USER_SETTINGS
 
 def _brand_view(func):
     '''

@@ -2,7 +2,7 @@ import logging
 from datetime import datetime
 
 from django.conf import settings
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, AnonymousUser
 from django.core.exceptions import PermissionDenied
 from django.core.urlresolvers import reverse
 from django.db import models, connection
@@ -17,7 +17,7 @@ def get_rly_annotated_list(self):
     return super(mp_tree.MP_Node, self).get_annotated_list(self)
 mp_tree.MP_Node.get_annotated_list = get_rly_annotated_list
 
-from xmppbase import send_notifications
+from xmppstuff import send_notifications
 
 from snapboard import managers
 from snapboard.middleware import threadlocals
@@ -447,7 +447,7 @@ class UserSettings(models.Model):
             default = 20,
             help_text = _('Threads per page'), verbose_name=_('threads per page'))
     jid = models.EmailField(
-            unique = True, blank = True,
+            unique = True, blank = True, null = True,
             help_text = _('Jabber ID'), verbose_name=_('jid'))
     disable_xmpp_xhtml = models.BooleanField(
             default = False,
@@ -479,14 +479,18 @@ class UserSettings(models.Model):
     def __unicode__(self):
         return _('%s\'s preferences') % self.user
 
-## "Monkey patching"
-#User.add_to_class('openid', models.CharField(max_length=250,blank=True))
-#def get_user_name(self):
-#    if self.first_name or self.last_name:
-#        return self.first_name + " " + self.last_name
-#    return self.username
-#User.add_to_class("get_user_name",get_user_name)
-
+User.really_anonymous = False
+AnonymousUser.really_anonymous = False
+DEFAULT_USER_SETTINGS  = UserSettings()
+def get_user_settings(user):
+    if not user.is_authenticated():
+        return DEFAULT_USER_SETTINGS
+    try:
+        return user.sb_usersettings
+    except UserSettings.DoesNotExist:
+        return DEFAULT_USER_SETTINGS
+User.get_user_settings = get_user_settings
+AnonymousUser.get_user_settings = get_user_settings
    
 class UserBan(models.Model):
     '''

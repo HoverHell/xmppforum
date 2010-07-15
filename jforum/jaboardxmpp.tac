@@ -26,6 +26,7 @@ SOCKET_ADDRESS = 'xmppoutqueue'
 import socket  # outqueue.
 import os  # For screwing with the socket file
 import simplejson  # Decoding of IPC data.
+import traceback  # Debug on exceptions.
 
 # Socket init happens here.
 try:
@@ -38,13 +39,13 @@ outqueue = socket.socket(socket.AF_UNIX, socket.SOCK_DGRAM)
 outqueue.bind(SOCKET_ADDRESS)
 try:
     # Should prefer more secure mode when possible.
-    os.chmod(fname, 0770)
-except:
-    server.log.err(" ------- W: Could not chmod socket file.\n")
+    os.chmod(SOCKET_ADDRESS, 0770)
+except OSError:  # Not OSError means more major screwup.
+    server.log.err(" ------- W: Could not chmod socket file:")
+    server.log.err(traceback.format_exc())
 
 from multiprocessing import Process, Queue, active_children, current_process
 from thread import start_new_thread
-import traceback  # Debug on exceptions.
 import signal  # Sigint handler.
 import time  # Old processes killing timeout.
 
@@ -225,6 +226,13 @@ class PresenceHandler(xmppim.PresenceProtocol):
         """
         server.log.err(" ------- D: A: availableReceived.")
         show = presence.show.children[0] if presence.show else "online"
+        # ! vcard updates seem to be in <photo> element of presence
+        if presence.photo:
+            try:
+                server.log.err(" -+-+-+- D: Photo in presence: %s" % \
+                  presence.photo.children[0])
+            except:
+                traceback.print_exc()
         inqueue.put_nowait({'stat': show,
            'src': presence.sender.full(), 'dst': presence.recipient.full()})
 

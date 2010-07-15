@@ -3,7 +3,7 @@ Wokkel (linked to in jforum/): mercurial repository at
  http://hg.ik.nu/wokkel
 
 Twisted: required by wokkel and jaboardxmpp. Version 10.0.0 tested.
-
+  Debian: python-twisted-bin python-twisted-words python-twisted-names
 
 * Exact list of django dependencies is not clear. Some of them:
 
@@ -17,6 +17,8 @@ django-pagination: subversion at
 django-registration: mercurial at
  http://bitbucket.org/ubernostrum/django-registration/
 
-simplejson: likely available in packages.
+django-treebeard: mercurial at
+ http://code.tabo.pe/django-treebeard/
 
-possibly some more.
+django-avatar (linked to in jforum/):
+ git://github.com/ericflo/django-avatar.git

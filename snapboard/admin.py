@@ -22,6 +22,11 @@ class ThreadAdmin(admin.ModelAdmin):
     list_filter = ('closed', 'csticky', 'gsticky', 'category')
 
 
+class UserSettingsAdmin(admin.ModelAdmin):
+    model = UserSettings
+    list_display = ('user', 'jid', 'ppp', 'tpp', 'disable_xmpp_xhtml')
+
+
 class UserBanAdmin(admin.ModelAdmin):
     model = UserBan
     list_display = ('user', 'reason')
@@ -52,7 +57,7 @@ admin.site.register(Moderator)
 admin.site.register(Post, PostAdmin)
 admin.site.register(AbuseReport, AbuseReportAdmin)
 admin.site.register(Thread, ThreadAdmin)
-admin.site.register(UserSettings)
+admin.site.register(UserSettings, UserSettingsAdmin)
 admin.site.register(UserBan, UserBanAdmin)
 admin.site.register(IPBan, IPBanAdmin)
 admin.site.register(Group, GroupAdmin)
