@@ -227,7 +227,7 @@ class PresenceHandler(xmppim.PresenceProtocol):
         server.log.err(" ------- D: A: availableReceived.")
         show = presence.show.children[0] if presence.show else "online"
         # ! vcard updates seem to be in <photo> element of presence
-        if presence.photo:
+        if hasattr(presence, "photo") and presence.photo:
             try:
                 server.log.err(" -+-+-+- D: Photo in presence: %s" % \
                   presence.photo.children[0])

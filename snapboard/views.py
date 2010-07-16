@@ -4,6 +4,7 @@ import datetime
 from django import forms
 from django.conf import settings
 from django.contrib.auth import decorators
+from django.views.decorators.csrf import csrf_protect
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse
 from django.db import connection
@@ -164,12 +165,33 @@ def thread(request, thread_id):
     if request.user.is_authenticated():
         render_dict.update({"watched": WatchList.objects.filter(user=request.user, thread=thr).count() != 0})
 
-    if request.POST:
+    # this must come after the post so new messages show up
+
+    top_post = Post.objects.get(thread=thread_id, depth=1)  # Assumed to be unique.
+    post_list = Post.get_children(top_post)  # Paginated by this list.
+    
+    render_dict.update({
+            'top_post': top_post,
+            'post_list': post_list,
+            'thr': thr,
+            })
+    
+    return render_to_response('snapboard/thread',
+            render_dict,
+            context_instance=RequestContext(request, processors=extra_processors))
+thread = anonymous_login_required(thread)
+
+
+def post_reply(request, parent_id):
+    # thread_id paremeter was considered unnecessary here.
+    if request.POST:  # POST HERE.
+        parent_post = Post.objects.get(id=parent_id)
+        thr = parent_post.thread
         if not thr.category.can_post(request.user):
             raise PermissionError, "You are not allowed to post in this thread"
         postform = PostForm(request.POST)
         if postform.is_valid():
-            postobj = Post(thread = thr,
+            postobj = parent_post.add_child(thread = thr,
                     user = request.user,
                     text = postform.cleaned_data['post'],
                     )
@@ -185,31 +207,19 @@ def thread(request, thread_id):
               args=(postobj.id,), req=request, msg="Posted successfully.")
     else:
         postform = PostForm()
-
-    # this must come after the post so new messages show up
-
-    top_post = Post.objects.get(thread=thread_id, depth=1)  # Assumed to be unique.
-    post_list = Post.get_children(top_post)  # Paginated by this list.
-    
-    render_dict.update({
-            'top_post': top_post,
-            'post_list': post_list,
-            'thr': thr,
-            'postform': postform,
-            })
-    
-    return render_to_response('snapboard/thread',
-            render_dict,
+    return render_to_response('snapboard/post_reply',
+            {'postform': postform,
+            },
             context_instance=RequestContext(request, processors=extra_processors))
-thread = anonymous_login_required(thread)
+post_reply = anonymous_login_required(post_reply)
 
 
 def edit_post(request, original, next=None):
     '''
-    Edit an existing post.decorators in python
+    Edit an existing post.
     '''
     if not request.method == 'POST':
-        raise Http404, "It ain't here!"  # !
+        raise Http404, "It ain't here!"  # ! Not compatible with non-JS.
 
     try:
         orig_post = Post.view_manager.get(pk=int(original))
@@ -217,7 +227,9 @@ def edit_post(request, original, next=None):
         raise Http404 # ?
         
     if orig_post.user != request.user or not orig_post.thread.category.can_post(request.user):
-        raise PermissionError, "It's not your post!"
+        # ? Anonymous post editing? o-O
+        # ! Not in sync with interface in thread!
+        raise PermissionError, "You are not allowed to edit that."
 
     postform = PostForm(request.POST)
     if postform.is_valid():
@@ -358,8 +370,18 @@ def locate_post(request, post_id):
         raise PermissionError, "What?"
     # Count the number of visible posts before the one we are looking for, 
     # as well as the total
-    total = post.thread.count_posts(request.user)
-    preceding_count = post.thread.count_posts(request.user, before=post.date)
+    #total = post.thread.count_posts(request.user)
+
+    # ...everything is visible, threads paginated by first-leve answers.
+    # Looks funny, meh.
+    root=post.get_root()
+    total = root.get_children_count()
+    answer = post.get_ancestors()[1] if post.depth > 2 else post
+    preceding_count = (i for i,x in enumerate(answer.get_siblings()) if x == answer).next()+1
+    
+    # Later TODO: correct for possible thread rollups - add ?unfold=threadnum or smth.
+    
+    #preceding_count = post.thread.count_posts(request.user, before=post.date)
     # Check the user's settings to locate the post in the various pages
     settings = request.user.get_user_settings()
     ppp = settings.ppp
