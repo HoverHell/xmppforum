@@ -142,7 +142,7 @@ def processcmd(**indata):
     response['dst'] = src
     #response['subject'] = "Jaboard: XMPP"
     # ? Populate other values from received data?
-    return response
+    send_xmpp_message(response)
 
 # Testing:
 #processcmd("hell@hell.orts.ru", "bot@bot.hell.orts.ru", "#")

@@ -3,10 +3,12 @@ A jaboard XMPP face server as a standalone server via s2s.
 """
 
 from twisted.application import service, strports
+from twisted.internet import protocol
 from twisted.words.xish import domish  # For creating messages to send.
 from twisted.words.protocols.jabber.xmlstream import toResponse
 from wokkel import component, server, xmppim
 from sys import stdout, stderr
+
 
 # Configuration parameters
 
@@ -20,75 +22,16 @@ NWORKERS = 2
 # Only AF_UNIX socket for now. Non-crossplatform but somewhat easy to fix.
 SOCKET_ADDRESS = 'xmppoutqueue'
 
-
-
 ## External: xmppworkerpool
-import socket  # outqueue.
-import os  # For screwing with the socket file
 import simplejson  # Decoding of IPC data.
 import traceback  # Debug on exceptions.
-
-# Socket init happens here.
-try:
-    # It's /probably/ unused.
-    # ! Should check that, actually.
-    os.remove(SOCKET_ADDRESS)
-except:
-    pass  # We don't care.
-outqueue = socket.socket(socket.AF_UNIX, socket.SOCK_DGRAM)
-outqueue.bind(SOCKET_ADDRESS)
-try:
-    # Should prefer more secure mode when possible.
-    os.chmod(SOCKET_ADDRESS, 0770)
-except OSError:  # Not OSError means more major screwup.
-    server.log.err(" ------- W: Could not chmod socket file:")
-    server.log.err(traceback.format_exc())
 
 from multiprocessing import Process, Queue, active_children, current_process
 from thread import start_new_thread
 import signal  # Sigint handler.
 import time  # Old processes killing timeout.
 
-
 import xmppworker
-
-
-def returner():
-    while True:
-        indata = outqueue.recv(65535)  # ! We have a limit here
-        server.log.err(" D: Outqueue data: %r.\n" % indata)
-        # We expect it to be simplejson data, possibly multiple lines (since
-        # simplejson here shouldn't contain newlines itself).
-        for dataline in indata.split("\n"):
-            try:
-                x = simplejson.loads(dataline)
-                server.log.err(" ------- D: Got JSON of length %d" % len(dataline))
-                # Create and send a response.
-                response = domish.Element((None, 'message'))
-                response['type'] = 'chat'
-                # Values are supposed to be always present here:
-                response['to'] = x['dst']
-                response['from'] = x['src']
-                if 'content' in x:
-                    # We're provided with raw content already.
-                    response.addRawXml(x['content'])
-                else:  # Construct it then.
-                    # ! this all might be not really necessary.
-                    if 'subject' in x:
-                        response.addElement('subject', content=x['subject'])
-                    # Body content is xml-escaped - likely, more than needed.
-                    response.addElement('body', content=x['body'])
-                    if 'html' in x:
-                        htmlbody = domish.Element(
-                          ('http://www.w3.org/1999/xhtml', 'body'))
-                        htmlbody.addRawXml(x['html'])
-                        htmlpart = domish.Element(
-                          ('http://jabber.org/protocol/xhtml-im', 'html'))
-                        htmlpart.addChild(htmlbody)
-                        response.addChild(htmlpart)
-                msgHandler.send(response)
-            except ValueError:
-                server.log.err(" -------------- E: Failed processing: %r" % dataline)
 
 
 def createworkerpool(targetfunc, nworkers):
@@ -224,9 +167,9 @@ class PresenceHandler(xmppim.PresenceProtocol):
         """
         Available presence was received.
         """
-        server.log.err(" ------- D: A: availableReceived.")
+        server.log.err(" ------- D: A: availableReceived. show: %r"%(presence.show,))
         show = presence.show.children[0] if presence.show else "online"
-        # ! vcard updates seem to be in <photo> element of presence
+        # ! vcard updates seem to be in the <photo> element of presence
         if hasattr(presence, "photo") and presence.photo:
             try:
                 server.log.err(" -+-+-+- D: Photo in presence: %s" % \
@@ -290,7 +233,7 @@ class MessageHandler(xmppim.MessageProtocol):
             inqueue.put_nowait(
               {'src': message.getAttribute('from'),
                'dst': message.getAttribute('to'),
-               'body': message.body.children[0],  # ! Not really clear here.
+               'body': message.body.children[0],
                'id': message.getAttribute('id'),
                'type': message.getAttribute('type'),
               })
@@ -300,15 +243,61 @@ class MessageHandler(xmppim.MessageProtocol):
             traceback.print_exc()
 
 
+class OutqueueHandler(protocol.Protocol):
+        def connectionMade(self):
+            stderr.write(" D: OutqueueHandler: connection received.\n")
+
+        def dataReceived(self, data):
+            # Process received data for messages to send.
+            for dataline in data.split("\n"):
+                try:
+                    x = simplejson.loads(dataline)
+                    server.log.err(" ------- D: Got JSON line of length %d" % len(dataline))
+                    # Create and send a response.
+                    response = domish.Element((None, 'message'))
+                    response['type'] = 'chat'
+                    # Values are supposed to be always present here:
+                    response['to'] = x['dst']
+                    response['from'] = x['src']
+                    # We expect returned message parts to be valid XML already.
+                    # (if not - remote server will probably drop s2s connection)
+                    if 'content' in x:
+                        # We're provided with raw content already.
+                        response.addRawXml(x['content'])
+                    else:  # Construct it then.
+                        # ! this all might be not really necessary.
+                        if 'subject' in x:
+                            response.addElement('subject', content=x['subject'])
+                        # Body content is xml-escaped - likely, more than needed.
+                        response.addElement('body', content=x['body'])
+                        if 'html' in x:
+                            htmlbody = domish.Element(
+                              ('http://www.w3.org/1999/xhtml', 'body'))
+                            htmlbody.addRawXml(x['html'])
+                            htmlpart = domish.Element(
+                              ('http://jabber.org/protocol/xhtml-im',
+                              'html'))
+                            htmlpart.addChild(htmlbody)
+                            response.addChild(htmlpart)
+                    msgHandler.send(response)
+                except ValueError:
+                    server.log.err(" -------------- E: Failed processing:" \
+                     " %r" % dataline)
+
+
 # * Use twistd's --pidfile to write PID.
 
 # Starting workers...
-start_new_thread(returner, ())
 workerlist, inqueue = createworkerpool(xmppworker.worker, NWORKERS)
-
 
 # Set up the Twisted application
 application = service.Application("Jaboard Server")
+
+# outqueue.
+outFactory = protocol.Factory()
+outFactory.protocol = OutqueueHandler
+outService = strports.service('unix:%s:mode=770'%SOCKET_ADDRESS, outFactory)
+outService.setServiceParent(application)
 
 router = component.Router()
 

@@ -12,16 +12,10 @@ import sys
 
 # For send_xmpp_message
 from django.conf import settings
-# ! AF_UNIX socket is currently used.
 XMPPOUTQUEUEADDR = getattr(settings, 'SOCKET_ADDRESS', 'xmppoutqueue')
 import socket
-xmppoutqueue = socket.socket(socket.AF_UNIX, socket.SOCK_DGRAM)
-# Also, only one connection call. Might be insufficiently reliable.
-try:
-    xmppoutqueue.connect(XMPPOUTQUEUEADDR)
-except:
-    sys.stderr.write(" ERROR: could not connect to xmppoutqueue!\n")
-
+import time  # periodic reconnect attempts
+from thread import start_new_thread  # for reconnector thread
 
 # for XmppRequest
 # User class might be customized, so not importing it from django itself.
@@ -185,6 +179,35 @@ class XmppResponse(dict):
         selfrepr['content'] = content
         return simplejson.dumps(selfrepr)  # Should be string.
 
+xmppoutqueue = None
+connecting = True
+def connkeeper():
+    """
+    A function that periodically tries to connect to the specifiet socket
+    untill successful (or killed).
+    """
+    global xmppoutqueue
+    global connecting
+    connecting = True
+    # ! AF_UNIX socket is currently used.
+    #xmppoutqueue = socket.socket(socket.AF_UNIX, socket.SOCK_DGRAM)
+    xmppoutqueue = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+    pause = 1  # current time to wait until retry
+    while True:
+        try:
+            xmppoutqueue.connect(XMPPOUTQUEUEADDR)
+        except:
+            sys.stderr.write(" ERROR: could not connect to xmppoutqueue!"\
+             " Waiting for %d seconds.\n"%pause)
+            time.sleep(pause)
+            if pause < 30:
+                pause *= 2  # wait 32 seconds at most, doubling on attempt.
+            continue  # try again
+        sys.stderr.write(" D: connected to the xmppoutqueue.")
+        connecting = False
+        break  # success.
+start_new_thread(connkeeper, ())
+
 def send_xmpp_message(msg):
     """
     Common function to send a XMPP message through running XMPP connection
@@ -196,8 +219,12 @@ def send_xmpp_message(msg):
         # msg decides itself on how to be dumped.
         xmppoutqueue.send(str(msg))  
     except:  # ! Should do more reliability increasing here.
-        sys.stderr.write(" ERROR: Could not write to xmppoutqueue!\n")
+        sys.stderr.write(" ERROR: Could not write to xmppoutqueue! (reconnecting...)\n")
         sys.stderr.write("    Message was: %s.\n" % str(msg))
+        if not connecting:
+            xmppoutqueue.close()
+            start_new_thread(connkeeper(), ())
+        
 
 def render_to_response(*args, **kwargs):
     """
