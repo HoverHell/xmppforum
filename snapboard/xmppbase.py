@@ -15,6 +15,7 @@ from django.conf import settings
 XMPPOUTQUEUEADDR = getattr(settings, 'SOCKET_ADDRESS', 'xmppoutqueue')
 import socket
 import time  # periodic reconnect attempts
+import copy
 from thread import start_new_thread  # for reconnector thread
 
 # for XmppRequest
@@ -181,6 +182,7 @@ class XmppResponse(dict):
 
 xmppoutqueue = None
 connecting = True
+unsent = []
 def connkeeper():
     """
     A function that periodically tries to connect to the specifiet socket
@@ -188,9 +190,11 @@ def connkeeper():
     """
     global xmppoutqueue
     global connecting
+    global unsent
     connecting = True
     # ! AF_UNIX socket is currently used.
     #xmppoutqueue = socket.socket(socket.AF_UNIX, socket.SOCK_DGRAM)
+    sys.stderr.write(" D: connecting to the xmppoutqueue...\n")
     xmppoutqueue = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
     pause = 1  # current time to wait until retry
     while True:
@@ -203,8 +207,12 @@ def connkeeper():
             if pause < 30:
                 pause *= 2  # wait 32 seconds at most, doubling on attempt.
             continue  # try again
-        sys.stderr.write(" D: connected to the xmppoutqueue.")
+        sys.stderr.write(" D: connected to the xmppoutqueue.\n")
         connecting = False
+        processing = copy.copy(unsent)
+        unsent = []
+        for msg in processing:
+            send_xmpp_message(msg)
         break  # success.
 start_new_thread(connkeeper, ())
 
@@ -221,6 +229,7 @@ def send_xmpp_message(msg):
     except:  # ! Should do more reliability increasing here.
         sys.stderr.write(" ERROR: Could not write to xmppoutqueue! (reconnecting...)\n")
         sys.stderr.write("    Message was: %s.\n" % str(msg))
+        unsent.append(msg)
         if not connecting:
             xmppoutqueue.close()
             start_new_thread(connkeeper(), ())

@@ -16,6 +16,7 @@ from django.utils import simplejson
 from django.utils.translation import ugettext as _
 
 # XmppFace
+import xmppbase
 from xmppbase import XmppRequest, XmppResponse
 from xmppbase import render_to_response, success_or_reverse_redirect
 from xmppstuff import send_notifications
