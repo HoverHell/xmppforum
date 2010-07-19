@@ -163,6 +163,8 @@ def thread(request, thread_id):
 
     render_dict = {}
 
+    postform = PostForm()
+
     if request.user.is_authenticated():
         render_dict.update({"watched": WatchList.objects.filter(user=request.user, thread=thr).count() != 0})
 
@@ -174,6 +176,7 @@ def thread(request, thread_id):
     render_dict.update({
             'top_post': top_post,
             'post_list': post_list,
+            'postform': postform,
             'thr': thr,
             })
     
@@ -185,8 +188,11 @@ thread = anonymous_login_required(thread)
 
 def post_reply(request, parent_id):
     # thread_id paremeter was considered unnecessary here.
+    try:
+        parent_post = Post.objects.get(id=int(parent_id))
+    except Post.DoesNotExist:
+        raise Http404, "Reply to WHAT?"
     if request.POST:  # POST HERE.
-        parent_post = Post.objects.get(id=parent_id)
         thr = parent_post.thread
         if not thr.category.can_post(request.user):
             raise PermissionError, "You are not allowed to post in this thread"
@@ -219,47 +225,58 @@ def edit_post(request, original, next=None):
     '''
     Edit an existing post.
     '''
-    if not request.method == 'POST':
-        raise Http404, "It ain't here!"  # ! Not compatible with non-JS.
+    #if not request.method == 'POST':
+    #    raise Http404, "It ain't here!"  # ! Not compatible with non-JS.
 
     try:
-        orig_post = Post.view_manager.get(pk=int(original))
+        orig_post = Post.objects.get(id=int(original))
     except Post.DoesNotExist:
-        raise Http404 # ?
+        raise Http404, "Edit WHAT?"
         
     if orig_post.user != request.user or not orig_post.thread.category.can_post(request.user):
         # ? Anonymous post editing? o-O
         # ! Not in sync with interface in thread!
         raise PermissionError, "You are not allowed to edit that."
 
-    postform = PostForm(request.POST)
-    if postform.is_valid():
-        # create the post
-        post = Post(
-                user = request.user,
-                thread = orig_post.thread,
-                text = postform.cleaned_data['post'],
-                previous = orig_post,
-                )
-        post.save()
-        post.private = orig_post.private.all()
-        post.is_private = orig_post.is_private
-        post.save()
+    if request.POST:
+        postform = PostForm(request.POST)
+        if postform.is_valid():
+            # create the post
+            parent = orig_post.get_parent()
+            postdata = {
+                    "user": request.user,
+                    "thread": orig_post.thread,
+                    "text": postform.cleaned_data['post'],
+                    "previous": orig_post,
+            }
+            if parent:
+                post = parent.add_child(**postdata)
+            else:
+                post = Post.add_root(**postdata)
+            post.save()
+            post.private = orig_post.private.all()
+            post.is_private = orig_post.is_private
+            post.save()
 
-        orig_post.revision = post
-        orig_post.save()
+            orig_post.revision = post
+            orig_post.save()
 
-        div_id_num = post.id
-    else:
-        div_id_num = orig_post.id
+            div_id_num = post.id
+        else:
+            div_id_num = orig_post.id
 
-    try:  # Shouldn't ever succeed with XmppRequest.
-        next = request.POST['next'].split('#')[0] + '#snap_post' + str(div_id_num)
-    except KeyError:
-        return success_or_reverse_redirect('snapboard_locate_post',
-          args=(orig_post.id,), req=request, msg="Message updated.")
-
-    return HttpResponseRedirect(next)
+        try:  # Shouldn't ever succeed with XmppRequest.
+            next = request.POST['next'].split('#')[0] + '#snap_post' + str(div_id_num)
+            return HttpResponseRedirect(next)
+        except KeyError:
+            return success_or_reverse_redirect('snapboard_locate_post',
+              args=(orig_post.id,), req=request, msg="Message updated.")
+    else:  # Show a form for posting.
+        return render_to_response('snapboard/edit_post',
+                {'post': orig_post,
+                },
+                context_instance=RequestContext(request, processors=extra_processors))
+edit_post = anonymous_login_required(edit_post)  # ! Anonymous post revisions! yay!
 
 
 ##

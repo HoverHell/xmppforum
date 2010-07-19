@@ -14,7 +14,7 @@
         <p>{% trans "You are not logged in." %}</p>
         <p><a href="{% url auth_login %}">Sign in.</a></p>
         {% if user.really_anonymous %}
-            <p>{% trans "You can be an anonymous poster." %}</p>
+            <p>{% trans "You can be an Anonymous!" %}</p>
         {% endif %}
         <p style="font-size:small"><a href="/accounts/register/">{% trans "Create an account" %}</a></p>
     {% endif %}

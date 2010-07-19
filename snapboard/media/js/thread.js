@@ -8,6 +8,7 @@ function toggle_edit(id) {
     //toggle('post_text'+id, 'block');
     toggle('snap_post_text'+id, 'block');
     toggle('snap_post_edit'+id, 'block');
+    return false;
 }
 
 function toggle(id, type) {

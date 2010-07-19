@@ -15,6 +15,10 @@ from notification.models import Notice, NoticeType, Site, get_language,\
   get_notification_language, activate, get_formatted_messages, \
   should_send, send_mail, LanguageStoreNotAvailable, Context, ugettext
 
+import django  
+from django.core.urlresolvers import reverse
+from xmppbase import XmppResponse, send_xmpp_message
+
 #from models import XMPPContact
 import models
 
