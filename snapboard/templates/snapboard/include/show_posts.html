@@ -4,7 +4,7 @@
 <div>
 <hr class="firstpost" />
 <div id="snap_top_post" class="snap_top_post">
-    <div id="snap_post{{ top_post.id }}" class="snap_post">
+k    <div id="snap_post{{ top_post.id }}" class="snap_post">
         {% if top_post.censor %}<div class="post_censored">{% else %}{% ifnotequal top_post.abuse 0 %}<div class="post_reported">{% endifnotequal %}{% endif %}
         <div id="post_rpc_feedback{{ top_post.id }}" class="rpc_message">
             <!-- This DIV is for RPC feedback messages for individual posts -->
@@ -31,8 +31,11 @@
                 {{ top_post.text|striptags|render_post|safe }}
             </div>
             {% if top_post.previous %}
-                <span id="post_revision_links{{ top_post.id }}" class="post_menuleft"><a href="#snap_post_view{{ top_post.id }}" onclick="revision('{{ top_post.id }}','{{ top_post.previous.id }}');">&#171; {% trans "previous" %}</a><b style="color: #c00">{% trans "This message has been revised" %}</b></span>
-                <br/>
+                <span id="post_revision_links{{ top_post.id }}" class="post_menuleft">
+                  <a href="#snap_post_view{{ top_post.id }}" onclick="revision('{{ top_post.id }}','{{ top_post.previous.id }}');">&#171; {% trans "previous" %}</a>
+                  <a href="{% url snapboard_show_revisions top_post.id %}">
+                    <b style="color: #c00">{% trans "This message has been revised" %}</b></a></span> 
+                <br/>             
             {% endif %}
             {% ifequal top_post.user_id user.id %}
                 <div style="display:none" id="snap_post_edit{{ top_post.id }}">
@@ -85,7 +88,10 @@
                 {{ post.text|striptags|render_post|safe }}
             </div>
             {% if post.previous %}
-                <span id="post_revision_links{{ post.id }}" class="post_menuleft"><a href="#snap_post_view{{ post.id }}" onclick="revision('{{ post.id }}','{{ post.previous.id }}');">&#171; {% trans "previous" %}</a><b style="color: #c00">{% trans "This message has been revised" %}</b></span>
+                <span id="post_revision_links{{ post.id }}" class="post_menuleft">
+                  <a href="#snap_post_view{{ post.id }}" onclick="revision('{{ post.id }}','{{ post.previous.id }}');">&#171; {% trans "previous" %}</a>
+                  <a href="{% url snapboard_show_revisions post.id %}">
+                    <b style="color: #c00">{% trans "This message has been revised" %}</b></a></span>
                 <br/>
             {% endif %}
             {% ifequal post.user_id user.id %}

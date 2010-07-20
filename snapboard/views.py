@@ -285,6 +285,36 @@ def edit_post(request, original, next=None):
 edit_post = anonymous_login_required(edit_post)  # ! Anonymous post revisions! yay!
 
 
+def show_revisions(request, post_id):
+    '''
+    See all revisions of a specific post (for non-JS browsing).
+    '''
+    try:
+        orig_post = Post.objects.get(id=int(post_id))
+    except Post.DoesNotExist:
+        raise Http404, "Don't know such post!"
+
+    # revision => newer
+    # previous => older
+    post = orig_post
+    posts = [post]
+    while post.previous:
+        post = post.previous
+        posts.append(post)
+    post = orig_post
+    posts = posts[::-1]  # reverse the array.
+    while post.revision:
+        post = post.revision
+        posts.append(post)
+    
+    return render_to_response('snapboard/show_revisions',
+            {'posts': posts,
+             'last_post': posts[-1],
+             'thread': posts[-1].thread,
+            },
+            context_instance=RequestContext(request, processors=extra_processors))
+
+
 ##
 # Should new discussions be allowed to be private?  Leaning toward no.
 def new_thread(request, cat_id):

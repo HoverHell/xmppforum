@@ -19,6 +19,7 @@ urlpatterns = patterns('',
     # please note that next two have to end with post id (required for javascript features)
     (r'^post_reply/(?P<parent_id>\d+)/$', post_reply, {}, 'snapboard_post_reply'),
     (r'^edit_post/(?P<original>\d+)/$', edit_post, {}, 'snapboard_edit_post'),
+    (r'^show_revisions/(?P<post_id>\d+)/$', show_revisions, {}, 'snapboard_show_revisions'),
     (r'^threads/$', thread_index, {}, 'snapboard_thread_index'),
     (r'^threads/id/(?P<thread_id>\d+)/$', thread, {}, 'snapboard_thread'),
     (r'^threads/category/(?P<cat_id>\d+)/$', category_thread_index, {}, 'snapboard_category_thread_index'),
