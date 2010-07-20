@@ -13,6 +13,7 @@ from django.utils.translation import ugettext_lazy as _
 from treebeard import mp_tree
 
 # Fix it, mkay.
+# ? Could be added to Post class itself.
 def get_rly_annotated_list(self):
     return super(mp_tree.MP_Node, self).get_annotated_list(self)
 mp_tree.MP_Node.get_annotated_list = get_rly_annotated_list

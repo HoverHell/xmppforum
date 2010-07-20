@@ -170,8 +170,14 @@ def thread(request, thread_id):
 
     # this must come after the post so new messages show up
 
-    top_post = Post.objects.get(thread=thread_id, depth=1)  # Assumed to be unique.
-    post_list = Post.get_children(top_post)  # Paginated by this list.
+    ## Revisions of root node become a serious special case.
+    ## Not sure about right way, so this is more of a hack-in:
+    # Get original tree root (really, better point to it in Thread object!)
+    top_post_0 = Post.objects.filter(thread=thread_id, depth=1)[0]
+    # Get latest version of top post (to display it).
+    top_post = Post.objects.get(thread=thread_id, depth=1, revision=None)
+    # Get all replies.
+    post_list = Post.get_children(top_post_0)  # Paginated by this list.
     
     render_dict.update({
             'top_post': top_post,
@@ -229,7 +235,7 @@ def edit_post(request, original, next=None):
     #    raise Http404, "It ain't here!"  # ! Not compatible with non-JS.
 
     try:
-        orig_post = Post.objects.get(id=int(original))
+        orig_post = Post.objects.get(id=int(original), revision=None)
     except Post.DoesNotExist:
         raise Http404, "Edit WHAT?"
         
@@ -265,10 +271,10 @@ def edit_post(request, original, next=None):
         else:
             div_id_num = orig_post.id
 
-        try:  # Shouldn't ever succeed with XmppRequest.
-            next = request.POST['next'].split('#')[0] + '#snap_post' + str(div_id_num)
-            return HttpResponseRedirect(next)
-        except KeyError:
+        next = request.GET.get('next')
+        if next:  # shouldn't happen with XMPP.
+            return HttpResponseRedirect(next.split('#')[0] + '#snap_post' + str(div_id_num))
+        else:
             return success_or_reverse_redirect('snapboard_locate_post',
               args=(orig_post.id,), req=request, msg="Message updated.")
     else:  # Show a form for posting.
