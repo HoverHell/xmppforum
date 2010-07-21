@@ -4,7 +4,7 @@
 <div>
 <hr class="firstpost" />
 <div id="snap_top_post" class="snap_top_post">
-k    <div id="snap_post{{ top_post.id }}" class="snap_post">
+    <div id="snap_post{{ top_post.id }}" class="snap_post">
         {% if top_post.censor %}<div class="post_censored">{% else %}{% ifnotequal top_post.abuse 0 %}<div class="post_reported">{% endifnotequal %}{% endif %}
         <div id="post_rpc_feedback{{ top_post.id }}" class="rpc_message">
             <!-- This DIV is for RPC feedback messages for individual posts -->

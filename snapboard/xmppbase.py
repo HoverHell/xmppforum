@@ -18,9 +18,6 @@ import time  # periodic reconnect attempts
 import copy
 from thread import start_new_thread  # for reconnector thread
 
-# for XmppRequest
-# User class might be customized, so not importing it from django itself.
-from models import User, AnonymousUser
 
 # for XmppResponse
 
@@ -50,17 +47,14 @@ class XmppRequest(object):
      html templates is not only wrong but also impossible.
     """
     def __init__(self, srcjid):
-
-
+        import models
         # This isn't really meant for anything yet.
         self.srcjid = srcjid
         # "Authentication":
-        # ! Maybe it should be done in xmppface?
         try:
-            self.user = User.objects.get(sb_usersettings__jid__exact=srcjid)
-        except User.DoesNotExist:
-            self.user = AnonymousUser()
-            # ? Just create one? Or he should be offered to register?
+            self.user = models.User.objects.get(sb_usersettings__jid__exact=srcjid)
+        except models.User.DoesNotExist:
+            self.user = models.AnonymousUser()
         # Populating extra fields:
         self.META = {'REMOTE_ADDR': srcjid}
         self.POST = None
@@ -103,7 +97,8 @@ class XmppResponse(dict):
         self['id'] = id
 
     def setuser(self, user=None):
-        self.user = user or AnonymousUser()
+        import models
+        self.user = user or models.AnonymousUser()
         self.usersettings = self.user.get_user_settings()
 
     def setxhtml(self, html):

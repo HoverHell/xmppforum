@@ -3,34 +3,36 @@
 {% load avatar_tags %}
 
 #c{{ thr.category.id }} {{ thr.category }}:
-{%br%}{%ws%}{%ws%}{%ws%}{%ws%}{{ thr.subject }}
+{%ws%}{%ws%}{%ws%}{%ws%}{{ thr.subject }}
 
-
-{% for post in posts %}
     {%br%}{%br%}
+
+    <a href="#snap_post{{ top_post.id }}">#{{ thr.id }}/{{ top_post.id }}</a>
+    {%ws%}by {{ top_post.user }}
+    {%ws%}at {{ post.date|date:"r T" }} 
+    {% if top_post.censor %}{%ws%}(CENSORED){% else %}
+    {% ifnotequal top_post.abuse 0 %}{%ws%}(REPORTED){% endifnotequal %}{% endif %}
+    {% if top_post.previous %}{%ws%}(REVISED){% endif %}
+
+    {%br%}
+    
+    {{ top_post.text|striptags|render_post|safe }}
+
+{% for top_answer in post_list %}
+    {% for post, post_info in top_answer.get_annotated_list %}
+
+    {%br%} {%br%}
 
     <a href="#snap_post{{ post.id }}">#{{ thr.id }}/{{ post.id }}</a>
     {%ws%}by {{ post.user }}
-    {% if post.private.all %}
-        {%ws%}{% trans "to" %}
-        {% for rec in post.private.all %}
-            {%ws%}{{ rec }}
-            {% if not forloop.last %},{% endif %}
-        {% endfor %}
-    {% endif %}
     {%ws%}at {{ post.date|date:"r T" }} 
-    {% if post.censor %}
-        {%ws%}(CENSORED)
-    {% else %}
-        {% ifnotequal post.abuse 0 %}
-            {%ws%}(REPORTED)
-        {% endifnotequal %}
-    {% endif %}
-    {% if post.previous %}
-        {%ws%}(REVISED)
-    {% endif %}
+    {% if post.censor %}{%ws%}(CENSORED){% else %}
+    {% ifnotequal post.abuse 0 %}{%ws%}(REPORTED){% endifnotequal %}{% endif %}
+    {% if post.previous %}{%ws%}(REVISED){% endif %}
 
     {%br%}
     
     {{ post.text|striptags|render_post|safe }}
-{% endfor %}
+        
+    {% endfor %}
+{% endfor %}            

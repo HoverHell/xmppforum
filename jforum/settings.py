@@ -178,5 +178,5 @@ AVATAR_GRAVATAR_DEFAULT = "identicon"
 # AVATAR_STORAGE_DIR = SNAP_MEDIA_PREFIX+"/avatars"
 
 ## Anonymous! Configurable common option.
-# Set it to empty to disable this.
+# Set it to *empty* (or None or False) to disable this.
 ANONYMOUS_NAME = "Anonymous"

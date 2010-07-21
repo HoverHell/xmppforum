@@ -20,12 +20,13 @@ from django.core.urlresolvers import reverse
 from xmppbase import XmppResponse, send_xmpp_message
 
 #from models import XMPPContact
-import models
 
 def send_notifications(users, label, extra_context=None, on_site=True,
   **etckwargs):
     if not notification:
         return
+
+    import models
     
     remaining_users = []
     print(" D: Notifier: users: %r" % users)
@@ -115,3 +116,4 @@ def send_notifications(users, label, extra_context=None, on_site=True,
 
 if notification:  # ! Deeping the hax in.
     notification.send = send_notifications
+

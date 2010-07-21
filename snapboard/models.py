@@ -18,8 +18,6 @@ def get_rly_annotated_list(self):
     return super(mp_tree.MP_Node, self).get_annotated_list(self)
 mp_tree.MP_Node.get_annotated_list = get_rly_annotated_list
 
-from xmppstuff import send_notifications
-
 from snapboard import managers
 from snapboard.middleware import threadlocals
 
@@ -580,6 +578,8 @@ class XMPPContact(models.Model):
     
 signals.post_save.connect(IPBan.update_cache, sender=IPBan)
 signals.post_delete.connect(IPBan.update_cache, sender=IPBan)
+
+from xmppstuff import send_notifications
 
 # vim: ai ts=4 sts=4 et sw=4
 

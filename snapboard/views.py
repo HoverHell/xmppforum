@@ -56,21 +56,25 @@ RPC_ACTION_MAP = {
         "quote": rpc_quote,
         }
 
-ANONYMOUS_USER = User.objects.get(username=ANONYMOUS_NAME)
-def anonymous_login_required(function=None):
-    """
-    Decorator to replace auth's AnonymousUser with an actual usable user for
-    particular views. Sets user.realy_anonymous if replaced. Configurable by
-    ANONYMOUS_NAME in the settings.
-    """
-    def anon_decorate(request, *args, **kwargs):
-        if request.user.is_authenticated() or not ANONYMOUS_NAME:
-            return function(request, *args, **kwargs)
-        else:  # Use Anonymous! Just for this request, of course.
-            request.user = ANONYMOUS_USER
-            request.user.really_anonymous = True
-            return function(request, *args, **kwargs)
-    return anon_decorate
+if ANONYMOUS_NAME:
+    ANONYMOUS_USER = User.objects.get(username=ANONYMOUS_NAME)
+    def anonymous_login_required(function=None):
+        """
+        Decorator to replace auth's AnonymousUser with an actual usable user for
+        particular views. Sets user.realy_anonymous if replaced. Configurable by
+        ANONYMOUS_NAME in the settings.
+        """
+        def anon_decorate(request, *args, **kwargs):
+            if request.user.is_authenticated():
+                return function(request, *args, **kwargs)
+            else:  # Use Anonymous! Just for this request, of course.
+                request.user = ANONYMOUS_USER
+                request.user.really_anonymous = True
+                return function(request, *args, **kwargs)
+        return anon_decorate
+else:
+    def anonymous_login_required(function=None):
+        return function
         
 def snapboard_default_context(request):
     """
