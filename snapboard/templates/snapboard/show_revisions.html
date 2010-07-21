@@ -1,0 +1,61 @@
+{% extends "snapboard/base_forum.html" %}
+{% load i18n pagination_tags avatar_tags %}
+{% load debug %}
+
+{% block snap_extra_head %}
+    {{ block.super }}
+    <link type="text/css" rel="stylesheet" href="{{ SNAP_MEDIA_PREFIX }}/css/post.css" />
+{% endblock %}
+
+{% load extras %}
+
+{% block snapboard_main %}
+{% try %}
+    <p>
+        <b style="font-size: large;">
+            <a href="{% url snapboard_category_thread_index thread.category.id %}">{{ thread.category }}</a>:
+            {{ thread.subject }}
+        </b>
+    </p>
+    <br />
+{% endtry %} {% try %}
+{% if last_post.censor %}<div class="post_censored">
+{% else %}{% ifnotequal last_post.abuse 0 %}<div class="post_reported">
+{% endifnotequal %}{% endif %}
+ <p class="post_header">
+     <span class="post_menuright">
+         {% if user.is_staff %}&#149;<span title="{% trans "ADMIN: mark this post for censorship" %}" class="popup"><a id="censor{{ last_post.id }}" href="#snap_post{{ last_post.id }}" onclick="set_censor('{{ last_post.id }}');">{{ last_post.censor|yesno:_("uncensor,censor") }}</a></span>{% endif %}
+         {% if user.is_authenticated and not last_post.freespeech %}&#149;<span title="{% trans "Report this post for violation of forum policies." %}" class="popup"><a id="abuse{{ last_post.id }}" href="#snap_post{{ last_post.id }}" onclick="set_abuse('{{ last_post.id }}');">{% trans "report abuse" %}</a></span>{% endif %}
+     </span>
+{% endtry %} {% try %}
+     <span class="avatar"> {% avatar last_post.user %}</span>
+{% endtry %} {% try %}
+     <b><span class="popup" title="Author">{{ last_post.user }}</span></a></b>
+ </p>
+{% endtry %} {% try %}
+    {% for post in posts %}
+        {# render post revision here #}
+ <p class="post_header">
+     <span class="timesince"><span class="datetime">{{ post.date|date:"r T" }}<span class="timestamp">{{ post.date|timestamp }}</span></span></span>
+     <span class="post_summary" style="display:none;" id="snap_post_sum{{ post.id }}">:
+         {{ post.text|post_summary:"30"|safe }}
+     </span>
+ </p>
+ <div style="display:block" id="snap_post_view{{ post.id }}">
+     <div class="post_text" style="display:block" id="snap_post_text{{ post.id }}">
+         {{ post.text|striptags|render_post|safe }}
+     </div>
+     <br/>
+ </div>
+ <hr class="postend" />
+    {% endfor %}
+{% endtry %} {% try %}
+ {% if last_post.censor %}</div>
+ {% else %}{% ifnotequal last_post.abuse 0 %}</div>
+ {% endifnotequal %}{% endif %}
+{% endtry %}
+
+{% endblock %}
+<!--
+vim: ai ts=4 sts=4 et sw=4 
+-->

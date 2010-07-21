@@ -1,0 +1,7 @@
+<em>Command forms:</em><br />
+<strong>REGISTER</strong> — Register new user with your JID as username.<br />
+<strong>REGISTER User name</strong> — Register new user with specified username and no web login.<br />
+<strong>REGISTER User name -p Pass word</strong> — Register new user or attach your JID to existing one.<br />
+<br />
+Please note that you cannot (yet) change your username, and password if you don't specify one. (e.g. you will not be able to login over web)<br />
+That also implies that you will not be able to unify your jabber user and your web user if you register them separately.

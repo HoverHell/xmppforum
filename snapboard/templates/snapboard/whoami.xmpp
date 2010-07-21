@@ -1,0 +1,1 @@
+You are {% firstof request.user.username "unregistered" %}.

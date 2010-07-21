@@ -1,0 +1,22 @@
+{% extends "snapboard/base_forum.html" %}
+{% load i18n pagination_tags %}
+
+{% block snap_extra_head %}
+    {{ block.super }}
+    <link type="text/css" rel="stylesheet" href="{{ SNAP_MEDIA_PREFIX }}/css/post.css" />
+{% endblock %}
+
+{% load extras %}
+
+{% block snapboard_main %}
+    <p> {# copied from snapboard/include/show_posts.html #}
+        <form action="{% url snapboard_edit_post post.id %}" method="post">
+            <p><b>{% trans "All revisions of this post are stored and publicly viewable." %}</b></p>
+            <p>{{ post.get_edit_form.post }} {# TODO: what about errors? #}</p>
+            <p><input type="submit" value="{% trans "Update" %}" /></p>
+        </form>
+    </p>
+{% endblock %}
+<!--
+vim: ai ts=4 sts=4 et sw=4 
+-->
