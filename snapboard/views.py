@@ -41,21 +41,6 @@ USE_SNAPBOARD_SIGNIN = getattr(settings, 'USE_SNAPBOARD_SIGNIN', False)
 USE_SNAPBOARD_LOGIN_FORM = getattr(settings, 'USE_SNAPBOARD_LOGIN_FORM', False)
 ANONYMOUS_NAME = getattr(settings, 'ANONYMOUS_NAME', 'Anonymous')
 
-RPC_OBJECT_MAP = {
-        "thread": Thread,
-        "post": Post,
-        }
-
-RPC_ACTION_MAP = {
-        "censor": rpc_censor,
-        "gsticky": rpc_gsticky,
-        "csticky": rpc_csticky,
-        "close": rpc_close,
-        "abuse": rpc_abuse,
-        "watch": rpc_watch,
-        "quote": rpc_quote,
-        }
-
 if ANONYMOUS_NAME:
     ANONYMOUS_USER = User.objects.get(username=ANONYMOUS_NAME)
     def anonymous_login_required(function=None):
@@ -74,7 +59,7 @@ if ANONYMOUS_NAME:
         return anon_decorate
 else:
     def anonymous_login_required(function=None):
-        return function
+        return login_required(function)
         
 def snapboard_default_context(request):
     """
@@ -117,8 +102,11 @@ def rpc(request):
     '''
     Delegates simple rpc requests.
     '''
-    if not request.POST or not request.user.is_authenticated():
-        return HttpResponseServerError()
+    if not request.POST:
+        return HttpResponseServerError("RPC data is absent")
+    
+    if not request.user.is_authenticated():
+        return HttpResponseServerError("RPC request by unauthenticated user")
 
     response_dict = {}
 
@@ -126,13 +114,13 @@ def rpc(request):
         action = request.POST['action'].lower()
         rpc_func = RPC_ACTION_MAP[action]
     except KeyError:
-        raise HttpResponseServerError()
-
+        raise HttpResponseServerError("RPC: Unknown RPC function")
+    
     if action == 'quote':
         try:
             return HttpResponse(simplejson.dumps(rpc_func(request, oid=int(request.POST['oid']))))
         except (KeyError, ValueError):
-            return HttpResponseServerError()
+            return HttpResponseServerError("RPC: Failed to find/process requested post.")
 
     try:
         # oclass_str will be used as a keyword in a function call, so it must
@@ -141,20 +129,90 @@ def rpc(request):
         oclass_str =  str(request.POST['oclass'].lower())
         oclass = RPC_OBJECT_MAP[oclass_str]
     except KeyError:
-        return HttpResponseServerError()
+        return HttpResponseServerError("RPC: Unknown requested object type")
 
     try:
         oid = int(request.POST['oid'])
 
+        if action in RPC_AACTIONS:  # Just do it.
+            # Also, where should be 404 and PermissionError handled? In JS?
+            return rpc_func(request, oid, rpc=True)
+        
+        # Otherwise...
         forum_object = oclass.objects.get(pk=oid)
 
         response_dict.update(rpc_func(request, **{oclass_str:forum_object}))
         return HttpResponse(simplejson.dumps(response_dict), mimetype='application/javascript')
 
     except oclass.DoesNotExist:
-        return HttpResponseServerError()
+        print "RPC handler: no such class."
+        return HttpResponseServerError("RPC handler: no such object class.")
     except KeyError:
-        return HttpResponseServerError()
+        print "RPC handler: KeyError."
+        return HttpResponseServerError("RPC handler: KeyError, likely malformed POST.")
+
+def r_getreturn(request, rpc, next, rpcdata, successtext, postid=None):
+    '''
+    Common function for RPCable views to easily return some appropriate
+    data.
+    '''
+    if rpc:  # explicit request to return RPC-usable data
+        # Can do conversion in rpc(), though.
+        return HttpResponse(simplejson.dumps(rpcdata), mimetype='application/javascript')
+    else:
+        next = next or request.GET.get('next')
+        if next:  # know where should return to.
+            return HttpResponseRedirect(next)
+        else:  # explicitly return 
+            if postid:  # we have a post to return to.
+                return success_or_reverse_redirect('snapboard_locate_post',
+                  args=(postid,), req=request, msg=successtext)
+            # Might supply some more data if we need to return somewhere
+            # else?
+            return HttpResponseServerError("RPC return: unknown return.")  # Nothing else to do here.
+
+def r_watch_post(request, post_id, next=None, rpc=False):
+    try:
+        post = Post.objects.get(id=int(post_id))
+    except Post.DoesNotExist:
+        raise Http404, "No such post to watch"
+    thr = post.thread
+    if not thr.category.can_read(request.user):
+        raise PermissionError, "You are not allowed to do that"
+    try:
+        # Check if user's already subscribed to that branch? (post__in get_ancestors)
+        wl = WatchList.objects.get(user=request.user, post=post)
+        # it exists, stop watching it
+        wl.delete()
+        return r_getreturn(request, rpc, next, {'link':_('watch'),
+          'msg':_('This thread has been removed from your favorites.')},
+          "Watch removed.", postid=post.id)
+    except WatchList.DoesNotExist:
+        # create it
+        wl = WatchList(user=request.user, post=post)
+        wl.save()
+        return r_getreturn(request, rpc, next, {'link':_('dont watch'),
+          'msg':_('This thread has been added to your favorites.')},
+          "Watch added.", postid=post.id)
+
+
+RPC_OBJECT_MAP = {
+        "thread": Thread,
+        "post": Post,
+        }
+
+RPC_ACTION_MAP = {
+        "censor": rpc_censor,
+        "gsticky": rpc_gsticky,
+        "csticky": rpc_csticky,
+        "close": rpc_close,
+        "abuse": rpc_abuse,
+        "watch": r_watch_post,
+        "quote": rpc_quote,
+        }
+# Temporary list of RPC functions coverted to advanced action handers.
+RPC_AACTIONS = ["watch"]
+
 
 def thread(request, thread_id):
     try:
@@ -169,14 +227,14 @@ def thread(request, thread_id):
 
     postform = PostForm()
 
-    if request.user.is_authenticated():
-        render_dict.update({"watched": WatchList.objects.filter(user=request.user, thread=thr).count() != 0})
+    #if request.user.is_authenticated():
+    #    render_dict.update({"watched": WatchList.objects.filter(user=request.user, thread=thr).count() != 0})
 
     # this must come after the post so new messages show up
 
     ## Revisions of root node become a serious special case.
     ## Not sure about right way, so this is more of a hack-in:
-    # Get original tree root (really, better point to it in Thread object!)
+    # Get original tree root (really, better point to it in the Thread object!)
     top_post_0 = Post.objects.filter(thread=thread_id, depth=1)[0]
     # Get latest version of top post (to display it).
     top_post = Post.objects.get(thread=thread_id, depth=1, revision=None)
@@ -196,8 +254,10 @@ def thread(request, thread_id):
 thread = anonymous_login_required(thread)
 
 
-def post_reply(request, parent_id):
+def post_reply(request, parent_id, thread_id=None):
     # thread_id paremeter was considered unnecessary here.
+    # Although, '#thread_id/post_id_in_thread' might be preferrable to using
+    # global post id.
     try:
         parent_post = Post.objects.get(id=int(parent_id))
     except Post.DoesNotExist:
@@ -361,19 +421,18 @@ def new_thread(request, cat_id):
 new_thread = anonymous_login_required(new_thread)
 
 
-def favorite_index(request):
+def watchlist(request):
     '''
-    This page shows the threads/discussions that have been marked as 'watched'
+    This page shows the posts that have been marked as 'watched'
     by the user.
     '''
-    thread_list = filter(lambda t: t.category.can_view(request.user), Thread.view_manager.get_favorites(request.user))
+    post_list = filter(lambda p: p.thread.category.can_view(request.user),
+      [w.post for w in WatchList.objects.select_related(depth=3).filter(user=request.user)])
 
-    render_dict = {'title': _("Watched Discussions"), 'threads': thread_list}
-
-    return render_to_response('snapboard/thread_index',
-            render_dict,
+    return render_to_response('snapboard/watchlist',
+            {'posts': post_list},
             context_instance=RequestContext(request, processors=extra_processors))
-favorite_index = login_required(favorite_index)
+watchlist = login_required(watchlist)
 
 def private_index(request):
     thread_list = [thr for thr in Thread.view_manager.get_private(request.user) if thr.category.can_read(request.user)]
@@ -744,7 +803,7 @@ _brand_view(rpc)
 _brand_view(thread)
 _brand_view(edit_post)
 _brand_view(new_thread)
-_brand_view(favorite_index)
+_brand_view(watchlist)
 _brand_view(private_index)
 _brand_view(category_thread_index)
 _brand_view(thread_index)

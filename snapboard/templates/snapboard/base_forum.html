@@ -45,7 +45,7 @@
                 <li><a href="{% url snapboard_thread_index %}"><span>{% trans "All Discussions" %}</span></a></li>
                 <li><a href="{% url snapboard_category_index %}"><span>{% trans "Categories" %}</span></a></li>
                 {% if user.is_authenticated and not user.really_anonymous %}
-                    <li><a href="{% url snapboard_favorite_index %}"><span>{% trans "Favorites" %}</span></a></li>
+                    <li><a href="{% url snapboard_watchlist %}"><span>{% trans "Watched" %}</span></a></li>
                     <li><a href="{% url snapboard_private_index %}"><span>{% trans "Private Posts" %}</span></a></li>
                 {% endif %}
                 {% if user.is_authenticated %}

@@ -108,25 +108,27 @@ function toggle_variable(action, oclass, oid, msgdivid) {
     // TODO: oid should be renamed as oid
     var postData = 'action=' + action + '&oclass=' + oclass + '&oid=' + oid;
     var div = document.getElementById(action + oid);
+    var msgdiv = document.getElementById(msgdivid);
 
     var handleSuccess = function(o) {
         if(o.responseText !== undefined) {
             res = eval('(' + o.responseText + ')');
             div.innerHTML = res['link'];
-            document.getElementById(msgdivid).innerHTML = '<p class="rpc_message">' + res['msg'] + '</p>';
+            msgdiv.innerHTML = '<p class="rpc_message">' + res['msg'] + '</p>';
         }
     };
 
     var handleFailure = function(o) {
         var errordiv = document.getElementById("thread_rpc_feedback");
+        errordiv.innerHTML = "<b>" + gettext('ERROR. ') + "</b>";
         if(o.responseText !== undefined) {
-            div.innerHTML = "<b>" + gettext('ERROR') + "</b>";
             for (var n in o) {
                 if (o.hasOwnProperty(n)) {
                     errordiv.innerHTML += o[n];
                 }
             }
         }
+        window.location.href="#thread_rpc_feedback"
     };
 
     var callback =
@@ -136,16 +138,17 @@ function toggle_variable(action, oclass, oid, msgdivid) {
       argument:[]
     };
 
+    msgdiv.innerHTML = "<b>Processing...</b>";
     var request = YAHOO.util.Connect.asyncRequest('POST', SNAPBOARD_URLS.rpc_action, callback, postData);
 }
 
 // thread level functions
 function set_csticky(id) { toggle_variable('csticky', 'thread', id, 'thread_rpc_feedback'); }
 function set_gsticky(id) { toggle_variable('gsticky', 'thread', id, 'thread_rpc_feedback'); }
-function set_watch(id) { toggle_variable('watch', 'thread', id, 'thread_rpc_feedback'); }
 function set_close(id) { toggle_variable('close', 'thread', id, 'thread_rpc_feedback'); }
 
 // post level function
+function set_watch(id) { toggle_variable('watch', 'post', id, ('post_rpc_feedback' + id)); }
 function set_censor(id) { toggle_variable('censor', 'post', id, ('post_rpc_feedback' + id));}
 function set_abuse(id) { toggle_variable('abuse', 'post', id, ('post_rpc_feedback' + id));}
 

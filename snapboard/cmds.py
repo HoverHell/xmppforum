@@ -18,6 +18,6 @@ cmdpatterns = patterns('',
       new_thread, {}, 'snapboard_new_thread'),
 #    (r'^#(?P<thread_id>\d+) (?P<POST_private>([^ ,]+?, )+?[^, ]+?)\n(?P<POST_post>(.*\n?)+)',
 #      thread, {}, 'snapboard_thread'),  # Really just for testing.
-    (r'^##(?P<parent_id>\d+) (?P<POST_post>(.*\n?)+)',
+    (r'^#(?P<thread_id>\d*)/(?P<parent_id>\d+) (?P<POST_post>(.*\n?)+)',
       post_reply, {}, 'snapboard_post_reply'),
 )

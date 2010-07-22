@@ -372,7 +372,11 @@ class Post(mp_tree.MP_Node):
                         {'post': self}
                     )
                     all_recipients = all_recipients.union(recipients)
-            recipients = set((wl.user for wl in WatchList.objects.filter(thread=self.thread) if wl.user not in all_recipients))
+            posttree = self.get_ancestors()
+            #recipients = set((wl.user for wl in WatchList.objects.filter(thread=self.thread) if wl.user not in all_recipients))
+            recipients = set(
+              (wl.user for wl in WatchList.objects.filter(post__in=posttree)
+               if wl.user not in all_recipients))
             if recipients:
                 send_notifications(
                     recipients,
@@ -419,11 +423,25 @@ class AbuseReport(models.Model):
 
 class WatchList(models.Model):
     """
-    Keep track of who is watching what thread.  Notify on change (sidebar).
+    Keep track of who is watching what post tree.  Notify on change (sidebar).
+    Note thet this can be implemented as many_to_many field on post (looks
+    like it's what it actally is anyway), plus (probably) a
+    notification-level abstract XMPP resource distinction.
     """
-    user = models.ForeignKey(User, verbose_name=_('user'), related_name='sb_watchlist')
-    thread = models.ForeignKey(Thread, verbose_name=_('thread'))
-    # no need to be in the admin
+    user = models.ForeignKey(User, verbose_name=_('user'),
+      related_name='sb_watchlist')
+    post = models.ForeignKey(Post, verbose_name=_('post'),
+      related_name='sb_watchinglist')
+    # This can be implemented for all notification types, though:
+    xmppresource = models.CharField(max_length=80, 
+      verbose_name=_('xmpp resource'))
+
+    class Meta:
+        verbose_name = _('Watched post')
+        verbose_name_plural = _('Watched posts')
+
+    def __unicode__(self):
+        return _('%s\'s watch of post %s') % (self.user, self.post.id)
 
 
 class UserSettings(models.Model):
@@ -575,7 +593,15 @@ class XMPPContact(models.Model):
         verbose_name_plural = _('xmpp contacts')
         unique_together = ("remote", "local")
 
-    
+#class XMPPResources(models.Model):
+#    '''
+#    Stores information about user's preferences for receiving notifications
+#    (specifically - thread watch notifications) from separate resource of
+#    the bot.
+#    '''
+#    user = models.ForeignKey(User, verbose_name=_('user'))
+
+
 signals.post_save.connect(IPBan.update_cache, sender=IPBan)
 signals.post_delete.connect(IPBan.update_cache, sender=IPBan)
 

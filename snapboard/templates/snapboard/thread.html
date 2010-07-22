@@ -33,14 +33,6 @@
                     </a> 
                 </span>
             {% endif %}
-            {% if user.is_authenticated %}
-                &#149;
-                <span>
-                    <a id="watch{{ thr.id }}" href="#" onclick="set_watch('{{ thr.id }}');">
-                        {{ watched|yesno:_("don't watch,watch") }}
-                    </a> 
-                </span>
-            {% endif %}
         </span>
         <b style="font-size: large;">
             <a href="{% url snapboard_category_thread_index thr.category.id %}">{{ thr.category }}</a>:

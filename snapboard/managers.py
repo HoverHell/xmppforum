@@ -18,24 +18,24 @@ class PostManager(models.Manager):
         return super(PostManager, self).get_query_set().extra(
             select=select).exclude(revision__isnull=False).order_by('odate')
 
-    def posts_for_thread(self, thread_id, user):
-        '''
-        Returns a query set filtered to contain only the posts the user is
-        allowed to see with regards the post's ``private`` and ``censor``
-        attributes.
-        This does not perform any category permissions check.
-        '''
-        # XXX: Before the Post.private refactor, the query here used to return
-        # duplicate values, forcing the use of SELECT DISTINCT.
-        # Do we still have such a problem, and if so, why?
-        qs = self.get_query_set().filter(thread__id=thread_id).select_related().distinct()
-        if user.is_authenticated():
-            qs = qs.filter((Q(user=user) | Q(is_private=False) | Q(private__exact=user)))
-        else:
-            qs = qs.exclude(is_private=True)
-        if not getattr(user, 'is_staff', False):
-            qs = qs.exclude(censor=True)
-        return qs
+    #def posts_for_thread(self, thread_id, user):
+    #    '''
+    #    Returns a query set filtered to contain only the posts the user is
+    #    allowed to see with regards the post's ``private`` and ``censor``
+    #    attributes.
+    #    This does not perform any category permissions check.
+    #    '''
+    #    # XXX: Before the Post.private refactor, the query here used to return
+    #    # duplicate values, forcing the use of SELECT DISTINCT.
+    #    # Do we still have such a problem, and if so, why?
+    #    qs = self.get_query_set().filter(thread__id=thread_id).select_related().distinct()
+    #    if user.is_authenticated():
+    #        qs = qs.filter((Q(user=user) | Q(is_private=False) | Q(private__exact=user)))
+    #    else:
+    #        qs = qs.exclude(is_private=True)
+    #    if not getattr(user, 'is_staff', False):
+    #        qs = qs.exclude(censor=True)
+    #    return qs
 
 
 class ThreadManager(models.Manager):
