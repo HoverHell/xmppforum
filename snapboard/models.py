@@ -363,25 +363,35 @@ class Post(mp_tree.MP_Node):
     def notify(self, **kwargs):
         if not self.previous:
             all_recipients = set()
-            if self.is_private:
-                recipients = set(self.private.all())
-                if recipients:
-                    send_notifications(
-                        recipients,
-                        'private_post_received',
-                        {'post': self}
-                    )
-                    all_recipients = all_recipients.union(recipients)
+            #if self.is_private:
+            #    recipients = set(self.private.all())
+            #    if recipients:
+            #        send_notifications(
+            #            recipients,
+            #            'private_post_received',
+            #            {'post': self}
+            #        )
+            #        all_recipients = all_recipients.union(recipients)
             posttree = self.get_ancestors()
             #recipients = set((wl.user for wl in WatchList.objects.filter(thread=self.thread) if wl.user not in all_recipients))
-            recipients = set(
-              (wl.user for wl in WatchList.objects.filter(post__in=posttree)
-               if wl.user not in all_recipients))
+            recipients = []
+            resources = {}  # Special feature, ha.
+            for wl in WatchList.objects.select_related(depth=2).filter(
+             post__in=posttree).order_by("snapboard_post.depth"):
+                # Sorting is required to override resource requirement with
+                # the one of the deepest post.
+                if wl.user not in all_recipients:
+                    # ! Actually, check post.user != wl.user.  Probably.
+                    recipients.append(wl.user)
+                if wl.xmppresource:
+                    resources[user] = wl.xmppresource
+            recipients = set(recipients)
             if recipients:
                 send_notifications(
                     recipients,
                     'new_post_in_watched_thread',
-                    {'post': self}
+                    extra_context={'post': self},
+                    xmppresources=resources
                 )
                 all_recipients = all_recipients.union(recipients)
 

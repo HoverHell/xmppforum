@@ -22,7 +22,10 @@ from xmppbase import XmppResponse, send_xmpp_message
 #from models import XMPPContact
 
 def send_notifications(users, label, extra_context=None, on_site=True,
-  **etckwargs):
+  xmppresources=None, **etckwargs):
+    '''
+    ...
+    '''
     if not notification:
         return
 
@@ -34,6 +37,8 @@ def send_notifications(users, label, extra_context=None, on_site=True,
     # !!! Most of this is copied from send_now
     if extra_context is None:
         extra_context = {}
+    if xmppresources is None:
+        xmppresources = {}
 
     notice_type = NoticeType.objects.get(label=label)
 
@@ -45,6 +50,8 @@ def send_notifications(users, label, extra_context=None, on_site=True,
 
     current_language = get_language()
 
+    # Probably can do ucontacts = ... filter(remote__in=userjids)
+
     for user in users:
         
         jid = None
@@ -54,20 +61,23 @@ def send_notifications(users, label, extra_context=None, on_site=True,
             pass
 
         # If user has authenticated some bot.
-        # ? Is it auth_to we need?
         ucontacts = models.XMPPContact.objects.filter(remote=jid, auth_to=True)
         # Also, we don't care about user's status now.
         
         if not (jid and ucontacts):
             # Not jid/contact available. Leave him to e-mail notification.
-            if user.email:  
+            if user.email:
+                print(" D: Notifier: using e-mail for %r." % user)
                 remaining_users.append(user)
+            print(" D: Notifier: cannot contact %r." % user)
             # Or to none/on-site.
             # ! Will on-site notifications work with that?
             continue  # ! What if it's not XMPP-related notification at all?
         
+        # srcjid = "bot@bot.hell.orts.ru"
         srcjid = ucontacts[0].local  # Choose first available authenticated bot JID.
-        # ! Custom thread-resource relation should be set here.
+        if user in xmppresources:
+            srcjid += "/%s"%xmppresources[user]
         
         # get user language for user from language store defined in
         # NOTIFICATION_LANGUAGE_MODULE setting
@@ -93,16 +103,16 @@ def send_notifications(users, label, extra_context=None, on_site=True,
         #    'message': messages['short.txt'],
         #}, context).splitlines())
         body = django.template.loader.render_to_string(
-          'notification/%s/xmpp.html'%label,
-          context_instance=context)
+          'notification/%s/xmpp.html'%label, context_instance=context)
+        message = django.template.loader.render_to_string(
+          'notification/%s/notice.html'%label, context_instance=context)
 
-        #notice = Notice.objects.create(user=user, message=messages['notice.html'],
-        #    notice_type=notice_type, on_site=on_site)
+        notice = Notice.objects.create(user=user, message=message,
+            notice_type=notice_type, on_site=on_site)
         #if should_send(user, notice_type, "1") and user.email: # Email
         #    recipients.append(user.email)
         # !!!
-        noticemsg = XmppResponse(body, src="bot@bot.hell.orts.ru", dst=jid,
-          user=user)
+        noticemsg = XmppResponse(body, src=srcjid, dst=jid, user=user)
         send_xmpp_message(noticemsg)
 
     # reset environment to original language

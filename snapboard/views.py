@@ -15,6 +15,9 @@ from django.template import RequestContext, TemplateDoesNotExist
 from django.utils import simplejson
 from django.utils.translation import ugettext as _
 
+# For easy notification resource handling:
+from notification import models as notification
+
 # XmppFace
 import xmppbase
 from xmppbase import XmppRequest, XmppResponse
@@ -172,10 +175,7 @@ def r_getreturn(request, rpc, next, rpcdata, successtext, postid=None):
             return HttpResponseServerError("RPC return: unknown return.")  # Nothing else to do here.
 
 def r_watch_post(request, post_id, next=None, rpc=False):
-    try:
-        post = Post.objects.get(id=int(post_id))
-    except Post.DoesNotExist:
-        raise Http404, "No such post to watch"
+    post = get_object_or_404(Post, pk=int(post_id))
     thr = post.thread
     if not thr.category.can_read(request.user):
         raise PermissionError, "You are not allowed to do that"
@@ -215,10 +215,8 @@ RPC_AACTIONS = ["watch"]
 
 
 def thread(request, thread_id):
-    try:
-        thr = Thread.view_manager.get(pk=thread_id)
-    except Thread.DoesNotExist:
-        raise Http404, "Thread not found"
+
+    thr = get_object_or_404(Thread, pk=thread_id)
 
     if not thr.category.can_read(request.user):
         raise PermissionError, "You are not allowed to read this thread"
@@ -267,10 +265,8 @@ def post_reply(request, parent_id, thread_id=None):
     # thread_id paremeter was considered unnecessary here.
     # Although, '#thread_id/post_id_in_thread' might be preferrable to using
     # global post id.
-    try:
-        parent_post = Post.objects.get(id=int(parent_id))
-    except Post.DoesNotExist:
-        raise Http404, "Reply to WHAT?"
+    
+    parent_post = get_object_or_404(Post, pk=int(parent_id))
     if request.POST:  # POST HERE.
         thr = parent_post.thread
         if not thr.category.can_post(request.user):
@@ -304,13 +300,7 @@ def edit_post(request, original, next=None):
     '''
     Edit an existing post.
     '''
-    #if not request.method == 'POST':
-    #    raise Http404, "It ain't here!"  # ! Not compatible with non-JS.
-
-    try:
-        orig_post = Post.objects.get(id=int(original), revision=None)
-    except Post.DoesNotExist:
-        raise Http404, "Edit WHAT?"
+    orig_post = get_object_or_404(Post, pk=int(original), revision=None)
         
     if orig_post.user != request.user or not orig_post.thread.category.can_post(request.user):
         # ? Anonymous post editing? o-O
@@ -362,10 +352,7 @@ def show_revisions(request, post_id):
     '''
     See all revisions of a specific post (for non-JS browsing).
     '''
-    try:
-        orig_post = Post.objects.get(id=int(post_id))
-    except Post.DoesNotExist:
-        raise Http404, "Don't know such post!"
+    orig_post = get_object_or_404(Post, pk=int(post_id))
 
     # revision => newer
     # previous => older
@@ -455,14 +442,11 @@ def private_index(request):
 private_index = login_required(private_index)
 
 def category_thread_index(request, cat_id):
-    try:
-        cat = Category.objects.get(pk=cat_id)
-        if not cat.can_read(request.user):
-            raise PermissionError, "You cannot list this category"
-        thread_list = Thread.view_manager.get_category(cat_id)
-        render_dict = ({'title': ''.join((_("Category: "), cat.label)), 'category': cat, 'threads': thread_list})
-    except Category.DoesNotExist:
-        raise Http404, "Category not found."
+    cat = get_object_or_404(Category, pk=cat_id)
+    if not cat.can_read(request.user):
+        raise PermissionError, "You cannot list this category"
+    thread_list = Thread.view_manager.get_category(cat_id)
+    render_dict = ({'title': ''.join((_("Category: "), cat.label)), 'category': cat, 'threads': thread_list})
     return render_to_response('snapboard/thread_index_categoryless',
             render_dict,
             context_instance=RequestContext(request, processors=extra_processors))
@@ -721,9 +705,7 @@ def discard_invitation(request, invitation_id):
 discard_invitation = login_required(discard_invitation)
 
 def answer_invitation(request, invitation_id):
-    invitation = get_object_or_404(Invitation, pk=invitation_id)
-    if request.user != invitation.sent_to:  # ! Probably should be included into above.
-        raise Http404, "No Invitation matches the given query."
+    invitation = get_object_or_404(Invitation, pk=invitation_id, sent_to=request.user) # requires testing!
     form = None
     if request.method == 'POST':
         if invitation.accepted is not None:
@@ -749,6 +731,27 @@ def answer_invitation(request, invitation_id):
             context_instance=RequestContext(request, processors=extra_processors))
 answer_invitation = login_required(answer_invitation)
 
+def xmppresourcify(request, resource=None, post_id=None):
+    if post_id:
+        post = get_object_or_404(Post, pk=post_id);
+    else:
+        # find one!
+        nt = notification.NoticeType.objects.get(
+         label="new_post_in_watched_thread")
+        nl = notification.Notice.objects.filter(notice_type=nt,
+         user=request.user).order_by('-added')[0]
+        # ! Should probably check here if it was added less than couple
+        #  seconds ago - to prevent acting on a wrong notification.
+        # Can't find anything appropriate right now, actually.
+        raise Http404, "Dunno such"
+    if not resource:
+        resource="#%d-%d"%(post.id, post.thread.id)
+    wl = WatchList.objects.get_or_create(user=request.user, post=post)
+    wl.xmppresource = resource  # Just replace it.
+    wl.save()
+    # Do we need HTTP-availability of this? (can just use
+    # success_or_reverse_redirect).
+    return XmppResponse("okay.")
 
 def xmpp_get_help(request, subject=None):
     '''
@@ -797,7 +800,6 @@ def xmpp_register_cmd(request, nickname=None, password=None):
             raise PermissionError, "Authentication to existing user failed"
     # Optional: change state to 'password input' if no password
     # !! Possible problem if password (or, esp., both) contain spaces.
-
 
 def _brand_view(func):
     '''
