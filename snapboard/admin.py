@@ -4,7 +4,7 @@ from django.contrib import admin
 
 class PostAdmin(admin.ModelAdmin):
     model = Post
-    list_display = ('user', 'date', 'thread', 'ip')
+    list_display = ('user', 'text', 'date', 'thread', 'ip')
     list_filter = ('censor', 'freespeech', 'date')
     search_fields = ('text', 'user')
     raw_id_fields = ('thread',)
@@ -51,6 +51,10 @@ class XMPPContactAdmin(admin.ModelAdmin):
     model = XMPPContact
     list_display = ('remote', 'local', 'auth_to', 'auth_from', 'status_type')
 
+class WatchListAdmin(admin.ModelAdmin):
+    model = WatchList
+    list_display = ('user', 'post', 'xmppresource')
+
 
 admin.site.register(Category)
 admin.site.register(Moderator)
@@ -62,5 +66,6 @@ admin.site.register(UserBan, UserBanAdmin)
 admin.site.register(IPBan, IPBanAdmin)
 admin.site.register(Group, GroupAdmin)
 admin.site.register(XMPPContact, XMPPContactAdmin)
+admin.site.register(WatchList, WatchListAdmin)
 
 # vim: ai ts=4 sts=4 et sw=4

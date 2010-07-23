@@ -79,10 +79,7 @@
                 {% if user.is_authenticated and not post.freespeech %}&#149;<span title="{% trans "Report this post for violation of forum policies." %}" class="popup"><a id="abuse{{ post.id }}" href="#snap_post{{ post.id }}" onclick="set_abuse('{{ post.id }}');">{% trans "report abuse" %}</a></span>{% endif %}
             </span>
             <span class="avatar"> {% avatar post.user %}</span>
-            <b><a href="#snap_post{{ post.id }}" onclick="toggle_post('{{ post.id }}');"><span class="popup" title="Author">{{ post.user }}</span></a></b>
-            {% if post.private.all %}
-                {% trans "to" %} {% for rec in post.private.all %}{{ rec }}{% if not forloop.last %},{% endif %}{% endfor %}
-            {% endif %}
+            <b><a href="#snap_post{{ post.id }}" onclick="toggle_post('{{ post.id }}'); return false; r"><span class="popup" title="Author">{{ post.user }}</span></a></b>
             <span class="timesince"><span class="datetime">{{ post.date|date:"r T" }}<span class="timestamp">{{ post.date|timestamp }}</span></span></span>
             <span class="post_summary" style="display:none;" id="snap_post_sum{{ post.id }}">:
                 {{ post.text|post_summary:"30"|safe }}

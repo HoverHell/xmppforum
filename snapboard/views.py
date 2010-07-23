@@ -241,6 +241,15 @@ def thread(request, thread_id):
     # Get all replies.
     post_list = Post.get_children(top_post_0)  # Paginated by this list.
     
+    # Additional note: annotating watched posts in the tree can be done, for
+    # example, by using 
+    # WatchList.objects.filter(post__in=pl, user=request.user),
+    # and, in the template, "{% post.id in watched_list %}".
+    # (select related, '[wi.post.id for wi in ...]' and etc. might also be
+    # needed).
+    # This, of course, requires that post lists are retreived here in view,
+    # rather than in the template.
+
     render_dict.update({
             'top_post': top_post,
             'post_list': post_list,
@@ -428,6 +437,7 @@ def watchlist(request):
     '''
     post_list = filter(lambda p: p.thread.category.can_view(request.user),
       [w.post for w in WatchList.objects.select_related(depth=3).filter(user=request.user)])
+    # Pagination? Looks nice to allow in-url parameter like "?ppp=100".
 
     return render_to_response('snapboard/watchlist',
             {'posts': post_list},
