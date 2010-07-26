@@ -246,44 +246,66 @@ class MessageHandler(xmppim.MessageProtocol):
 class OutqueueHandler(protocol.Protocol):
         def connectionMade(self):
             stderr.write(" D: OutqueueHandler: connection received.\n")
+            
+        datatemp = ""  # for holding partially reveived data
+        dataend = "\n"  # End character for splitting datastream.
+        
+        def ProcessData(self, dataline):
+            """
+             Called from dataReceived for an actual combined data ready for
+             processing (which is determined by newlines in the stream,
+             actually)..
+            """
+            try:
+                x = simplejson.loads(dataline)
+                server.log.err(" ------- D: Got JSON line of length %d" % len(dataline))
+                # Create and send a response.
+                response = domish.Element((None, 'message'))
+                response['type'] = 'chat'
+                # Values are supposed to be always present here:
+                response['to'] = x['dst']
+                response['from'] = x['src']
+                # We expect returned message parts to be valid XML already.
+                # (if not - remote server will probably drop s2s connection)
+                if 'content' in x:
+                    # We're provided with raw content already.
+                    response.addRawXml(x['content'])
+                else:  # Construct it then.
+                    # ! this all might be not really necessary.
+                    if 'subject' in x:
+                        response.addElement('subject', content=x['subject'])
+                    # Body content is xml-escaped - likely, more than needed.
+                    response.addElement('body', content=x['body'])
+                    if 'html' in x:
+                        htmlbody = domish.Element(
+                          ('http://www.w3.org/1999/xhtml', 'body'))
+                        htmlbody.addRawXml(x['html'])
+                        htmlpart = domish.Element(
+                          ('http://jabber.org/protocol/xhtml-im',
+                          'html'))
+                        htmlpart.addChild(htmlbody)
+                        response.addChild(htmlpart)
+                msgHandler.send(response)
+            except ValueError:
+                server.log.err(" -------------- E: Failed processing:" \
+                 " %r" % dataline)
 
         def dataReceived(self, data):
             # Process received data for messages to send.
-            for dataline in data.split("\n"):
-                try:
-                    x = simplejson.loads(dataline)
-                    server.log.err(" ------- D: Got JSON line of length %d" % len(dataline))
-                    # Create and send a response.
-                    response = domish.Element((None, 'message'))
-                    response['type'] = 'chat'
-                    # Values are supposed to be always present here:
-                    response['to'] = x['dst']
-                    response['from'] = x['src']
-                    # We expect returned message parts to be valid XML already.
-                    # (if not - remote server will probably drop s2s connection)
-                    if 'content' in x:
-                        # We're provided with raw content already.
-                        response.addRawXml(x['content'])
-                    else:  # Construct it then.
-                        # ! this all might be not really necessary.
-                        if 'subject' in x:
-                            response.addElement('subject', content=x['subject'])
-                        # Body content is xml-escaped - likely, more than needed.
-                        response.addElement('body', content=x['body'])
-                        if 'html' in x:
-                            htmlbody = domish.Element(
-                              ('http://www.w3.org/1999/xhtml', 'body'))
-                            htmlbody.addRawXml(x['html'])
-                            htmlpart = domish.Element(
-                              ('http://jabber.org/protocol/xhtml-im',
-                              'html'))
-                            htmlpart.addChild(htmlbody)
-                            response.addChild(htmlpart)
-                    msgHandler.send(response)
-                except ValueError:
-                    server.log.err(" -------------- E: Failed processing:" \
-                     " %r" % dataline)
-
+            server.log.err(" ------- D: Received data of len %d with %d newlines."%(
+             len(data), data.count("\n")))
+            if self.dataend in data:  # final chunk.
+                # Unlike splitlines(), this returns an empty string at the
+                # end if data ends with newline.
+                datas = data.split(self.dataend)
+                self.ProcessData(self.datatemp+datas[0])
+                for datachunk in datas[1:-1]:
+                    # suddenly, more complete messages?
+                    self.ProcessData(datachunk)
+                # Data after last newline, usually empty.
+                self.datatemp = datas[-1]
+            else:  # partial data.
+                self.datatemp += data
 
 # * Use twistd's --pidfile to write PID.
 

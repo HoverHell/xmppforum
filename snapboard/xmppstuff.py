@@ -107,8 +107,8 @@ def send_notifications(users, label, extra_context=None, on_site=True,
         message = django.template.loader.render_to_string(
           'notification/%s/notice.html'%label, context_instance=context)
 
-        notice = Notice.objects.create(user=user, message=message,
-            notice_type=notice_type, on_site=on_site)
+        #notice = Notice.objects.create(user=user, message=message,
+        #    notice_type=notice_type, on_site=on_site)
         #if should_send(user, notice_type, "1") and user.email: # Email
         #    recipients.append(user.email)
         # !!!

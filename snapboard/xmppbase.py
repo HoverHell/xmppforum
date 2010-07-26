@@ -220,7 +220,9 @@ def send_xmpp_message(msg):
     # It uses global pre-initialized xmppoutqueue connection.
     try:
         # msg decides itself on how to be dumped.
-        xmppoutqueue.send(str(msg))  
+        # And newline is used to split socket datastream into separate
+        # messages.
+        xmppoutqueue.send(str(msg)+"\n")
     except:  # ! Should do more reliability increasing here.
         sys.stderr.write(" ERROR: Could not write to xmppoutqueue! (reconnecting...)\n")
         sys.stderr.write("    Message was: %s.\n" % str(msg))

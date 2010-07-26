@@ -9,7 +9,7 @@
 
     <a href="#snap_post{{ top_post.id }}">#{{ thr.id }}/{{ top_post.id }}</a>
     {%ws%}by {{ top_post.user }}
-    {%ws%}at {{ post.date|date:"r T" }} 
+    {%ws%}at {{ top_post.date|date:"r T" }} 
     {% if top_post.censor %}{%ws%}(CENSORED){% else %}
     {% ifnotequal top_post.abuse 0 %}{%ws%}(REPORTED){% endifnotequal %}{% endif %}
     {% if top_post.previous %}{%ws%}(REVISED){% endif %}

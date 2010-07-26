@@ -247,6 +247,11 @@ def thread(request, thread_id):
     # needed).
     # This, of course, requires that post lists are retreived here in view,
     # rather than in the template.
+    
+    # Another broken things is abusereport.
+    # Probably it can be fixed by adding reportcount like this:
+    # Post.objects. ... .annotate(abuse=Count('sb_abusereport_set')).filter(...)
+    # It might be possible to fetch watch status for post in a similar way.
 
     render_dict.update({
             'top_post': top_post,

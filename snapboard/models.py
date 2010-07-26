@@ -422,7 +422,7 @@ class AbuseReport(models.Model):
     If the abuse report is rejected as false, the post.freespeech flag can be
     set to disallow further abuse reports on said thread.
     '''
-    post = models.ForeignKey(Post, verbose_name=_('post'))
+    post = models.ForeignKey(Post, verbose_name=_('post'), related_name='sb_abusereport_set')
     submitter = models.ForeignKey(User, verbose_name=_('submitter'), related_name='sb_abusereport_set')
 
     class Meta:

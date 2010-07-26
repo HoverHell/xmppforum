@@ -20,4 +20,6 @@ cmdpatterns = patterns('',
 #      thread, {}, 'snapboard_thread'),  # Really just for testing.
     (r'^#(?P<thread_id>\d*)/(?P<parent_id>\d+) (?P<POST_post>(.*\n?)+)',
       post_reply, {}, 'snapboard_post_reply'),
+    (r'^r( (#(?P<post_id>\d*))?( (?P<resource>.+)?)?)?$',
+      xmppresourcify, {}, 'snapboard_xmppresourcify'),
 )
