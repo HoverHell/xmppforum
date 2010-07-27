@@ -72,7 +72,7 @@
             <span class="post_menuright">
                 {% if user.is_authenticated  %}
                     {% ifequal post.user_id user.id %}&#149;<span title="{% trans "Edit this post. All revisions are saved!" %}"  class="popup"><a href="{% url snapboard_edit_post post.id %}?next={{ request.get_full_path|urlencode }}%23snap_post{{ post.id }}" onclick="return toggle_edit('{{ post.id }}')">{% trans "edit post" %}</a></span>{% endifequal %}
-                    <span class="popup">&#149;<a href="{% url snapboard_post_reply post.id %}" onclick="return show_reply_form('{{ post.id }}');">{% trans "reply" %}</a></span>
+                    <span class="popup">&#149;<a href="{% url snapboard_post_reply post.id %}" onclick="return toggle_reply('{{ post.id }}');">{% trans "reply" %}</a></span>
                     {% if not user.really_anonymous %}&#149;<span class="popup"><a id="watch{{ post.id }}" href="{% url snapboard_watch_post post.id %}?next={{ request.get_full_path|urlencode }}%23snap_post{{ post.id }}" onclick="set_watch('{{ post.id }}'); return false;">{% trans "toggle watch" %}</a></span>{% endif %}
                 {% endif %}
                 {% if user.is_staff %}&#149;<span title="{% trans "ADMIN: mark this post for censorship" %}" class="popup"><a id="censor{{ post.id }}" href="#snap_post{{ post.id }}" onclick="set_censor('{{ post.id }}');">{{ post.censor|yesno:_("uncensor,censor") }}</a></span>{% endif %}
@@ -97,18 +97,13 @@
                 <br/>
             {% endif %}
             {% ifequal post.user_id user.id %}
-                <div style="display:none" id="snap_post_edit{{ post.id }}">
-                    <form action="{% url snapboard_edit_post post.id %}" method="post">
-                        <p><b>{% trans "All revisions of this post are stored and publicly viewable." %}</b></p>
-                        <p>{{ post.get_edit_form.post }} {# TODO: what about errors? #}</p>
-                        <p><input type="submit" value="{% trans "Update" %}" />
-                          <input type="hidden" name="next" value="{{ request.path }}" />
-                        </p>
-                    </form>
-                </div>
+                <div style="display:none" id="snap_post_edit{{ post.id }}"></div>
             {% endifequal %}
             <br/>
         </div>
+        
+        <div style="display:none" id="snap_post_reply{{ post.id }}"></div>
+
         {% if post.censor %}</div>{% else %}{% ifnotequal post.abuse 0 %}</div>{% endifnotequal %}{% endif %}<hr class="postend" />
         
         {% for close in post_info.close %}

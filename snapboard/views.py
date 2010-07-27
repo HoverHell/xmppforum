@@ -12,6 +12,7 @@ from django.db.models import Q
 from django.http import HttpResponse, HttpResponseRedirect, Http404, HttpResponseServerError
 from django.shortcuts import render_to_response, get_object_or_404
 from django.template import RequestContext, TemplateDoesNotExist
+from django.template.loader import render_to_string
 from django.utils import simplejson
 from django.utils.translation import ugettext as _
 
@@ -81,7 +82,7 @@ def snapboard_default_context(request):
 def user_settings_context(request):
     return {'user_settings': request.user.get_user_settings()}
 
-if USE_SNAPBOARD_LOGIN_FORM:
+if USE_SNAPBOARD_LOGIN_FORM:  # ! actually, removed because of csrf_token inconvenience.
     from snapboard.forms import LoginForm
     def login_context(request):
         '''
@@ -90,7 +91,7 @@ if USE_SNAPBOARD_LOGIN_FORM:
         '''
         response_dict = {}
         if not request.user.is_authenticated() \
-          or getattr(request.user, "really_anonymous", False):
+          or request.user.really_anonymous:
             # Anonuser can login, too.
             response_dict.update({
                     'login_form': LoginForm(),
@@ -118,50 +119,50 @@ def rpc(request):
         rpc_func = RPC_ACTION_MAP[action]
     except KeyError:
         raise HttpResponseServerError("RPC: Unknown RPC function")
-    
-    if action == 'quote':
-        try:
-            return HttpResponse(simplejson.dumps(rpc_func(request, oid=int(request.POST['oid']))))
-        except (KeyError, ValueError):
-            return HttpResponseServerError("RPC: Failed to find/process requested post.")
-
-    try:
-        # oclass_str will be used as a keyword in a function call, so it must
-        # be a string, not a unicode object (changed since Django went
-        # unicode). Thanks to Peter Sheats for catching this.
-        oclass_str =  str(request.POST['oclass'].lower())
-        oclass = RPC_OBJECT_MAP[oclass_str]
-    except KeyError:
-        return HttpResponseServerError("RPC: Unknown requested object type")
 
     try:
         oid = int(request.POST['oid'])
-
-        if action in RPC_AACTIONS:  # Just do it.
-            # Also, where should be 404 and PermissionError handled? In JS?
-            return rpc_func(request, oid, rpc=True)
-        
-        # Otherwise...
-        forum_object = oclass.objects.get(pk=oid)
-
-        response_dict.update(rpc_func(request, **{oclass_str:forum_object}))
-        return HttpResponse(simplejson.dumps(response_dict), mimetype='application/javascript')
-
-    except oclass.DoesNotExist:
-        print "RPC handler: no such class."
-        return HttpResponseServerError("RPC handler: no such object class.")
     except KeyError:
-        print "RPC handler: KeyError."
-        return HttpResponseServerError("RPC handler: KeyError, likely malformed POST.")
+        return HttpResponseServerError("RPC handler: KeyError, missing oid.")
+    
+    #if action == 'quote':
+    #    try:
+    #        return HttpResponse(simplejson.dumps(rpc_func(request, oid=int(request.POST['oid']))))
+    #    except (KeyError, ValueError):
+    #        return HttpResponseServerError("RPC: Failed to find/process requested post.")
+
+    if action in RPC_AACTIONS:  # Just do it.
+        # Note: django's exception handling in here.
+        # Dict is expected for rpc=True call.
+        response_dict.update(rpc_func(request, oid, rpc=True))
+    else:  # Otherwise...
+        try:
+            # oclass_str will be used as a keyword in a function call, so it must
+            # be a string, not a unicode object (changed since Django went
+            # unicode). Thanks to Peter Sheats for catching this.
+            oclass_str = str(request.POST['oclass'].lower())
+            oclass = RPC_OBJECT_MAP[oclass_str]
+        except KeyError:
+            return HttpResponseServerError("RPC: Unknown requested object type.")
+
+        try:  # process...
+            forum_object = oclass.objects.get(pk=oid)
+        except oclass.DoesNotExist:
+            return HttpResponseServerError("RPC handler: no such object.")
+        # Note: django's exception handling in here.
+        response_dict.update(rpc_func(request, **{oclass_str:forum_object}))
+    # pack the (whichever) result.
+    return HttpResponse(simplejson.dumps(response_dict),
+     mimetype='application/javascript')
 
 def r_getreturn(request, rpc, next, rpcdata, successtext, postid=None):
     '''
     Common function for RPCable views to easily return some appropriate
-    data.
+    data (rpcdata or next-redirect).
     '''
     if rpc:  # explicit request to return RPC-usable data
         # Can do conversion in rpc(), though.
-        return HttpResponse(simplejson.dumps(rpcdata), mimetype='application/javascript')
+        return rpcdata
     else:
         next = next or request.GET.get('next')
         if next:  # know where should return to.
@@ -180,7 +181,8 @@ def r_watch_post(request, post_id, next=None, rpc=False):
     if not thr.category.can_read(request.user):
         raise PermissionError, "You are not allowed to do that"
     try:
-        # Check if user's already subscribed to that branch? (post__in get_ancestors)
+        # ? Check if user's already subscribed to that branch? (post__in get_ancestors)
+        # (if not - can use get_or_create here)
         wl = WatchList.objects.get(user=request.user, post=post)
         # it exists, stop watching it
         wl.delete()
@@ -194,24 +196,6 @@ def r_watch_post(request, post_id, next=None, rpc=False):
         return r_getreturn(request, rpc, next, {'link':_('dont watch'),
           'msg':_('This thread has been added to your favorites.')},
           "Watch added.", postid=post.id)
-
-
-RPC_OBJECT_MAP = {
-        "thread": Thread,
-        "post": Post,
-        }
-
-RPC_ACTION_MAP = {
-        "censor": rpc_censor,
-        "gsticky": rpc_gsticky,
-        "csticky": rpc_csticky,
-        "close": rpc_close,
-        "abuse": rpc_abuse,
-        "watch": r_watch_post,
-        "quote": rpc_quote,
-        }
-# Temporary list of RPC functions coverted to advanced action handers.
-RPC_AACTIONS = ["watch"]
 
 
 def thread(request, thread_id):
@@ -266,13 +250,16 @@ def thread(request, thread_id):
 thread = anonymous_login_required(thread)
 
 
-def post_reply(request, parent_id, thread_id=None):
+def post_reply(request, parent_id, thread_id=None, rpc=False):
     # thread_id paremeter was considered unnecessary here.
     # Although, '#thread_id/post_id_in_thread' might be preferrable to using
     # global post id.
     
+    # with rpc=true returns dict with full form HTML.
+    
     parent_post = get_object_or_404(Post, pk=int(parent_id))
-    if request.POST:  # POST HERE.
+    
+    if request.POST and not rpc:  # POST HERE.
         thr = parent_post.thread
         if not thr.category.can_post(request.user):
             raise PermissionError, "You are not allowed to post in this thread"
@@ -293,26 +280,43 @@ def post_reply(request, parent_id, thread_id=None):
             return success_or_reverse_redirect('snapboard_locate_post',
               args=(postobj.id,), req=request, msg="Posted successfully.")
     else:
-        postform = PostForm()
-    return render_to_response('snapboard/post_reply',
-            {'postform': postform,
-            },
-            context_instance=RequestContext(request, processors=extra_processors))
+        context = {'postform': PostForm(), 
+         "parent_post": parent_post}
+        if rpc:  # get form, not page.
+            return {"html":
+             render_to_string('snapboard/include/addpost.html',
+              context,
+              context_instance=RequestContext(request,
+               processors=extra_processors))
+             }
+        else:
+            # ...non-JS reply form.
+            return render_to_response('snapboard/post_reply',
+             context,
+             context_instance=RequestContext(request,
+              processors=extra_processors))
 post_reply = anonymous_login_required(post_reply)
 
 
-def edit_post(request, original, next=None):
+def rpc_geteditform(request, post_id, rpc=True):
+    post = Post.objects.select_related(depth=2).get(pk=post_id)
+def edit_post(request, original, rpc=False):
     '''
     Edit an existing post.
     '''
+    # revision=None covers for a serious bug that allows one post to be
+    # edited twice, thus creating serious problems in the database (two
+    # 'latest' posts).
     orig_post = get_object_or_404(Post, pk=int(original), revision=None)
         
-    if orig_post.user != request.user or not orig_post.thread.category.can_post(request.user):
+    if orig_post.user != request.user \
+     or not orig_post.thread.category.can_post(request.user) \
+     or not orig_post.thread.category.can_read(request.user):
         # ? Anonymous post editing? o-O
-        # ! Not in sync with interface in thread!
+        # ! Might be not in sync with interface in thread!
         raise PermissionError, "You are not allowed to edit that."
 
-    if request.POST:
+    if request.POST and not rpc:
         postform = PostForm(request.POST)
         if postform.is_valid():
             # create the post
@@ -345,11 +349,20 @@ def edit_post(request, original, next=None):
         else:
             return success_or_reverse_redirect('snapboard_locate_post',
               args=(orig_post.id,), req=request, msg="Message updated.")
-    else:  # Show a form for posting.
-        return render_to_response('snapboard/edit_post',
-                {'post': orig_post,
-                },
-                context_instance=RequestContext(request, processors=extra_processors))
+    else:  # get a form for editing.
+        context = {'post': orig_post}
+        if rpc:
+            return {"html":
+             render_to_string('snapboard/include/editpost.html',
+              context,
+              context_instance=RequestContext(request,
+               processors=extra_processors))
+            }
+        else:
+            return render_to_response('snapboard/edit_post',
+             context,
+             context_instance=RequestContext(request,
+              processors=extra_processors))
 edit_post = anonymous_login_required(edit_post)  # ! Anonymous post revisions! yay!
 
 
@@ -806,6 +819,27 @@ def xmpp_register_cmd(request, nickname=None, password=None):
     # Optional: change state to 'password input' if no password
     # !! Possible problem if password (or, esp., both) contain spaces.
 
+# RPC information with previous functions.
+RPC_OBJECT_MAP = {
+        "thread": Thread,
+        "post": Post,
+        }
+
+RPC_ACTION_MAP = {
+        "censor": rpc_censor,
+        "gsticky": rpc_gsticky,
+        "csticky": rpc_csticky,
+        "close": rpc_close,
+        "abuse": rpc_abuse,
+        "watch": r_watch_post,
+        "quote": rpc_quote,
+        "geteditform": edit_post,
+        "getreplyform": post_reply,
+        }
+# Temporary list of RPC functions coverted to advanced action handers.
+RPC_AACTIONS = ["watch", "geteditform", "getreplyform"]
+
+
 def _brand_view(func):
     '''
     Mark a view as belonging to SNAPboard.
@@ -814,7 +848,6 @@ def _brand_view(func):
     projects.
     '''
     setattr(func, '_snapboard', True)
-
 
 _brand_view(rpc)
 _brand_view(thread)

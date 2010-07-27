@@ -57,8 +57,8 @@ class XmppRequest(object):
             self.user = models.AnonymousUser()
         # Populating extra fields:
         self.META = {'REMOTE_ADDR': srcjid}
-        self.POST = None
-        self.GET = None
+        self.POST = {}
+        self.GET = {}
         # Stuff ftom HttpRequest:
         #self.GET, self.POST, self.COOKIES, self.META, self.FILES = None, \
         #  None, None, {}, {}, {}, {}, {}

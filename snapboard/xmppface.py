@@ -31,6 +31,7 @@ def process_post_kwargs(request, kwargs):
     actual request.
     """
     newkwargs={}
+    # Those two checks shouldn't actually be necessary.
     if not getattr(request, 'POST', None):
         request.POST = {}
     if not getattr(request, 'GET', None):

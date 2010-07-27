@@ -9,12 +9,8 @@
 {% load extras %}
 
 {% block snapboard_main %}
-    <p> {# copied from snapboard/include/show_posts.html #}
-        <form action="{% url snapboard_edit_post post.id %}" method="post">
-            <p><b>{% trans "All revisions of this post are stored and publicly viewable." %}</b></p>
-            <p>{{ post.get_edit_form.post }} {# TODO: what about errors? #}</p>
-            <p><input type="submit" value="{% trans "Update" %}" /></p>
-        </form>
+    <p id="snap_post_edit{{ post.id }}">
+    	{% include "snapboard/include/editpost.html" %}
     </p>
 {% endblock %}
 <!--

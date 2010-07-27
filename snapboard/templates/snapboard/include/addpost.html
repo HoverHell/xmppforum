@@ -11,7 +11,7 @@
     {% ifequal SNAP_POST_FILTER "markdown" %}
         {% include "snapboard/include/markdown_guide.html" %}
     {% endifequal %}
-    <form id="add_post_div" action="" method="POST">
+    <form id="add_post_div" action="{% url snapboard_post_reply parent_post.id %}" method="POST">
         <a name="post_form"></a>
         <script type="text/javascript" src="{{ SNAP_MEDIA_PREFIX }}/js/yui/autocomplete-min.js"></script>
         <div id="toolbar" style="">

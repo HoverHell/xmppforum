@@ -1,15 +1,25 @@
 
 function toggle_post(id) {
     toggle('snap_post_sum'+id, 'inline');
-    toggle('snap_post_view'+id, 'block');
-}
+    toggle('snap_post_view'+id, 'block'); }
 
 function toggle_edit(id) {
     //toggle('post_text'+id, 'block');
     toggle('snap_post_text'+id, 'block');
-    toggle('snap_post_edit'+id, 'block');
-    return false;
-}
+    exttoggle('snap_post_edit'+id, 
+     'block',
+     'action=geteditform&oid='+id);
+    return false; }
+
+function toggle_reply(id) {
+    exttoggle('snap_post_reply'+id, 'block',
+     'action=getreplyform&oid='+id);
+    //toggle('post_text'+id, 'block');
+    //toggle('snap_post_text'+id, 'block');
+    //exttoggle('snap_post_edit'+id, 
+    // 'block',
+    // 'action=geteditform&oclass=post&oid='+id);
+    return false; }
 
 function toggle(id, type) {
     var e = document.getElementById(id);
@@ -17,6 +27,44 @@ function toggle(id, type) {
         e.style.display = type;
     else
         e.style.display = 'none';
+}
+
+function exttoggle(id, type, action) {
+    // on show retreives HTML code from RPC.
+    var e = document.getElementById(id);
+    if(e.style.display == 'none') {
+        e.style.display = type;
+
+        // var postData = action;
+        //var div = document.getElementById(action + oid);
+        //var msgdiv = document.getElementById(msgdivid);
+        // div = e
+        // msgdiv = e
+
+        var handleSuccess = function(o) {
+            if(o.responseText !== undefined) {
+                res = JSON.parse(o.responseText);
+                e.innerHTML = res.html; } };
+                // Sorry, Python-y.
+
+        var handleFailure = function(o) {
+            e.innerHTML = "<b>" + gettext('ERROR. ') + "</b>";
+            if(o.responseText !== undefined) {
+                for (var n in o) {
+                    if (o.hasOwnProperty(n)) {
+                        e.innerHTML += o[n]+"<br>"; } } } };
+
+        var callback = {
+            success:handleSuccess,
+            failure:handleFailure,
+            argument:[]
+        };
+
+        e.innerHTML = "<b>" + gettext('Processing...') + "</b>";
+        var request = YAHOO.util.Connect.asyncRequest('POST',
+         SNAPBOARD_URLS.rpc_action, callback, action);
+    } else {
+        e.style.display = 'none'; }
 }
 
 
