@@ -3,6 +3,7 @@
 <strong>#1234</strong> — show thread 1234<br />
 <strong>#c7</strong> — show threads in category 7<br />
 <strong>#c9 Subj</strong> — create new thread in category 9 with subject "Subj" and remaining message as content<br />
+<strong>r #9876 specresource</strong> — send notifications about specific watch (subscription) from specified XMPP resource of the bot.<br />
 <strong>WHOAMI</strong> — your username<br />
 <strong>HELP subject</strong> — help on subject</p>
 

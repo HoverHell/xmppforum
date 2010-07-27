@@ -14,12 +14,8 @@ function toggle_edit(id) {
 function toggle_reply(id) {
     exttoggle('snap_post_reply'+id, 'block',
      'action=getreplyform&oid='+id);
-    //toggle('post_text'+id, 'block');
-    //toggle('snap_post_text'+id, 'block');
-    //exttoggle('snap_post_edit'+id, 
-    // 'block',
-    // 'action=geteditform&oclass=post&oid='+id);
     return false; }
+
 
 function toggle(id, type) {
     var e = document.getElementById(id);
@@ -35,17 +31,10 @@ function exttoggle(id, type, action) {
     if(e.style.display == 'none') {
         e.style.display = type;
 
-        // var postData = action;
-        //var div = document.getElementById(action + oid);
-        //var msgdiv = document.getElementById(msgdivid);
-        // div = e
-        // msgdiv = e
-
         var handleSuccess = function(o) {
             if(o.responseText !== undefined) {
                 res = JSON.parse(o.responseText);
                 e.innerHTML = res.html; } };
-                // Sorry, Python-y.
 
         var handleFailure = function(o) {
             e.innerHTML = "<b>" + gettext('ERROR. ') + "</b>";

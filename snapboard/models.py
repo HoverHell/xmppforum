@@ -384,7 +384,7 @@ class Post(mp_tree.MP_Node):
                     # ! Actually, check post.user != wl.user.  Probably.
                     recipients.append(wl.user)
                 if wl.xmppresource:
-                    resources[user] = wl.xmppresource
+                    resources[wl.user] = wl.xmppresource
             recipients = set(recipients)
             if recipients:
                 send_notifications(

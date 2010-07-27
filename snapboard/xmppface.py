@@ -133,7 +133,7 @@ def processcmd(**indata):
         except Exception, e:
             response = XmppResponse(_("Sorry, something went wrong!\n" \
               "Don't worry, admins weren't notified!"))
-            sys.stderr.write("\n --------------- E: Exception when calling callback:")
+            sys.stderr.write("\n --------------- E: Exception %r when calling callback: \n"%(e,))
             sys.stderr.write(traceback.format_exc())
         # Not final. Also, toResponse(), part 1.
     except django.http.Http404, e:  # Http404 from resolver.

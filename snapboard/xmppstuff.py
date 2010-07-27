@@ -78,6 +78,8 @@ def send_notifications(users, label, extra_context=None, on_site=True,
         srcjid = ucontacts[0].local  # Choose first available authenticated bot JID.
         if user in xmppresources:
             srcjid += "/%s"%xmppresources[user]
+            # ! Should probably send 'available' status from that resource as well.
+            #  ...possibly - every time. or - once (and save somewhere).
         
         # get user language for user from language store defined in
         # NOTIFICATION_LANGUAGE_MODULE setting

@@ -761,10 +761,10 @@ def xmppresourcify(request, resource=None, post_id=None):
         # ! Should probably check here if it was added less than couple
         #  seconds ago - to prevent acting on a wrong notification.
         # Can't find anything appropriate right now, actually.
-        raise Http404, "Dunno such"
+        raise Http404, "Dunno such. Specify precise post."
     if not resource:
         resource="#%d-%d"%(post.id, post.thread.id)
-    wl = WatchList.objects.get_or_create(user=request.user, post=post)
+    wl, created = WatchList.objects.get_or_create(user=request.user, post=post)
     wl.xmppresource = resource  # Just replace it.
     wl.save()
     # Do we need HTTP-availability of this? (can just use
