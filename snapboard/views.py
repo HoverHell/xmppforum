@@ -235,7 +235,12 @@ def thread(request, thread_id):
     # Another broken things is abusereport.
     # Probably it can be fixed by adding reportcount like this:
     # Post.objects. ... .annotate(abuse=Count('sb_abusereport_set')).filter(...)
-    # It might be possible to fetch watch status for post in a similar way.
+    # It is be possible to fetch watch status for post in a similar way
+    # (custom SQL and no parent-watch status, though)
+    # Post.objects.extra(select={"wlc": 'SELECT COUNT(*) FROM
+    #  "snapboard_watchlist" WHERE "snapboard_watchlist"."post_id" =
+    #  "snapboard_post"."id" AND "snapboard_watchlist"."user_id" =
+    #  "snapboard_post"."user_id"'}).get(pk=132).wlc
 
     render_dict.update({
             'top_post': top_post,

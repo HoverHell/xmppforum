@@ -89,6 +89,10 @@ def processcmd(**indata):
         sys.stderr.write(' ....... changed contact status. ')
         contact.save()
         sys.stderr.write(' ....... saved. ')
+        if 'photo' in indata and indata['photo']:
+            sys.stderr.write(' ... + photo data. ')
+            photosum = indata['photo']
+            # ! ...
         return
     # ... otherwise it's probably a user command.
 

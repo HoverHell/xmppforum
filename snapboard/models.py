@@ -403,7 +403,8 @@ class Post(mp_tree.MP_Node):
         return PostForm(initial={'post':self.text})
 
     def __unicode__(self):
-        return u''.join( (unicode(self.user), u': ', unicode(self.date)) )
+        return u''.join( (u'#', unicode(self.id), u': ', unicode(self.user), u' @ ',
+         unicode(self.date)) )
 
     class Meta:
         verbose_name = _('post')
@@ -591,8 +592,13 @@ class XMPPContact(models.Model):
     auth_from = models.BooleanField(default=False,
       verbose_name=_('subscribed from'))
     # Status type: online / chat / away / xa / dnd / unavail.
+    # It might be preferrable to keep such volatile data as status in some
+    # temporary/volatile/faster database like memcached.
     status_type = models.CharField(max_length=10,
       verbose_name=_('current status'))
+    # last known vCard photo (hexdigest of SHA1 checksum, actually. should
+    # always be of length 40 itself)
+    photosum = models.CharField(max_length=42, verbose_name=_('photo checksum'))
     # ? Need any other fields?
 
     def __unicode__(self):

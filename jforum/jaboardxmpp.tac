@@ -170,13 +170,12 @@ class PresenceHandler(xmppim.PresenceProtocol):
         server.log.err(" ------- D: A: availableReceived. show: %r"%(presence.show,))
         show = presence.show or "online"
         # ! vcard updates seem to be in the <photo> element of presence
-        if hasattr(presence, "photo") and presence.photo:
-            try:
-                server.log.err(" -+-+-+- D: Photo in presence: %s" % \
-                  presence.photo.children[0])
-            except:
-                traceback.print_exc()
-        inqueue.put_nowait({'stat': show,
+        try:
+            photo = presence.x.photo.children[1]
+        except (AttributeError, IndexError):
+            photo = None  # no photo information...
+
+        inqueue.put_nowait({'stat': show, 'photo': photo,
            'src': presence.sender.full(), 'dst': presence.recipient.full()})
 
 
@@ -221,6 +220,9 @@ class MessageHandler(xmppim.MessageProtocol):
         # ? But are there other types besides those and 'error'?
         try:
             type = message.getAttribute('type')
+            if type == 'headline':
+                # ? Something interesting in those?
+                # (see note2.txt for example)
             if not (type == 'chat'):
                 # For now - log them.
                 server.log.err(" ------- !! D: message of type %r." % type)
