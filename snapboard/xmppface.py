@@ -14,7 +14,8 @@ from django.core.urlresolvers import RegexURLResolver
 from cmds import cmdpatterns
 
 from xmppbase import *
-from models import XMPPContact  # Dumping of meta into there.
+# Dumping of extra info into there:
+from models import XMPPContact, kvfetch, kvget
 
 # Couple of things here should probably be in a class.
 # ? Place something instead of "", maybe?
@@ -45,6 +46,33 @@ def process_post_kwargs(request, kwargs):
             newkwargs[key] = value
     return (request, newkwargs)
 
+def makecontact(local, remote):
+    '''
+    Bunch of race-condition-avoiding hacks to make sure specified unique
+    XMPPContact object exists and can be update()'d.
+    '''
+    try:
+        contact, created = XMPPContact.objects.get_or_create(
+          local=local, remote=remote)
+    except Exceltion, e:
+        sys.stderr.write("\n --------------- E: Exception %r on "\
+         " GET_OR_CREATE: \n"%(e,))
+        sys.stderr.write(traceback.format_exc())
+        ## Might be necessary:
+        ## ref. http://stackoverflow.com/questions/2235318/how-do-i-deal-with-this-race-condition-in-django
+        django.db.transaction.commit()
+        contact = XMPPContact.objects.get(local=local, remote=remote)
+    return contact
+
+def check_photo_update(local, remote, photo):
+    contact = makecontact(local, remote)
+    if contact.photo == photo:
+        return  # No need to update.
+    # Photo checksum is bot-jid-specific. Making sure to have
+    # non-bot-specific photo cache, but what are the chances of hash
+    # collision?
+    
+    pass
 
 def processcmd(**indata):
     """
@@ -57,42 +85,34 @@ def processcmd(**indata):
     dst = indata.get('dst')
     body = indata.get('body')
     sys.stderr.write(" -+-+-+-+-+- D: indata: %r.\n" % indata)
-    if 'auth' in indata:  # Got subsrtibe/auth data. Save it.
+    if 'auth' in indata:  # Got subscribe/auth data. Save it.
+        makecontact(dst, src)
         sys.stderr.write(' ....... auth data. ')
         authtype = indata['auth']
-        contact, created = XMPPContact.objects.get_or_create(
-          local=dst, remote=src)
-        if authtype == 'subscribed':
-            contact.auth_to = True  # ! Hopefully not mistaken with auth_from
-            sys.stderr.write(' ....... subscribed ')
-        elif authtype == 'unsubscribed':
-            contact.auth_to = False
-            sys.stderr.write(' ....... unsubscribed ')
-        elif authtype == 'subscribe':
-            contact.auth_from = True
-            sys.stderr.write(' ....... subscribe ')
-        elif authtype == 'unsubscribe':
-            contact.auth_from = False
-            sys.stderr.write(' ....... unsubscribe ')
-        sys.stderr.write(' ....... changed contact data. ')
-        contact.save()  # Update the data
-        sys.stderr.write(' ....... saved. \n')
+        subsmapping = {
+         'subscribed': {'auth_to': True},
+         'unsubscribed': {'auth_to': False},
+         'subscribe': {'auth_from': True},
+         'unsubscribe': {'auth_from': False}
+        }
+        # That one should be minimalistic & atomic.
+        upd = XMPPContact.objects.filter(local=dst,
+         remote=src).update(**subsmapping[authtype])
+        if upd != 1:  # ...something happened to be wrong anyway.
+            sys.stderr.write("\n --------------- E: Unexpected failure"\
+             " on updating auth data. Upd is %d.\n"%upd)
+        sys.stderr.write(' ....... changed contact auth.\n')
         return  # Nothing else should be in there.
     if 'stat' in indata:  # Got contact status. Save it.
         sys.stderr.write(' ....... status message. ')
         # ! ^ Don't really care about status now. But save the last status
-        # for now anyway.
+        # anyway.
         statustype = indata['stat']
-        contact, created = XMPPContact.objects.get_or_create(
-          local=dst, remote=srcbarejid)
-        contact.status_type = statustype
-        sys.stderr.write(' ....... changed contact status. ')
-        contact.save()
-        sys.stderr.write(' ....... saved. ')
+        kvset('st_%s'%src, statustype)  # bot's JID is ignored here.
+        sys.stderr.write(' ....... changed contact status. \n')
         if 'photo' in indata and indata['photo']:
             sys.stderr.write(' ... + photo data. ')
-            photosum = indata['photo']
-            # ! ...
+            check_photo_update(dst, src, indata['photo'])
         return
     # ... otherwise it's probably a user command.
 

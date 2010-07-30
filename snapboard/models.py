@@ -10,6 +10,7 @@ from django.db.models import signals, Q
 from django.dispatch import dispatcher
 from django.utils.translation import ugettext_lazy as _
 
+
 from treebeard import mp_tree
 
 # Fix it, mkay.
@@ -592,13 +593,13 @@ class XMPPContact(models.Model):
     auth_from = models.BooleanField(default=False,
       verbose_name=_('subscribed from'))
     # Status type: online / chat / away / xa / dnd / unavail.
-    # It might be preferrable to keep such volatile data as status in some
-    # temporary/volatile/faster database like memcached.
-    status_type = models.CharField(max_length=10,
-      verbose_name=_('current status'))
+    # It is preferrable to keep such volatile data in keyvalue storage.
+    #status_type = models.CharField(max_length=10,
+    #  verbose_name=_('current status'), blank=True)
     # last known vCard photo (hexdigest of SHA1 checksum, actually. should
     # always be of length 40 itself)
-    photosum = models.CharField(max_length=42, verbose_name=_('photo checksum'))
+    photosum = models.CharField(max_length=42, 
+      verbose_name=_('photo checksum'), blank=True)
     # ? Need any other fields?
 
     def __unicode__(self):
@@ -608,6 +609,47 @@ class XMPPContact(models.Model):
         verbose_name = _('xmpp contact')
         verbose_name_plural = _('xmpp contacts')
         unique_together = ("remote", "local")
+
+
+try:
+    from django_kvstore.models import kvstore
+    from types import FunctionType
+    def kvfetch(key, default=None):
+        '''
+        Returns a kvstore value if it exists or sets it to the value of
+        default, or its return value if it's a function.
+        '''
+        data = kvstore.get(key)
+        if data is None:
+            if default is not None:
+                if isinstance(f, FunctionType):
+                    data = default()
+                else:
+                    data = default
+                kvstore.set(key, data)
+        # no data, no default - return actual None.
+        return data
+                
+    kvset = kvstore.set
+    kvget = kvstore.get
+        
+except ImportError:
+    print " Warning: no kvstore module found. Some minor features might " \
+     " be unavailable."
+    def kvfetch(*args, **kwargs):
+        pass
+    kvset = kvfetch
+    kvget = kvfetch
+
+
+#class KVStore(models.Model):
+#    '''
+#    Django-ORM based key-value storage for volatile data, in case memcached is not available.
+#    '''
+#    # Need quite a length to make sure any XMPP address will fit.
+#    # Possibly preferrable to use something different for that, although.
+#    id = models.CharField(max_length=255, primary_key=True)
+#    data = 
 
 #class XMPPResources(models.Model):
 #    '''

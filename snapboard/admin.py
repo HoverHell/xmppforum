@@ -49,7 +49,7 @@ class GroupAdmin(admin.ModelAdmin):
 
 class XMPPContactAdmin(admin.ModelAdmin):
     model = XMPPContact
-    list_display = ('remote', 'local', 'auth_to', 'auth_from', 'status_type')
+    list_display = ('remote', 'local', 'auth_to', 'auth_from', 'photosum')
 
 class WatchListAdmin(admin.ModelAdmin):
     model = WatchList

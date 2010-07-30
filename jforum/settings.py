@@ -16,9 +16,9 @@ MANAGERS = ADMINS
 SOCKET_ADDRESS = 'xmppoutqueue'
 
 # sort-of optional memcached storages.
-# Minor features *might* fail if it is not present.
 MEMCACHED = ['unix:memcached']
 CACHE_BACKEND = 'memcached://unix:memcached'
+KEY_VALUE_STORE_BACKEND = 'memcached://unix:memcached'
 
 DATABASE_ENGINE = 'sqlite3'
 DATABASE_NAME = 'dev.db'

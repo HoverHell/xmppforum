@@ -145,6 +145,7 @@ class PresenceHandler(xmppim.PresenceProtocol):
                        sender=presence.recipient)
         # Ask for subscription in turn.
         # ? Need some extracheckings for that?
+        server.log.err(" ------- D: A: Requesting mutual subscription... ")
         self.subscribe(recipient=presence.sender,
                         sender=presence.recipient)
         inqueue.put_nowait({'auth': 'subscribe',
@@ -223,6 +224,7 @@ class MessageHandler(xmppim.MessageProtocol):
             if type == 'headline':
                 # ? Something interesting in those?
                 # (see note2.txt for example)
+                return  # ...or just skip them.
             if not (type == 'chat'):
                 # For now - log them.
                 server.log.err(" ------- !! D: message of type %r." % type)
