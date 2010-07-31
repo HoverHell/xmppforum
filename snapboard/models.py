@@ -612,34 +612,57 @@ class XMPPContact(models.Model):
 
 
 try:
-    from django_kvstore.models import kvstore
+    from django.core.cache import cache
     from types import FunctionType
-    def kvfetch(key, default=None):
+    def kvfetch(key, default=None, timeout=0):
         '''
         Returns a kvstore value if it exists or sets it to the value of
-        default, or its return value if it's a function.
+        default, or its return value if it's a function, with specified
+        timeout.
         '''
-        data = kvstore.get(key)
+        data = cache.get(key)
         if data is None:
             if default is not None:
                 if isinstance(f, FunctionType):
                     data = default()
                 else:
                     data = default
-                kvstore.set(key, data)
+                cache.set(key, data, timeout)
         # no data, no default - return actual None.
         return data
-                
-    kvset = kvstore.set
-    kvget = kvstore.get
-        
+    kvset = cache.set
+    kvget = cache.get
 except ImportError:
-    print " Warning: no kvstore module found. Some minor features might " \
-     " be unavailable."
-    def kvfetch(*args, **kwargs):
-        pass
-    kvset = kvfetch
-    kvget = kvfetch
+    try:
+        from django_kvstore.models import kvstore
+        from types import FunctionType
+        def kvfetch(key, default=None):
+            '''
+            Returns a kvstore value if it exists or sets it to the value of
+            default, or its return value if it's a function.
+            '''
+            data = kvstore.get(key)
+            if data is None:
+                if default is not None:
+                    if isinstance(f, FunctionType):
+                        data = default()
+                    else:
+                        data = default
+                    kvstore.set(key, data)
+            # no data, no default - return actual None.
+            return data
+                    
+        kvset = kvstore.set
+        kvget = kvstore.get
+            
+    except ImportError:
+        print " Warning: no kvstore module found. Some minor features might " \
+         " be unavailable."
+        def kvdummy(*args, **kwargs):
+            pass
+        kvfetch = kvdummy
+        kvset = kvfetch
+        kvget = kvfetch
 
 
 #class KVStore(models.Model):

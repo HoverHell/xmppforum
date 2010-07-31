@@ -15,7 +15,7 @@ from cmds import cmdpatterns
 
 from xmppbase import *
 # Dumping of extra info into there:
-from models import XMPPContact, kvfetch, kvget
+from models import XMPPContact, kvfetch, kvget, kvset
 
 # Couple of things here should probably be in a class.
 # ? Place something instead of "", maybe?

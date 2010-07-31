@@ -15,10 +15,10 @@ MANAGERS = ADMINS
 # Should not be relative, actually.
 SOCKET_ADDRESS = 'xmppoutqueue'
 
-# sort-of optional memcached storages.
-MEMCACHED = ['unix:memcached']
 CACHE_BACKEND = 'memcached://unix:memcached'
-KEY_VALUE_STORE_BACKEND = 'memcached://unix:memcached'
+# sort-of optional memcached storages.
+#KEY_VALUE_STORE_BACKEND = 'memcached://unix:memcached'
+#MEMCACHED = ['unix:memcached']
 
 DATABASE_ENGINE = 'sqlite3'
 DATABASE_NAME = 'dev.db'
