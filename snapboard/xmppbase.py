@@ -74,6 +74,7 @@ class XmppResponse(dict):
     """
     def __init__(self, html=None, body=None, src=None, dst=None, id=None,
       user=None):
+        self['class'] = 'message'
         # Current default is to create XHTML-message and construct plaintext
         # message from it.
         self.setuser(user)
@@ -109,10 +110,11 @@ class XmppResponse(dict):
                 self['html'] = self.imgfix(html)
             else:
                 self['html'] = html
+        else:
+            print " D: skipping HTML part on user's preferences."
         # Body is set forcibly for less possible confusion. Although, some
-        # alteration (warning, for example) is possible here.
+        # alteration is possible here.
         # Note: in Psi, non-XHTML body is used in displayed notifications.
-        # ? Add warning message to the end?
         # Remove formatting. Also, it should be XML-compatible.
         # ! Probably should replace <a> tags with some link representation.
         # ! Or even always add actual link to the tag.
@@ -166,14 +168,67 @@ class XmppResponse(dict):
                   "http://jabber.org/protocol/xhtml-im'><body "\
                   "xmlns='http://www.w3.org/1999/xhtml'>" + value + \
                   "</body></html>"
-            elif key == "body":
-                content = "<body>" + value + "</body>" + content
-            elif key == "subject":
-                content = "<subject>" + value + "</subject>" + content
+            elif key in ('body', 'subject'):
+                content = "<%s>%s</%s>"%(key, value, key) + content
             else:
                 selfrepr[key] = value  # Handle everything else over there.
         selfrepr['content'] = content
         return simplejson.dumps(selfrepr)  # Should be string.
+
+class XmppIq(dict):
+    """
+    XmppResponse-like object for XMPP iq messages.
+    """
+    """
+    Example:
+<iq type="get" to="hell@hell.orts.ru">
+<vCard xmlns="vcard-temp" version="2.0" prodid="-//HandGen//NONSGML vGen v1.0//EN"/></iq>
+    """
+    def __init__(self, type='get', **kwargs):
+        """
+        Should (usually) get 'src', 'dst', 'content', possibly 'id' in kwargs.
+        """
+        self['class'] = 'iq'
+        self['type'] = type
+        self.update(kwargs)  # src, dst, id, content, ...
+
+    def __str__(self):
+        """
+        Serializes itself into string.
+        """
+        return simplejson.dumps(self)
+
+
+class XmppPresence(dict):
+    """
+    XmppResponse-like object for XMPP presence messages.
+    """
+    """
+    Example:
+<presence from="hoverhell1@jabber.ru/hheee" xml:lang="en" to="hell@hell.orts.ru/hheee">
+<show>chat</show><status>FFC? FFS!</status><priority>0</priority></presence>
+    """
+    def __init__(self, **kwargs):
+        """
+        Should (usually) get 'src', 'dst',
+         and 'status', 'priority', 'show' (or 'content') in kwargs.
+        """
+        self['class'] = 'presence'
+        self.update(kwargs)
+
+    def __str__(self):
+        """
+        Serializes itself into string.
+        """
+        selfrepr = {}
+        content = ''
+        for key, value in self.iteritems():
+          if key in ('show', 'status', 'priority'):
+              content = "<%s>%s</%s>"%(key, value, key) + content
+          else:
+            selfrepr[key] = value
+        selfrepr['content'] = content
+        return simplejson.dumps(selfrepr)
 
 xmppoutqueue = None
 connecting = True

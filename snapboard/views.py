@@ -1,5 +1,6 @@
 import logging
 import datetime
+import time
 
 from django import forms
 from django.conf import settings
@@ -15,6 +16,7 @@ from django.template import RequestContext, TemplateDoesNotExist
 from django.template.loader import render_to_string
 from django.utils import simplejson
 from django.utils.translation import ugettext as _
+from django.core.cache import cache
 
 # For easy notification resource handling:
 from notification import models as notification
@@ -175,12 +177,13 @@ def r_getreturn(request, rpc, next, rpcdata, successtext, postid=None):
             # else?
             return HttpResponseServerError("RPC return: unknown return.")  # Nothing else to do here.
 
-def r_watch_post(request, post_id, next=None, rpc=False):
+def r_watch_post(request, post_id=None, next=None, resource=None, rpc=False):
     post = get_object_or_404(Post, pk=int(post_id))
     thr = post.thread
     if not thr.category.can_read(request.user):
         raise PermissionError, "You are not allowed to do that"
     try:
+        # ! This doesn't look very good.
         # ? Check if user's already subscribed to that branch? (post__in get_ancestors)
         # (if not - can use get_or_create here)
         wl = WatchList.objects.get(user=request.user, post=post)
@@ -191,7 +194,7 @@ def r_watch_post(request, post_id, next=None, rpc=False):
           "Watch removed.", postid=post.id)
     except WatchList.DoesNotExist:
         # create it
-        wl = WatchList(user=request.user, post=post)
+        wl = WatchList(user=request.user, post=post, xmppresource=resource)
         wl.save()
         return r_getreturn(request, rpc, next, {'link':_('dont watch'),
           'msg':_('This thread has been added to your favorites.')},
@@ -759,14 +762,18 @@ def xmppresourcify(request, resource=None, post_id=None):
         post = get_object_or_404(Post, pk=post_id);
     else:
         # find one!
-        nt = notification.NoticeType.objects.get(
-         label="new_post_in_watched_thread")
-        nl = notification.Notice.objects.filter(notice_type=nt,
-         user=request.user).order_by('-added')[0]
-        # ! Should probably check here if it was added less than couple
-        #  seconds ago - to prevent acting on a wrong notification.
-        # Can't find anything appropriate right now, actually.
-        raise Http404, "Dunno such. Specify precise post."
+        now = time.time()
+        ndata = cache.get('nt_%s'%request.user.username)
+        if ndata:
+            postid, ntime = ndata  # Shouldn't fail, really.
+            if now - ntime < 1:  # For avoiding sudden mistakes. RealtimeWorx.
+                return XmppResponse("You sure? Which post? Please confirm.")
+            try:
+                post = Post.objects.get(pk=postid)
+            except Post.DoesNotExist:
+                raise Http404, "Dunno such. Must've vanished. Specify precise post."
+        else:
+            raise Http404, "Dunno any. Specify precise post."
     if not resource:
         resource="#%d-%d"%(post.id, post.thread.id)
     wl, created = WatchList.objects.get_or_create(user=request.user, post=post)

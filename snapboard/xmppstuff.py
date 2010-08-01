@@ -17,7 +17,7 @@ from notification.models import Notice, NoticeType, Site, get_language,\
 
 import django  
 from django.core.urlresolvers import reverse
-from xmppbase import XmppResponse, send_xmpp_message
+from xmppbase import XmppResponse, XmppPresence, send_xmpp_message
 
 #from models import XMPPContact
 
@@ -69,7 +69,8 @@ def send_notifications(users, label, extra_context=None, on_site=True,
             if user.email:
                 print(" D: Notifier: using e-mail for %r." % user)
                 remaining_users.append(user)
-            print(" D: Notifier: cannot contact %r." % user)
+            else:
+                print(" D: Notifier: cannot contact %r." % user)
             # Or to none/on-site.
             # ! Will on-site notifications work with that?
             continue  # ! What if it's not XMPP-related notification at all?
@@ -78,8 +79,10 @@ def send_notifications(users, label, extra_context=None, on_site=True,
         srcjid = ucontacts[0].local  # Choose first available authenticated bot JID.
         if user in xmppresources:
             srcjid += "/%s"%xmppresources[user]
-            # ! Should probably send 'available' status from that resource as well.
-            #  ...possibly - every time. or - once (and save somewhere).
+            # ! Could be better to send status not every time. But not sure
+            #  how to find out if have to re-send it.
+            send_xmpp_message(XmppPresence(src=srcjid, dst=jid,
+             show='chat', status='Here here!', priority="0"))
 
         # get user language for user from language store defined in
         # NOTIFICATION_LANGUAGE_MODULE setting
@@ -100,20 +103,14 @@ def send_notifications(users, label, extra_context=None, on_site=True,
         })
         context.update(extra_context)
 
-        # Strip newlines from subject
-        #subject = ''.join(render_to_string('notification/email_subject.txt', {
-        #    'message': messages['short.txt'],
-        #}, context).splitlines())
         body = django.template.loader.render_to_string(
           'notification/%s/xmpp.html'%label, context_instance=context)
-        message = django.template.loader.render_to_string(
-          'notification/%s/notice.html'%label, context_instance=context)
 
+        # ?..
+        #message = django.template.loader.render_to_string(
+        #  'notification/%s/notice.html'%label, context_instance=context)
         #notice = Notice.objects.create(user=user, message=message,
         #    notice_type=notice_type, on_site=on_site)
-        #if should_send(user, notice_type, "1") and user.email: # Email
-        #    recipients.append(user.email)
-        # !!!
         noticemsg = XmppResponse(body, src=srcjid, dst=jid, user=user)
         send_xmpp_message(noticemsg)
 

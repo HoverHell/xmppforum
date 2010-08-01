@@ -1,5 +1,6 @@
 import logging
 from datetime import datetime
+import time
 
 from django.conf import settings
 from django.contrib.auth.models import User, AnonymousUser
@@ -9,7 +10,7 @@ from django.db import models, connection
 from django.db.models import signals, Q
 from django.dispatch import dispatcher
 from django.utils.translation import ugettext_lazy as _
-
+from django.core.cache import cache
 
 from treebeard import mp_tree
 
@@ -386,6 +387,11 @@ class Post(mp_tree.MP_Node):
                     recipients.append(wl.user)
                 if wl.xmppresource:
                     resources[wl.user] = wl.xmppresource
+                else:
+                    # we're sending it to a bare jid. Allow simple
+                    # resourcification without specifying post.
+                    cache.set('nt_%s'%wl.user.username, [self.id,
+                      time.time()])
             recipients = set(recipients)
             if recipients:
                 send_notifications(
@@ -597,7 +603,9 @@ class XMPPContact(models.Model):
     #status_type = models.CharField(max_length=10,
     #  verbose_name=_('current status'), blank=True)
     # last known vCard photo (hexdigest of SHA1 checksum, actually. should
-    # always be of length 40 itself)
+    # always be of length 40 itself). It should be user-specific, not
+    # contact-specific, but there's no more appropriate place for it (can
+    # possibly store in the added avatar's filename/object, though).
     photosum = models.CharField(max_length=42, 
       verbose_name=_('photo checksum'), blank=True)
     # ? Need any other fields?
@@ -611,76 +619,22 @@ class XMPPContact(models.Model):
         unique_together = ("remote", "local")
 
 
-try:
-    from django.core.cache import cache
-    from types import FunctionType
-    def kvfetch(key, default=None, timeout=0):
-        '''
-        Returns a kvstore value if it exists or sets it to the value of
-        default, or its return value if it's a function, with specified
-        timeout.
-        '''
-        data = cache.get(key)
-        if data is None:
-            if default is not None:
-                if isinstance(f, FunctionType):
-                    data = default()
-                else:
-                    data = default
-                cache.set(key, data, timeout)
-        # no data, no default - return actual None.
-        return data
-    kvset = cache.set
-    kvget = cache.get
-except ImportError:
-    try:
-        from django_kvstore.models import kvstore
-        from types import FunctionType
-        def kvfetch(key, default=None):
-            '''
-            Returns a kvstore value if it exists or sets it to the value of
-            default, or its return value if it's a function.
-            '''
-            data = kvstore.get(key)
-            if data is None:
-                if default is not None:
-                    if isinstance(f, FunctionType):
-                        data = default()
-                    else:
-                        data = default
-                    kvstore.set(key, data)
-            # no data, no default - return actual None.
-            return data
-                    
-        kvset = kvstore.set
-        kvget = kvstore.get
-            
-    except ImportError:
-        print " Warning: no kvstore module found. Some minor features might " \
-         " be unavailable."
-        def kvdummy(*args, **kwargs):
-            pass
-        kvfetch = kvdummy
-        kvset = kvfetch
-        kvget = kvfetch
-
-
-#class KVStore(models.Model):
-#    '''
-#    Django-ORM based key-value storage for volatile data, in case memcached is not available.
-#    '''
-#    # Need quite a length to make sure any XMPP address will fit.
-#    # Possibly preferrable to use something different for that, although.
-#    id = models.CharField(max_length=255, primary_key=True)
-#    data = 
-
-#class XMPPResources(models.Model):
-#    '''
-#    Stores information about user's preferences for receiving notifications
-#    (specifically - thread watch notifications) from separate resource of
-#    the bot.
-#    '''
-#    user = models.ForeignKey(User, verbose_name=_('user'))
+from types import FunctionType
+def cachefetch(key, default=None, timeout=0):
+    '''
+    Slightly advanced cache.get() that can use result of a function and an
+    additional timout parameter in case of cache miss.
+    '''
+    data = cache.get(key)
+    if data is None:
+        if default is not None:
+            if isinstance(f, FunctionType):
+                data = default()
+            else:
+                data = default
+            cache.set(key, data, timeout)
+    # no data, no default - return actual None.
+    return data
 
 
 signals.post_save.connect(IPBan.update_cache, sender=IPBan)

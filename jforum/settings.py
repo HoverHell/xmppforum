@@ -15,7 +15,7 @@ MANAGERS = ADMINS
 # Should not be relative, actually.
 SOCKET_ADDRESS = 'xmppoutqueue'
 
-CACHE_BACKEND = 'memcached://unix:memcached'
+CACHE_BACKEND = 'memcached://unix:memcached?timeout=0'
 # sort-of optional memcached storages.
 #KEY_VALUE_STORE_BACKEND = 'memcached://unix:memcached'
 #MEMCACHED = ['unix:memcached']

@@ -1,11 +1,16 @@
-<p><strong>#</strong> — show ast 20 threads<br />
+<p><i><strong>command syntax</strong> (short version) — explanation</i><br />
+You can use '!' instead of '#'.</p>
+<p><strong>#</strong> — show last 20 threads<br />
 <strong># &lt;N&gt; &lt;M&gt;</strong> — show N threads starting with M<br />
-<strong>#1234</strong> — show thread 1234<br />
-<strong>#c7</strong> — show threads in category 7<br />
-<strong>#c9 Subj</strong> — create new thread in category 9 with subject "Subj" and remaining message as content<br />
+<strong>#123</strong> — show thread 123<br />
+<strong>#c3</strong> — show threads in category 3<br />
+<strong>#c2 Subj</strong> — create new thread in category 2 with subject "Subj" and remaining message as content (newline required!)<br />
 <strong>r #9876 specresource</strong> — send notifications about specific watch (subscription) from specified XMPP resource of the bot.<br />
-<strong>WHOAMI</strong> — your username<br />
-<strong>HELP subject</strong> — help on subject</p>
+<strong>r</strong> — same as previous, omit post id to use last notified; omit resource to use automatically constructed one.<br />
+<strong>#/5432 text</strong> — reply to post #5432.<br />
+<strong>w #/5432</strong> — watch post #5432 (and its whole tree of replies). Resource can be specified as well.<br />
+<strong>WHOAMI</strong> (who) — fond out your username<br />
+<strong>HELP subject</strong> (h) — help on subject</p>
 
 <p><em>Available subjects:</em><br />
 <strong>register</strong> - registration command and notes</p>

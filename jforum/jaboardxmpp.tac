@@ -262,34 +262,31 @@ class OutqueueHandler(protocol.Protocol):
             """
             try:
                 x = simplejson.loads(dataline)
-                server.log.err(" ------- D: Got JSON line of length %d" % len(dataline))
-                # Create and send a response.
-                response = domish.Element((None, 'message'))
-                response['type'] = 'chat'
-                # Values are supposed to be always present here:
-                response['to'] = x['dst']
-                response['from'] = x['src']
-                # We expect returned message parts to be valid XML already.
-                # (if not - remote server will probably drop s2s connection)
-                if 'content' in x:
-                    # We're provided with raw content already.
-                    response.addRawXml(x['content'])
-                else:  # Construct it then.
-                    # ! this all might be not really necessary.
-                    if 'subject' in x:
-                        response.addElement('subject', content=x['subject'])
-                    # Body content is xml-escaped - likely, more than needed.
-                    response.addElement('body', content=x['body'])
-                    if 'html' in x:
-                        htmlbody = domish.Element(
-                          ('http://www.w3.org/1999/xhtml', 'body'))
-                        htmlbody.addRawXml(x['html'])
-                        htmlpart = domish.Element(
-                          ('http://jabber.org/protocol/xhtml-im',
-                          'html'))
-                        htmlpart.addChild(htmlbody)
-                        response.addChild(htmlpart)
-                msgHandler.send(response)
+                server.log.err(" ------- D: Got JSON line of length %d:" % len(dataline))
+                server.log.err("     %s        \n  " % dataline)
+                if 'class' in x:
+                    response = domish.Element((None, x['class']))
+                    # Values are supposed to be always present here:
+                    response['to'] = x['dst']
+                    response['from'] = x['src']
+                    for extranode in ('type', 'xml:lang'):
+                        if extranode in x:
+                            response[extranode] = x[extranode]
+                    if 'content' in x:
+                        # We're provided with raw content already.
+                        # It is expected to be valid XML already.
+                        # (if not - remote server will probably drop s2s connection)
+                        response.addRawXml(x['content'])
+                    if x['class'] == 'message':
+                        # Create and send a response.
+                        response['type'] = response.getAttribute('type') or 'chat'
+                        if not 'content' in x:
+                            # This should be done in XmppResponse. Removing it from here.
+                            pass
+                    # Everything else should be in place already for most types.
+                    msgHandler.send(response)
+                else:  # not 'class'
+                    pass  # Nothing else implemented yet.
             except ValueError:
                 server.log.err(" -------------- E: Failed processing:" \
                  " %r" % dataline)

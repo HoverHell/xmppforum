@@ -15,7 +15,9 @@ from cmds import cmdpatterns
 
 from xmppbase import *
 # Dumping of extra info into there:
-from models import XMPPContact, kvfetch, kvget, kvset
+import models
+from models import XMPPContact, cachefetch
+from django.core.cache import cache
 
 # Couple of things here should probably be in a class.
 # ? Place something instead of "", maybe?
@@ -65,14 +67,18 @@ def makecontact(local, remote):
     return contact
 
 def check_photo_update(local, remote, photo):
+    # Might want to optimize (cache) this.
     contact = makecontact(local, remote)
     if contact.photo == photo:
         return  # No need to update.
-    # Photo checksum is bot-jid-specific. Making sure to have
-    # non-bot-specific photo cache, but what are the chances of hash
-    # collision?
-    
-    pass
+    barejid = remote.split('/')[0]  # ! status gets a full JID... usually.
+    # Could probably get that by moving it all into view. Although this is a
+    # controversial architectural decision.
+    if not models.User.objects.filter(sb_usersettings__jid__exact=barejid).exists():
+        # not registered.
+        return
+    # Send XMPP request for vcard.
+    # !!...
 
 def processcmd(**indata):
     """
@@ -108,7 +114,7 @@ def processcmd(**indata):
         # ! ^ Don't really care about status now. But save the last status
         # anyway.
         statustype = indata['stat']
-        kvset('st_%s'%src, statustype)  # bot's JID is ignored here.
+        cache.set('st_%s'%src, statustype)  # bot's JID is ignored here.
         sys.stderr.write(' ....... changed contact status. \n')
         if 'photo' in indata and indata['photo']:
             sys.stderr.write(' ... + photo data. ')

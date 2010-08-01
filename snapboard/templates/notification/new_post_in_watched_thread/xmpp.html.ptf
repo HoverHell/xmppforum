@@ -1,8 +1,10 @@
 {% load i18n snapboard_tags extras plaintexttags avatar_tags %}
-<strong>New message</strong> in thread <em>#{{ post.thread.id }}</em>
+<strong>New message</strong> <em>#/{{ post.id }}</em> in thread <em>#{{ post.thread.id }}</em>
  “<a href="http://{{ current_site.domain }}
   {% url snapboard_locate_post post.id %}">
   {{ post.thread.subject }}
   </a>”:{%br%}
+<strong>In reply to</strong> {{ post.get_parent.user }}'s message:{%br%}
+{{ post.get_parent.text|striptags|render_post|safe }}{%br%}
 <strong>By:</strong> {{ post.user }}{%br%}
 {{ post.text|striptags|render_post|safe }}
