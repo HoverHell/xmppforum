@@ -1,0 +1,10 @@
+## A set of requirements that, well, require a compiler installed and,
+## therefore, it's very much preferrable to install them with distribution's
+## mechanisms.
+
+## for django-avatar
+PIL
+## for wokkel
+twisted
+## xmppforum, django, ...
+simplejson

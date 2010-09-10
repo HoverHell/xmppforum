@@ -1,4 +1,26 @@
 
+Read INSTALL for actual information on installing.
+
+Python dependencies are described (for pip) in requirements-*.txt files:
+
+requirements-d.txt - used by `boostrap.py -d` - dependencies not present in
+  Debian.
+
+Debian packages that need to be installed:
+  python-django python-imaging python-wokkel python-django-treebeard
+  python-django-registration
+
+requirements.txt - used by default - full set of django dependencies
+  (including 6+ MBytes archive of django itself!)
+
+requirements-c.txt - python libraries that require C compilation (GCC, ...).
+  Installed if `bootstrap.py -c` is used.
+
+Debian dependencies included in other packages anyway (hopefully!):
+  python python-twisted-bin python-twisted-words python-twisted-names
+
+ -------  Actual list of known extra dependencies.
+
 Wokkel (linked to in jforum/): mercurial repository at
  http://hg.ik.nu/wokkel
 

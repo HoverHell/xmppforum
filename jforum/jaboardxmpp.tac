@@ -13,7 +13,7 @@ from sys import stdout, stderr
 # Configuration parameters
 
 S2S_PORT = 'tcp:5279:interface=0.0.0.0'
-SECRET = 'secret'
+SECRET = 'secretz'
 DOMAIN = 'bot.hell.orts.ru'
 LOG_TRAFFIC = True
 NWORKERS = 2

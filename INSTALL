@@ -1,0 +1,45 @@
+
+xmppforum is mostly self-containing, and uses only Python-based
+dependencies. However, some of those dependencies are based on C code and,
+therefore, it's easier to install them using distribution methods.
+
+To set up a virtual environment with all django dependencies, you can just
+run "python bootstrap.py". However, you will still need some more python
+libraries.
+
+You can instead use "python bootstrap.py -c" if you want those compiled &
+installed as well (which requires, at least, GCC).
+
+Or, if you're running Debian or similar distribution, you can try using
+"python bootstrap.py -d" after installing some packages, by running
+
+  aptitude install python-django python-imaging python-wokkel \
+    python-django-treebeard python-django-registration
+
+.
+
+After running bootstrap, you get the 'ENV' directory. Change dir to "jforum"
+and run:
+
+   ../ENV/bin/python manage.py syncdb
+
+to create a default database (it will ask few questions. After that, you can
+
+   ../ENV/bin/python manage.py runserver 0.0.0.0:8000
+
+to start the django development server, and
+
+   ../ENV/bin/python $(which twistd) -y jaboardxmpp.tac -n --pidfile \
+     jaboardxmpp.pid
+
+to run XMPP server (or you can use explicit path to twistd).
+
+Note, however, that to successfully use XMPP server you will likely need a
+DNS setup with externally accessible address.
+
+For now, XMPP server is configured in "jaboardxmpp.tac" - at least domain
+name and s2s port (NOTE: without extra SRV records, port 5269 is used).
+
+
+And, if you even attempt to run xmppforum - whether successfully or not -
+please tell me about the results :)

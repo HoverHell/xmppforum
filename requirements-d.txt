@@ -1,0 +1,5 @@
+## A set of required packages not present in recent Debian distributions.
+django-mailer
+django-notification
+django-pagination
+django-avatar
