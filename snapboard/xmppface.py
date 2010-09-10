@@ -77,9 +77,11 @@ def check_photo_update(local, remote, photo):
     if not models.User.objects.filter(sb_usersettings__jid__exact=barejid).exists():
         # not registered.
         return
-    # Send XMPP request for vcard.
-    # !!...
-
+    # Send XMPP iq request for vcard.
+    iqreq = XmppIq(type='get', src=local, dst=remote, 
+     content='<vCard xmlns="vcard-temp"/>')
+    send_xmpp_message(iqreq)
+     
 def processcmd(**indata):
     """
     Gets a source jid and command text and returns XmppResponse.

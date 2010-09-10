@@ -170,13 +170,9 @@ class PresenceHandler(xmppim.PresenceProtocol):
         """
         server.log.err(" ------- D: A: availableReceived. show: %r"%(presence.show,))
         show = presence.show or "online"
-        # ! vcard updates seem to be in the <photo> element of presence
-        try:
-            photo = presence.x.photo.children[1]
-        except (AttributeError, IndexError):
-            photo = None  # no photo information...
-
-        inqueue.put_nowait({'stat': show, 'photo': photo,
+        # !! vcard photo information is in <x> child of presence stanze. But
+        #  it is unavailable in AvailabilityPresence object.
+        inqueue.put_nowait({'stat': show,  # 'photo': photo,
            'src': presence.sender.full(), 'dst': presence.recipient.full()})
 
 
@@ -310,34 +306,36 @@ class OutqueueHandler(protocol.Protocol):
 
 # * Use twistd's --pidfile to write PID.
 
-# Starting workers...
-workerlist, inqueue = createworkerpool(xmppworker.worker, NWORKERS)
 
-# Set up the Twisted application
-application = service.Application("Jaboard Server")
+if __name__ == '__main__':
+    # Starting workers...
+    workerlist, inqueue = createworkerpool(xmppworker.worker, NWORKERS)
 
-# outqueue.
-outFactory = protocol.Factory()
-outFactory.protocol = OutqueueHandler
-outService = strports.service('unix:%s:mode=770'%SOCKET_ADDRESS, outFactory)
-outService.setServiceParent(application)
+    # Set up the Twisted application
+    application = service.Application("Jaboard Server")
 
-router = component.Router()
+    # outqueue.
+    outFactory = protocol.Factory()
+    outFactory.protocol = OutqueueHandler
+    outService = strports.service('unix:%s:mode=770'%SOCKET_ADDRESS, outFactory)
+    outService.setServiceParent(application)
 
-serverService = server.ServerService(router, domain=DOMAIN, secret=SECRET)
-serverService.logTraffic = LOG_TRAFFIC
+    router = component.Router()
 
-s2sFactory = server.XMPPS2SServerFactory(serverService)
-s2sFactory.logTraffic = LOG_TRAFFIC
-s2sService = strports.service(S2S_PORT, s2sFactory)
-s2sService.setServiceParent(application)
+    serverService = server.ServerService(router, domain=DOMAIN, secret=SECRET)
+    serverService.logTraffic = LOG_TRAFFIC
 
-echoComponent = component.InternalComponent(router, DOMAIN)
-echoComponent.logTraffic = LOG_TRAFFIC
-echoComponent.setServiceParent(application)
+    s2sFactory = server.XMPPS2SServerFactory(serverService)
+    s2sFactory.logTraffic = LOG_TRAFFIC
+    s2sService = strports.service(S2S_PORT, s2sFactory)
+    s2sService.setServiceParent(application)
 
-presenceHandler = PresenceHandler()
-presenceHandler.setHandlerParent(echoComponent)
+    echoComponent = component.InternalComponent(router, DOMAIN)
+    echoComponent.logTraffic = LOG_TRAFFIC
+    echoComponent.setServiceParent(application)
 
-msgHandler = MessageHandler()
-msgHandler.setHandlerParent(echoComponent)
+    presenceHandler = PresenceHandler()
+    presenceHandler.setHandlerParent(echoComponent)
+
+    msgHandler = MessageHandler()
+    msgHandler.setHandlerParent(echoComponent)
