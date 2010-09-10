@@ -1,61 +1,25 @@
 # -*- coding: utf-8 -*-
 # Django settings for examplesite project.
 
+# Debug mode.
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
 
 ADMINS = (
     # ('Your Name', 'your_email@domain.com'),
-    ('HoverHell', 'hoverhell@gmail.com'),
 )
-
 MANAGERS = ADMINS
 
-# Adress for django processes to send outgoing XMPP messages through.
-# Should not be relative, actually.
-SOCKET_ADDRESS = 'xmppoutqueue'
 
-CACHE_BACKEND = 'memcached://unix:memcached?timeout=0'
-# sort-of optional memcached storages.
-#KEY_VALUE_STORE_BACKEND = 'memcached://unix:memcached'
-#MEMCACHED = ['unix:memcached']
+# -------   -------   -------   Addresses and stuff. Almost certainly have to be changed.
 
-DATABASE_ENGINE = 'sqlite3'
-DATABASE_NAME = 'dev.db'
-DATABASE_USER = ''
-DATABASE_PASSWORD = ''
-DATABASE_HOST = ''
-DATABASE_PORT = ''
-
-# Local time zone for this installation. All choices can be found here:
-# http://www.postgresql.org/docs/8.1/static/datetime-keywords.html#DATETIME-TIMEZONE-SET-TABLE
-TIME_ZONE = 'UTC'
-
-# Language code for this installation. All choices can be found here:
-# http://www.w3.org/TR/REC-html40/struct/dirlang.html#langcodes
-# http://blogs.law.harvard.edu/tech/stories/storyReader$15
-LANGUAGE_CODE = 'en-us'
-
-SITE_ID = 1
-
-# If you set this to False, Django will make some optimizations so as not
-# to load the internationalization machinery.
-USE_I18N = True
-
-LANGUAGES = (
-    ('en', 'English'),
-)
-
-#LANGUAGE_CODE = 'fr'
-
-# Absolute path to the directory that holds media.
-# Example: "/home/media/media.lawrence.com/"
-MEDIA_ROOT = ''
+DEFAULT_FROM_EMAIL = "jfu@localhost"
 
 # URL that handles the media served from MEDIA_ROOT.
 # Example: "http://media.lawrence.com"
 # Full URI required for XMPP images to have any chances of working.
-MEDIA_URL = 'http://hell.orts.ru:8004/media/'
+MEDIA_URL = 'http://localhost:8000/media/'
+
 
 # URL prefix for admin media -- CSS, JavaScript and images. Make sure to use a
 # trailing slash.
@@ -63,11 +27,143 @@ MEDIA_URL = 'http://hell.orts.ru:8004/media/'
 ADMIN_MEDIA_PREFIX = '/media/admin/'
 
 # Make this unique, and don't share it with anybody.
-SECRET_KEY = '[VEbSn9HbEOn}xtp4;owriKKzWp!r/iLo,GUnJOI^?Gn2H4Oz^'
+# `pwgen -sy 50 1`, yet beware of single quotes in there.
+SECRET_KEY = 'L0[qNV"V/oC,Kf.8+eHc`T}`BO8h-mR1uZpv;?MSc3B0>1x">b'
+
+## -------   -------  XMPP server configuration.
+S2S_PORT = 'tcp:5269:interface=0.0.0.0'
+SECRET = 'secret'
+DOMAIN = 'bot.example.org'
+## Whether to spam the console with all the XML stanzas.
+LOG_TRAFFIC = True
+## Amount of django processes to spawn for XMPP-based request processing.
+NWORKERS = 2
+
+
+# -------   -------   -------   Defaults that should work out-of-the-box.
+
+SERVER_EMAIL = DEFAULT_FROM_EMAIL
+
+# Absolute path to the directory that holds media.
+# Example: "/home/media/media.lawrence.com/"
+#MEDIA_ROOT = ''
+# Set MEDIA_ROOT so the project works out of the box
+import os
+MEDIA_ROOT = os.path.join(os.path.dirname(__file__), 'snapboard/media')
+
+# Global address of socket interface for sending XMPP messages (used by all
+#  django processes and XMPP server)
+# Only AF_UNIX socket for now. Non-crossplatform but somewhat easy to fix.
+# Should not be relative, usually. But OK if XMPP and all django processes
+#  are run in the same current dir.
+SOCKET_ADDRESS = 'xmppoutqueue'
+
+
+## sort-of optional KV storage. Read django documentation (for now) on what
+## can be used here.
+## And read the wiki to see what will not work without it :)
+#CACHE_BACKEND = 'memcached://unix:memcached?timeout=0'
+
+## Simple sqlite database.
+DATABASE_ENGINE = 'sqlite3'
+DATABASE_NAME = 'dev.db'
+DATABASE_USER = ''
+DATABASE_PASSWORD = ''
+DATABASE_HOST = ''
+DATABASE_PORT = ''
+
+
+# SNAPBoard specific OPTIONAL settings:
+
+# Defaults to MEDIA_URL + 'snapboard/'
+SNAP_MEDIA_PREFIX = '/media'
+
+
+# -------   -------   -------   General config.  Defaults can be used, but tune to your likings.
+
+# Select your filter, the SNAPBoard default is Markdown
+# Possible values: 'bbcode', 'markdown', 'textile'
+SNAP_POST_FILTER = 'bbcode'
+
+## Registration
+## Note that using e-mail and, hence, activation is actually optional here.
+ACCOUNT_ACTIVATION_DAYS = 5
+
+## Avatars
+AVATAR_DEFAULT_URL = MEDIA_URL + "img/default_avatar.jpg"
+AVATAR_GRAVATAR_BACKUP = True
+AVATAR_GRAVATAR_DEFAULT = "identicon"
+# AVATAR_STORAGE_DIR = SNAP_MEDIA_PREFIX+"/avatars"
+
+## Anonymous! Configurable common option.
+# Set it to *empty* (or None or False) to disable this.
+## Note that if user doesn't exist it will be created with syncdb.
+ANONYMOUS_NAME = "Anonymous"
+
+# Local time zone for this installation. All choices can be found here:
+# http://www.postgresql.org/docs/8.1/static/datetime-keywords.html#DATETIME-TIMEZONE-SET-TABLE
+## And pleeease, use UTC unless it's certainly and totally local forum.  --HH
+TIME_ZONE = 'UTC'
+
+
+
+# -------   -------   You need this (and urls.py) if you want to change forum address.
+
+ROOT_URLCONF = 'jforum.urls'
+LOGIN_REDIRECT_URL = '/snapboard/'
+
+
+# -------   -------   -------   Nothing to see below here, citizen. Move along.
+
+## A piece for django-notification.
+SITE_ID = 1
+
+# Language code for this installation. All choices can be found here:
+# http://www.w3.org/TR/REC-html40/struct/dirlang.html#langcodes
+# http://blogs.law.harvard.edu/tech/stories/storyReader$15
+## ! Actually, nothing else is very well supported ATM.
+LANGUAGE_CODE = 'en-us'
+
+# If you set this to False, Django will make some optimizations so as not
+# to load the internationalization machinery.
+USE_I18N = False
+
+LANGUAGES = (
+    ('en', 'English'),
+)
+
+#LANGUAGE_CODE = 'fr'
+
+
+# -------   -------   -------   No, really, REALLY nothing to see below here!
+
+TEMPLATE_DIRS = (
+    # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
+    # Always use forward slashes, even on Windows.
+    # Don't forget to use absolute paths, not relative paths.
+    #"/opt/jfu/sys/lib/python2.5/site-packages/sbextras/registration/templates",
+)
+
+INSTALLED_APPS = (
+    'django.contrib.admin',
+    'django.contrib.auth',
+    'django.contrib.contenttypes',
+    'django.contrib.markup',
+    'django.contrib.sessions',
+    'django.contrib.sites',
+    'pagination',
+    'notification',
+    'registration',
+    'avatar',
+    'treebeard',
+    'snapboard',
+)
 
 # List of callables that know how to import templates from various sources.
 # In django 1.2 cached loader can be used:
 #  ('django.template.loaders.cached.Loader', (...)),
+## ptftemplateloader is *almost* a must-have for XMPP(-XHTML) templates.
+## And current templates are meant for it.
 TEMPLATE_LOADERS = (
     'snapboard.template.ptftemplateloader.load_template_source',
     'django.template.loaders.filesystem.load_template_source',
@@ -100,90 +196,10 @@ MIDDLEWARE_CLASSES = (
     'snapboard.middleware.ban.UserBanMiddleware',
 )
 
-ROOT_URLCONF = 'jforum.urls'
 
-TEMPLATE_DIRS = (
-    # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
-    # Always use forward slashes, even on Windows.
-    # Don't forget to use absolute paths, not relative paths.
-    #"/opt/jfu/sys/lib/python2.5/site-packages/sbextras/registration/templates",
-)
 
-use_mailer = False
-use_notification = False
-try:
-    import notification
-except ImportError:
-    print 'django-notification not found: email notifications to users will not be available'
-else:
-    use_notification = True
-    # ! Mail message queueing doesn't look good.
-    #try:
-    #    import mailer
-    #except ImportError:
-    #    pass
-    #else:
-    #    use_mailer = True
-
-INSTALLED_APPS = (
-    'django.contrib.admin',
-    'django.contrib.auth',
-    'django.contrib.contenttypes',
-    'django.contrib.markup',
-    'django.contrib.sessions',
-    'django.contrib.sites',
-    'pagination',
-    'notification',
-    'registration',
-    'avatar',
-    'treebeard',
-    'snapboard',
-)
-
-if use_notification:
-    INSTALLED_APPS = INSTALLED_APPS + ('notification',)
-if use_mailer:
-    INSTALLED_APPS = INSTALLED_APPS + ('mailer',)
-
-LOGIN_REDIRECT_URL = '/snapboard/'
-
-# SNAPBoard specific OPTIONAL settings:
-
-# Defaults to MEDIA_URL + 'snapboard/'
-SNAP_MEDIA_PREFIX = '/media'
-
-# Set to False to use the default login_required decorator
-USE_SNAPBOARD_SIGNIN = True
-
-# Set to False if your templates include the Snapboard login form
-USE_SNAPBOARD_LOGIN_FORM = True
-
-# Select your filter, the default is Markdown
-# Possible values: 'bbcode', 'markdown', 'textile'
-SNAP_POST_FILTER = 'bbcode'
-
-# Set MEDIA_ROOT so the project works out of the box
-import os
-MEDIA_ROOT = os.path.join(os.path.dirname(__file__), 'snapboard/media')
-
+# -------   -------   -------   Personalized settings overrides.
 try:
     from settings_local import *
 except ImportError:
     pass
-
-## Registration
-ACCOUNT_ACTIVATION_DAYS = 5
-
-## Other settings
-DEFAULT_FROM_EMAIL = "jfu@hell.orts.ru"
-SERVER_EMAIL = "jfu@hell.orts.ru"
-
-## Avatars
-AVATAR_DEFAULT_URL = MEDIA_URL + "img/default_avatar.jpg"
-AVATAR_GRAVATAR_BACKUP = True
-AVATAR_GRAVATAR_DEFAULT = "identicon"
-# AVATAR_STORAGE_DIR = SNAP_MEDIA_PREFIX+"/avatars"
-
-## Anonymous! Configurable common option.
-# Set it to *empty* (or None or False) to disable this.
-ANONYMOUS_NAME = "Anonymous"

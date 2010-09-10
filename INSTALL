@@ -11,19 +11,23 @@ You can instead use "python bootstrap.py -c" if you want those compiled &
 installed as well (which requires, at least, GCC).
 
 Or, if you're running Debian or similar distribution, you can try using
-"python bootstrap.py -d" after installing some packages, by running
+"python bootstrap.py -d" after installing some packages by running
 
   aptitude install python-django python-imaging python-wokkel \
     python-django-treebeard python-django-registration
 
 .
 
-After running bootstrap, you get the 'ENV' directory. Change dir to "jforum"
-and run:
+After running bootstrap, you get the 'ENV' directory.
+Change dir to "jforum",
+ add option overrides to settings_local.py (copy from settings.py what needs
+   to be changed)
+ and then run:
 
    ../ENV/bin/python manage.py syncdb
 
-to create a default database (it will ask few questions. After that, you can
+to create a default database (it will ask few questions). After that, you
+ can
 
    ../ENV/bin/python manage.py runserver 0.0.0.0:8000
 

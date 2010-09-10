@@ -42,9 +42,6 @@ from snapboard.rpc import *
 _log = logging.getLogger('snapboard.views')
 
 
-# USE_SNAPBOARD_LOGIN_FORM, USE_SNAPBOARD_SIGNIN should probably be removed
-USE_SNAPBOARD_SIGNIN = getattr(settings, 'USE_SNAPBOARD_SIGNIN', False)
-USE_SNAPBOARD_LOGIN_FORM = getattr(settings, 'USE_SNAPBOARD_LOGIN_FORM', False)
 ANONYMOUS_NAME = getattr(settings, 'ANONYMOUS_NAME', 'Anonymous')
 
 if ANONYMOUS_NAME:
@@ -84,25 +81,7 @@ def snapboard_default_context(request):
 def user_settings_context(request):
     return {'user_settings': request.user.get_user_settings()}
 
-if USE_SNAPBOARD_LOGIN_FORM:  # ! actually, removed because of csrf_token inconvenience.
-    from snapboard.forms import LoginForm
-    def login_context(request):
-        '''
-        All content pages that have additional content for authenticated users but
-        that are also publicly viewable should have a login form in the side panel.
-        '''
-        response_dict = {}
-        if not request.user.is_authenticated() \
-          or request.user.really_anonymous:
-            # Anonuser can login, too.
-            response_dict.update({
-                    'login_form': LoginForm(),
-                    })
-
-        return response_dict
-    extra_processors = [user_settings_context, login_context]
-else:
-    extra_processors = [user_settings_context]
+extra_processors = [user_settings_context]
 
 def rpc(request):
     '''

@@ -10,17 +10,15 @@ from wokkel import component, server, xmppim
 from sys import stdout, stderr
 
 
-# Configuration parameters
-
-S2S_PORT = 'tcp:5279:interface=0.0.0.0'
-SECRET = 'secretz'
-DOMAIN = 'bot.hell.orts.ru'
+# Default configuration parameters. Overriden by ones in settings.
+S2S_PORT = 'tcp:5269:interface=0.0.0.0'
+SECRET = 'secret'
+DOMAIN = 'bot.example.org'
 LOG_TRAFFIC = True
 NWORKERS = 2
-
-# Global address of socket interface for sending XMPP messages.
-# Only AF_UNIX socket for now. Non-crossplatform but somewhat easy to fix.
 SOCKET_ADDRESS = 'xmppoutqueue'
+
+from settings import *  # override whatever...
 
 ## External: xmppworkerpool
 import simplejson  # Decoding of IPC data.
@@ -307,35 +305,34 @@ class OutqueueHandler(protocol.Protocol):
 # * Use twistd's --pidfile to write PID.
 
 
-if __name__ == '__main__':
-    # Starting workers...
-    workerlist, inqueue = createworkerpool(xmppworker.worker, NWORKERS)
+# Starting workers...
+workerlist, inqueue = createworkerpool(xmppworker.worker, NWORKERS)
 
-    # Set up the Twisted application
-    application = service.Application("Jaboard Server")
+# Set up the Twisted application
+application = service.Application("Jaboard Server")
 
-    # outqueue.
-    outFactory = protocol.Factory()
-    outFactory.protocol = OutqueueHandler
-    outService = strports.service('unix:%s:mode=770'%SOCKET_ADDRESS, outFactory)
-    outService.setServiceParent(application)
+# outqueue.
+outFactory = protocol.Factory()
+outFactory.protocol = OutqueueHandler
+outService = strports.service('unix:%s:mode=770'%SOCKET_ADDRESS, outFactory)
+outService.setServiceParent(application)
 
-    router = component.Router()
+router = component.Router()
 
-    serverService = server.ServerService(router, domain=DOMAIN, secret=SECRET)
-    serverService.logTraffic = LOG_TRAFFIC
+serverService = server.ServerService(router, domain=DOMAIN, secret=SECRET)
+serverService.logTraffic = LOG_TRAFFIC
 
-    s2sFactory = server.XMPPS2SServerFactory(serverService)
-    s2sFactory.logTraffic = LOG_TRAFFIC
-    s2sService = strports.service(S2S_PORT, s2sFactory)
-    s2sService.setServiceParent(application)
+s2sFactory = server.XMPPS2SServerFactory(serverService)
+s2sFactory.logTraffic = LOG_TRAFFIC
+s2sService = strports.service(S2S_PORT, s2sFactory)
+s2sService.setServiceParent(application)
 
-    echoComponent = component.InternalComponent(router, DOMAIN)
-    echoComponent.logTraffic = LOG_TRAFFIC
-    echoComponent.setServiceParent(application)
+echoComponent = component.InternalComponent(router, DOMAIN)
+echoComponent.logTraffic = LOG_TRAFFIC
+echoComponent.setServiceParent(application)
 
-    presenceHandler = PresenceHandler()
-    presenceHandler.setHandlerParent(echoComponent)
+presenceHandler = PresenceHandler()
+presenceHandler.setHandlerParent(echoComponent)
 
-    msgHandler = MessageHandler()
-    msgHandler.setHandlerParent(echoComponent)
+msgHandler = MessageHandler()
+msgHandler.setHandlerParent(echoComponent)
