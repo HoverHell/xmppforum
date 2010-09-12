@@ -21,7 +21,14 @@ SOCKET_ADDRESS = 'xmppoutqueue'
 from settings import *  # override whatever...
 
 ## External: xmppworkerpool
-import simplejson  # Decoding of IPC data.
+
+# Try to use django to get best available json library
+try:
+    from django.utils import simplejson # Decoding of IPC data.
+except ImportError:
+    # Huh? No Django? Well, okay. We're abstract enough.
+    import simplejson
+
 import traceback  # Debug on exceptions.
 
 from multiprocessing import Process, Queue, active_children, current_process

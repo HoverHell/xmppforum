@@ -7,4 +7,5 @@ PIL
 ## for wokkel
 twisted
 ## xmppforum, django, ...
+## Well, for speed at least.
 simplejson

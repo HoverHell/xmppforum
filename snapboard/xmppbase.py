@@ -34,8 +34,8 @@ from django.http import HttpResponseRedirect
 
 import re  # Stripping XHTML images.
 
-# ! django should have its own json library, actually.
-import simplejson  # For serialization of XmppResponse
+# django uses best json available
+from django.utils import simplejson # For serialization of XmppResponse
 
 
 class XmppRequest(object):
