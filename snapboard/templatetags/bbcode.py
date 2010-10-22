@@ -233,6 +233,8 @@ class UrlTag(BBTag):
         linktext = node.children[0].text.strip()
         if len(url) == 0:
             return ''
+        elif url.startswith('javascript:'):
+            return '<a>' + escape(linktext) + '</a>'
         else:
             return '<a href="' + escape(url) + '">' + escape(linktext) + '</a>'
 
