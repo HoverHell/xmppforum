@@ -2,4 +2,7 @@
 django-mailer
 django-notification
 django-pagination
-django-avatar
+## For now, git-version is required since 1.0.5 doesn't have
+## UploadAvatarForm.
+#django-avatar
+-e git+https://github.com/ericflo/django-avatar.git#egg=django-avatar

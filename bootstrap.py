@@ -1266,12 +1266,12 @@ def after_install(options, home_dir):
     # shortcut to call "python pip install ..."
     # ! relative path to "requirements.txt", though.
     # explicit path to the python should not be required, but is generally
-    # more safe (will rather fail than do wronf stuff).
+    # more safe (will rather fail than do wrong stuff).
     rpip = lambda x: subprocess.call([join(home_dir, bin, 'python'),
       join(home_dir, bin, 'pip'), 'install', '-U', '-r', x])
 
     if options.dinstall:
-        print " ------- Installing minimal requirements."
+        print " ------- Installing minimal (Debian) requirements."
         rpip('requirements-d.txt')
     else:
         print " ------- Installing basic requirements."

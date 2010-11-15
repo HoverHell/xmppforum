@@ -8,13 +8,13 @@ run "python bootstrap.py". However, you will still need some more python
 libraries.
 
 You can instead use "python bootstrap.py -c" if you want those compiled &
-installed as well (which requires, at least, GCC).
+installed as well (which requires, at least, GCC and git).
 
 Or, if you're running Debian or similar distribution, you can try using
 "python bootstrap.py -d" after installing some packages by running
 
   aptitude install python-django python-imaging python-wokkel \
-    python-django-treebeard python-django-registration python-simplejson
+    python-django-treebeard python-django-registration python-simplejson git
 
 .
 
@@ -39,11 +39,10 @@ to start the django development server, and
 to run XMPP server (or you can use explicit path to twistd).
 
 Note, however, that to successfully use XMPP server you will likely need a
-DNS setup with externally accessible address.
+DNS setup with an externally accessible address.
 
-For now, XMPP server is configured in "jaboardxmpp.tac" - at least domain
-name and s2s port (NOTE: without extra SRV records, port 5269 is used).
-
+XMPP server is configured in django's settings as well (i.e.
+settings_local.py). Without extra SRV records, port 5269 should be used.
 
 And, if you even attempt to run xmppforum - whether successfully or not -
 please tell me about the results :)
