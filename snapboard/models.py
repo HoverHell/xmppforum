@@ -14,11 +14,57 @@ from django.core.cache import cache
 
 from treebeard import mp_tree
 
-# Fix it, mkay.
-# ? Could be added to Post class itself.
+# Monkey-patching no-copying way:
 def get_rly_annotated_list(self):
     return super(mp_tree.MP_Node, self).get_annotated_list(self)
-mp_tree.MP_Node.get_annotated_list = get_rly_annotated_list
+
+def get_adv_annotated_list(self):
+    """
+    Gets an annotated list from a tree branch, adding some advanced info
+    along the way.
+    """
+    result, info = [], {}
+    start_depth, prev_depth, ddepth, rdepth = (None, -1, None, None)
+    prev_siblings = []  # list of possible previous (or last) siblings
+
+    for node in self.get_tree(self):
+        depth = node.get_depth()
+        if start_depth is None:
+            start_depth = depth
+        ddepth = depth - prev_depth  # depth difference (step)
+        rdepth = depth - start_depth  # relative depth.
+        open = (ddepth > 0)  # (depth > prev_depth)
+        if open:
+            # Ensure we have elements up to necessary depth.
+            if len(prev_siblings) < rdepth + 1:
+                prev_siblings.append(None)
+        # shouldn't be needed, but can:
+        #prev_siblings += [None] * (rdepth - len(prev_siblings) + 1)
+        
+        if prev_siblings[rdepth] == None:  # it's first here.
+            prev_siblings[rdepth] = node
+        else:  # ... that one wasn't last.
+            prev_siblings[rdepth].next_sibling = node
+
+        # Slightly inappropriate, but might be better than to use info.
+        node.next_sibling = None  # might be reassigned later.
+        
+        if ddepth < 0:  # depth < prev_depth:
+            info['close'] = range(0, -ddepth)
+            # previous *deeper* nodes are not possible siblings.
+            for v in range(prev_depth - start_depth, rdepth, -1):
+                prev_siblings[v] = None
+        # `is_last_sibling = not next_sibling`
+
+        info = {'open': open, 'close': [], 'level': rdepth}
+        result.append((node, info,))
+        prev_depth = depth
+    if start_depth > 0:
+        info['close'] = range(0, prev_depth - start_depth + 1)
+    return result
+
+#mp_tree.MP_Node.get_annotated_list = get_rly_annotated_list
+mp_tree.MP_Node.get_annotated_list = get_adv_annotated_list
 
 from snapboard import managers
 from snapboard.middleware import threadlocals
