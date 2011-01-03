@@ -117,12 +117,10 @@ div.snapboard #ft {
 clear:both;
 }
 #doc,
-#doc2,
 #doc3,
 .yui-t1,
 .yui-t2,
 .yui-t3,
-.yui-t4,
 .yui-t5,
 .yui-t6,
 .yui-t7 {
@@ -132,8 +130,6 @@ text-align:left;
 width:57.69em;
 }
 #doc2 {
-min-width:950px;
-width:73.074em;
 }
 #doc3 {
 margin:auto 10px;
@@ -174,7 +170,7 @@ float:left;
 width:13.8456em;
 }
 .yui-t2 #yui-main .yui-b {
-margin-left:14.8456em;
+
 }
 .yui-t3 .yui-b {
 float:left;
@@ -188,7 +184,7 @@ float:right;
 width:13.8456em;
 }
 .yui-t4 #yui-main .yui-b {
-margin-right:14.8456em;
+
 }
 .yui-t5 .yui-b {
 float:right;

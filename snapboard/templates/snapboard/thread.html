@@ -34,18 +34,14 @@
                 </span>
             {% endif %}
         </span>
-        <b style="font-size: large;">
-            <a href="{% url snapboard_category_thread_index thr.category.id %}">{{ thr.category }}</a>:
+        <div class="topic-addr">
+            / <a href="{% url snapboard_category_index %}">{% trans "Forum Name" %}</a> /
+            <a href="{% url snapboard_category_thread_index thr.category.id %}">{{ thr.category }}</a> /
             {{ thr.subject }}
-        </b>
+        </div>
     </p>
-    <br />
-    {% autopaginate post_list user_settings.ppp %}
-    {% paginate %}
+
 
     {% include "snapboard/include/show_posts.html" %}
 
 {% endblock %}
-<!--
-vim: ai ts=4 sts=4 et sw=4 
--->

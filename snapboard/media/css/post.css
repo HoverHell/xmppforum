@@ -1,3 +1,41 @@
+div.snapboard div.userpic_wrap img {
+display: block;
+float:left;
+}
+
+div.snapboard div.post_view {
+display:block;
+clear:both;
+padding: 0 5px 0 5px;
+
+}
+
+div.snapboard div.thread_turn {
+position:absolute;
+top:25px;
+left:4px;
+padding:0;
+margin:0;
+width:6px;
+height:2px;
+background-color:#000000;
+}
+
+div.snapboard div.thread_crutch {
+width:2px;
+height:99999px;
+background-color:#FFFFFF;
+position:absolute;
+top:27px;
+left:2px;
+padding:0;
+margin:0;
+}
+
+div.snapboard div.post_text {
+display:block;
+}
+
 div.snapboard .post_text p {
 margin-bottom:10px;
 margin-top:10px;
@@ -11,7 +49,17 @@ font-weight:700;
 }
 
 div.snapboard div.snap_post {
-border-left: 3px solid green;
+padding: 0 0 0 10px;
+margin: 7px 0 0 0;
+background: transparent url(../../media/img/thread_line.gif) repeat-y scroll 12px 0;
+position:relative;
+overflow:hidden;
+}
+
+div.snapboard div.snap_top_post div.snap_post {
+padding:0 0 0 10px;
+background: none;
+position:static;
 }
 
 div.snapboard .post_text h1 {
@@ -60,9 +108,7 @@ font-family:courier;
 }
 
 div.snapboard span.post_menuright {
-float:right;
-font-size:77%;
-padding-right:10%;
+
 }
 
 div.snapboard span.post_menuleft {
@@ -75,7 +121,15 @@ color:#B0BFAC;
 }
 
 div.snapboard div.post_reported {
-border:1px solid #f60;
+border: 1px solid #DCDCDC;
+background-color:#F9F9F9;
+padding:0 0 3px 0;
+max-width:700px;
+}
+
+div.snapboard div.snap_top_post div.post_reported {
+border: none;
+background-color:transparent;
 }
 
 div.snapboard hr.postend {
@@ -94,10 +148,22 @@ width:80%;
 
 div.snapboard div.post_censored {
 border:2px solid red;
+background-color:#F9F9F9;
+padding:0 0 3px 0;
+max-width:700px;
 }
 
-div.snapboard p.post_header {
-padding-left:2em;
+div.snapboard div.post_header {
+background-color: #DCDCDC;
+float:left;
+clear:both;
+width:100%;
+padding-bottom:1px;
+}
+
+div.snapboard div.snap_top_post div.post_header {
+background-color: transparent;
+padding:0;
 }
 
 div.snapboard #snap_markdown_guide p,
