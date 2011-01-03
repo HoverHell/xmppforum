@@ -18,7 +18,8 @@ DEFAULT_FROM_EMAIL = "jfu@localhost"
 # URL that handles the media served from MEDIA_ROOT.
 # Example: "http://media.lawrence.com"
 # Full URI required for XMPP images to have any chances of working.
-MEDIA_URL = 'http://localhost:8000/media/'
+#MEDIA_URL = 'http://localhost:8000/media/'
+MEDIA_URL = '/media/'
 
 
 # URL prefix for admin media -- CSS, JavaScript and images. Make sure to use a
@@ -94,6 +95,7 @@ AVATAR_DEFAULT_URL = MEDIA_URL + "img/default_avatar.jpg"
 AVATAR_GRAVATAR_BACKUP = True
 AVATAR_GRAVATAR_DEFAULT = "identicon"
 # AVATAR_STORAGE_DIR = SNAP_MEDIA_PREFIX+"/avatars"
+AVATAR_DEFAULT_SIZE = 30
 
 ## Anonymous! Configurable common option.
 # Set it to *empty* (or None or False) to disable this.
