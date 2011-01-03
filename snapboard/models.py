@@ -45,6 +45,7 @@ def get_adv_annotated_list(self):
             prev_siblings[rdepth] = node
         else:  # ... that one wasn't last.
             prev_siblings[rdepth].next_sibling = node
+            prev_siblings[rdepth] = node
 
         # Slightly inappropriate, but might be better than to use info.
         node.next_sibling = None  # might be reassigned later.
