@@ -58,7 +58,7 @@
 {% autopaginate post_list user_settings.ppp %}
 {% paginate %}
 {% for top_answer in post_list %}
-    {% for post, post_info in top_answer.get_annotated_list %}
+    {% for post, post_info in top_answer.get_adv_annotated_list %}
         {% ifnotequal post.depth 2 %}
         
         {% endifnotequal %}

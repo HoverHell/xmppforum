@@ -64,8 +64,28 @@ def get_adv_annotated_list(self):
         info['close'] = range(0, prev_depth - start_depth + 1)
     return result
 
-#mp_tree.MP_Node.get_annotated_list = get_rly_annotated_list
-mp_tree.MP_Node.get_annotated_list = get_adv_annotated_list
+def get_flathelper_list(self):
+    """ Adds few more information to annotated list (retreived from
+    specified node) to display "straight" branches as flat """
+    annotated = get_adv_annotated_list(self)
+    prev_node, prev_info = annotated[0]
+    counter = 0
+    # small function "node is the only direct child" (no siblings)
+    is_alone = lambda n, i: n.next_sibling is None and prev_info['open']
+    # Expecting to change mutable node and info in the list.
+    for node, info in annotated[1:]:
+        if is_alone(prev_node, prev_info):
+            if is_alone(node, info):
+                pass
+            else:
+                pass
+        prev_node, prev_info = node, info
+
+# Provide many various additions.
+mp_tree.MP_Node.get_annotated_list = get_rly_annotated_list
+mp_tree.MP_Node.get_adv_annotated_list = get_adv_annotated_list
+mp_tree.MP_Node.get_flathelper_list = get_flathelper_list
+
 
 from snapboard import managers
 from snapboard.middleware import threadlocals
