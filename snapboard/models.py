@@ -67,19 +67,18 @@ def get_adv_annotated_list(self):
 def get_flathelper_list(self):
     """ Adds few more information to annotated list (retreived from
     specified node) to display "straight" branches as flat """
+    # ! branched from revision 250:310d63a10571 (tag 'flatpost'), minimized.
     annotated = get_adv_annotated_list(self)
     prev_node, prev_info = annotated[0]
-    counter = 0
-    # small function "node is the only direct child" (no siblings)
-    is_alone = lambda n, i: n.next_sibling is None and prev_info['open']
+    def is_alone(n, i):
+        """ "node is the only direct child" (no siblings). depends on the
+        data computed with later nodes in get_adv_anno... """
+        return (getattr(n, "next_sibling", False) is None and i.get('open'))
     # Expecting to change mutable node and info in the list.
-    for node, info in annotated[1:]:
-        if is_alone(prev_node, prev_info):
-            if is_alone(node, info):
-                pass
-            else:
-                pass
-        prev_node, prev_info = node, info
+    for node, info in annotated[1:]:  # don't process the root node.
+        if is_alone(node, info):
+            node.is_flat = True
+    return annotated
 
 # Provide many various additions.
 mp_tree.MP_Node.get_annotated_list = get_rly_annotated_list

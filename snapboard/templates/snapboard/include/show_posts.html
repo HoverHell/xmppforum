@@ -58,18 +58,22 @@
 {% autopaginate post_list user_settings.ppp %}
 {% paginate %}
 {% for top_answer in post_list %}
-    {% for post, post_info in top_answer.get_adv_annotated_list %}
-        {% ifnotequal post.depth 2 %}
-        
-        {% endifnotequal %}
-        {% if post_info.open %}
-            <div id="snap_post{{ post.id }}" class="snap_post" >
-        {% else %}
-            </div><div id="snap_post{{ post.id }}" class="snap_post">
+    {% for post, post_info in top_answer.get_flathelper_list %}
+
+        {% if not post_info.open %}
+        </div>
         {% endif %}
+
+        {% if post.is_flat %}
+        <div id="snap_post{{ post.id }}" class="snap_post snap_post_flat">
+        {% else %}
+        <div id="snap_post{{ post.id }}" class="snap_post">
+        {% endif %}
+
         {% if not post.next_sibling %}
         <div class="thread_crutch"></div>
         {% endif %}
+
            {% if post.censor %}<div class="post_censored">{% else %}{% ifnotequal post.abuse 0 %}<div class="post_reported">{% endifnotequal %}{% endif %}
            <div id="post_rpc_feedback{{ post.id }}" class="rpc_message">
                <!-- This DIV is for RPC feedback messages for individual posts -->
