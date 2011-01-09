@@ -64,22 +64,50 @@ def get_adv_annotated_list(self):
         info['close'] = range(0, prev_depth - start_depth + 1)
     return result
 
+
+# "flattery" :)
 def get_flathelper_list(self):
     """ Adds few more information to annotated list (retreived from
     specified node) to display "straight" branches as flat """
     annotated = get_adv_annotated_list(self)
     prev_node, prev_info = annotated[0]
     counter = 0
-    # small function "node is the only direct child" (no siblings)
-    is_alone = lambda n, i: n.next_sibling is None and prev_info['open']
+    # !? unnecessary?
+    open_flatters = set()
+    flat_posts = set()
+    print " --- start."
+    def is_alone(n, i):
+        """ "node is the only direct child" (no siblings). depends on the
+        data computed with later nodes in get_adv_anno... """
+        return (getattr(n, "next_sibling", False) is None and i.get('open'))
     # Expecting to change mutable node and info in the list.
-    for node, info in annotated[1:]:
-        if is_alone(prev_node, prev_info):
-            if is_alone(node, info):
-                pass
-            else:
-                pass
+    for node, info in annotated[1:]:  # don't process the root node.
+        if is_alone(node, info):
+            if counter == 0:  # just started
+                prev_node.open_flat = True
+                open_flatters.add(prev_node.depth)
+                print "OFLA: %r" % open_flatters
+            counter += 1
+            node.is_flat = True
+            flat_posts.add(node.depth)
+        else:
+            counter = 0  # a flatted consecutive group ends here.
+            prev_node.close_flat32 = True
+        # ! Shit. Update after making sure something works as indented.
+        #closing = set(xrange(prev_node.depth, node.depth, -1))
+        closing = set([prev_node.depth - i for i in info['close']])
+        # ... do not close what we closed already (for being flat)
+        #  and close extra flatter blocks.
+        print "depth: %r; close_prev: %r" % (node.depth, info['close'])
+        info['close'] = list(closing.difference(flat_posts)) + \
+          list(closing.intersection(open_flatters))
+        print "flattes: %r; flat_posts: %r; closing: %r;" % (open_flatters,
+          flat_posts, closing)
+        # and remove what was processed.
+        flat_posts.difference_update(closing)
+        open_flatters.difference_update(closing)
         prev_node, prev_info = node, info
+    return annotated
 
 # Provide many various additions.
 mp_tree.MP_Node.get_annotated_list = get_rly_annotated_list

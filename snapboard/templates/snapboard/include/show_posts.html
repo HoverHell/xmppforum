@@ -58,15 +58,21 @@
 {% autopaginate post_list user_settings.ppp %}
 {% paginate %}
 {% for top_answer in post_list %}
+
+    {% comment %}
+       one of those two is possible:
+    {% for post, post_info in top_answer.get_flathelper_list %}
     {% for post, post_info in top_answer.get_adv_annotated_list %}
-        {% ifnotequal post.depth 2 %}
-        
-        {% endifnotequal %}
-        {% if post_info.open %}
-            <div id="snap_post{{ post.id }}" class="snap_post" >
-        {% else %}
-            </div><div id="snap_post{{ post.id }}" class="snap_post">
+
+    {% endcomment %}
+
+    {% for post, post_info in top_answer.get_flathelper_list %}
+
+        {% if not post_info.open %}
+            </div>
         {% endif %}
+        <div id="snap_post{{ post.id }}" class="snap_post">
+
         {% if not post.next_sibling %}
         <div class="thread_crutch"></div>
         {% endif %}
