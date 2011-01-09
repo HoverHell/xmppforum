@@ -71,11 +71,35 @@
         {% if not post_info.open %}
             </div>
         {% endif %}
+        
+        {% if post.close_flat32 %}
+           <!--__DBG_f32c_x; -->
+           </div></div><div class="snap_post" style="border: 1px dotted #E0E0E0;">
+        {% endif %}
+
+        {% if post.open_flat %}
+           <div class="flat_border31" style="border: 2px dotted #00BB00;">
+        {% endif %}
+        {% if post.open_flat %}
+           <div class="flat_border32" style="border: 2px dotted #0000BB;">
+        {% endif %}
+
+        {% if post.is_flat %}
+          <!--__DBG_closing_before_d{{ post.depth }}; -->
+          </div>
+          {% if post.is_cont_flat %}
+            __DBG_cont_flat
+          {% endif %}
+        <div id="snap_post{{ post.id }}" class="snap_post snap_post_flat">
+        {% else %}
         <div id="snap_post{{ post.id }}" class="snap_post">
+        {% endif %}
+
 
         {% if not post.next_sibling %}
         <div class="thread_crutch"></div>
         {% endif %}
+
            {% if post.censor %}<div class="post_censored">{% else %}{% ifnotequal post.abuse 0 %}<div class="post_reported">{% endifnotequal %}{% endif %}
            <div id="post_rpc_feedback{{ post.id }}" class="rpc_message">
                <!-- This DIV is for RPC feedback messages for individual posts -->
@@ -119,8 +143,14 @@
            <div style="display:none" id="snap_post_reply{{ post.id }}"></div>
 
            {% if post.censor %}</div>{% else %}{% ifnotequal post.abuse 0 %}</div>{% endifnotequal %}{% endif %}
-        
+
+        <!--__DBG_d{{ post.depth }}; -->
+        {% for close in post_info.screw_close %}
+            <div>
+              <!--__DBG_screwing_closing_{{ close }}; -->
+        {% endfor %}
         {% for close in post_info.close %}
+              <!--__DBG_closing_{{ close }}; -->
             </div>
         {% endfor %}
     {% endfor %}

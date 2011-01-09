@@ -85,24 +85,32 @@ def get_flathelper_list(self):
         if is_alone(node, info):
             if counter == 0:  # just started
                 prev_node.open_flat = True
-                open_flatters.add(prev_node.depth)
+                open_flatters.add(node.depth)
                 print "OFLA: %r" % open_flatters
             counter += 1
             node.is_flat = True
-            flat_posts.add(node.depth)
+            if counter > 1:
+                node.is_cont_flat = True
+            # : nodes that will be closed by the next post, not later.
+            flat_posts.add(prev_node.depth)
         else:
-            counter = 0  # a flatted consecutive group ends here.
-            prev_node.close_flat32 = True
+            if counter > 0:
+                counter = 0  # a flatted consecutive group ends here.
+                node.close_flat32 = True
         # ! Shit. Update after making sure something works as indented.
         #closing = set(xrange(prev_node.depth, node.depth, -1))
-        closing = set([prev_node.depth - i for i in info['close']])
+        closing = set([node.depth - i for i in info['close']])
         # ... do not close what we closed already (for being flat)
         #  and close extra flatter blocks.
-        print "depth: %r; close_prev: %r" % (node.depth, info['close'])
-        info['close'] = list(closing.difference(flat_posts)) + \
-          list(closing.intersection(open_flatters))
+        print "depth: %r; counter: %r; close_prev: %r" % (node.depth,
+          counter, info['close'])
+        #info['close'] = list(closing.difference(flat_posts)) + \
+        #  list(closing.intersection(open_flatters))
+        info['close'] += list(closing.intersection(open_flatters))
+        info['screw_close'] = list(closing.intersection(flat_posts))
         print "flattes: %r; flat_posts: %r; closing: %r;" % (open_flatters,
           flat_posts, closing)
+        print "screwclose: %r; close: %r;" % (info['screw_close'], info['close'])
         # and remove what was processed.
         flat_posts.difference_update(closing)
         open_flatters.difference_update(closing)
