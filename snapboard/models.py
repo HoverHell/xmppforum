@@ -89,16 +89,14 @@ def get_flathelper_list(self):
                 print "OFLA: %r" % open_flatters
             counter += 1
             node.is_flat = True
-            if counter > 1:
-                node.is_cont_flat = True
-            # : nodes that will be closed by the next post, not later.
-            flat_posts.add(prev_node.depth)
+            # nodes that instantly self-close (flat), to not close them later.
+            flat_posts.add(node.depth)
         else:
             if counter > 0:
                 counter = 0  # a flatted consecutive group ends here.
                 node.close_flat32 = True
-        # ! Shit. Update after making sure something works as indented.
-        #closing = set(xrange(prev_node.depth, node.depth, -1))
+        # ! Possibly shit. Update after making sure something works as
+        #  indented.
         closing = set([node.depth - i for i in info['close']])
         # ... do not close what we closed already (for being flat)
         #  and close extra flatter blocks.
@@ -106,11 +104,12 @@ def get_flathelper_list(self):
           counter, info['close'])
         #info['close'] = list(closing.difference(flat_posts)) + \
         #  list(closing.intersection(open_flatters))
-        info['close'] += list(closing.intersection(open_flatters))
+        info['extra_close'] = list(closing.intersection(open_flatters))
         info['screw_close'] = list(closing.intersection(flat_posts))
         print "flattes: %r; flat_posts: %r; closing: %r;" % (open_flatters,
           flat_posts, closing)
-        print "screwclose: %r; close: %r;" % (info['screw_close'], info['close'])
+        print "screwclose: %r; close: %r; extra_close: %r" % (
+          info['screw_close'], info['close'], info['extra_close'])
         # and remove what was processed.
         flat_posts.difference_update(closing)
         open_flatters.difference_update(closing)
