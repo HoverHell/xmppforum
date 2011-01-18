@@ -39,13 +39,13 @@ def test_setup(**kwargs):
         # user.is_staff = True
 
     cats = ('Random Topics',
-            'Good Deals',
-            'Skiing in the Vermont Area',
-            'The Best Restaurants')
+            'Bad Ideas',
+            'Looking Around Dubious Stuff',
+            'Unscientific Pondering. the')
     for c in cats:
         cat = Category.objects.get_or_create(label=c)
 
-    def make_random_post_tree(parent_post, amount, thread, ratio=1):
+    def make_random_post_tree(parent_post, amount, thread, ratio=0.5):
         text = '\n\n'.join([sampledata.sample_data() for x in range(0, choice(range(2, 5)))])
         # the post data
         postdata = {
@@ -65,16 +65,16 @@ def test_setup(**kwargs):
         
         # ... got better ideas?
         # (got non-uniform random distributions?)
-        min = 1
-        max = posts_remain + 1
-        if ratio < 0.5:  # width > depth
-            # don't delegate too much to each child.
-            max = int(posts_remain * ratio * 2) + 2
-        elif ratio > 0.5:  # depth > width:
-            min = int(posts_remain * (ratio - 0.5) * 2) + 1
+        # Anyway, ratio ~= depth/width. Don't delegate too few / too much to
+        # each child depending on the ratio.
+        fmin = lambda ratio, posts_remain: int(posts_remain * (ratio - 0.5)
+          * 2) + 1 if ratio > 0.5 else 1
+        fmax = lambda ratio, posts_remain: int(posts_remain * ratio * 2) + 2 \
+          if ratio < 0.5 else posts_remain + 1
 
         while posts_remain > 0:  # Distribute remnants
-            next_tree_posts = randrange(min, max)
+            next_tree_posts = randrange(fmin(ratio, posts_remain),
+              fmax(ratio, posts_remain))
             #print(" D: delegating %d,   %d remain " % (xx, x-xx))
             make_random_post_tree(post, next_tree_posts, thread)
             posts_remain -= next_tree_posts
@@ -90,7 +90,7 @@ def test_setup(**kwargs):
         print 'thread ', i, 'created'
         
         n = choice(tc)  # Amount of posts in whole tread tree
-        make_random_post_tree(None, n, thread, ratio=[0.5, 1, 0.9][i])
+        make_random_post_tree(None, n, thread, ratio=[0.1, 0.5, 0.9][i])
 
 signals.post_syncdb.connect(test_setup, sender=snapboard_app) 
 # vim: ai ts=4 sts=4 et sw=4
