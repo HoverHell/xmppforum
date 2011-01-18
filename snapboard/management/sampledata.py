@@ -84,13 +84,13 @@ def test_setup(**kwargs):
     for i in xrange(3):
         cat = choice(Category.objects.all())
         subj = choice(sampledata.objects.split('\n')) + \
-          " " + ["[e]", "[wide]", "[deep]"][i]
+          " " + ["[wide]", "[e]", "[deep]"][i]
         thread = Thread(subject=subj, category=cat)
         thread.save()
         print 'thread ', i, 'created'
         
         n = choice(tc)  # Amount of posts in whole tread tree
-        make_random_post_tree(None, n, thread, ratio=[0.1, 0.5, 0.9][i])
+        make_random_post_tree(None, n, thread, ratio=[0.1, 0.5, 0.98][i])
 
 signals.post_syncdb.connect(test_setup, sender=snapboard_app) 
 # vim: ai ts=4 sts=4 et sw=4
