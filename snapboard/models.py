@@ -401,6 +401,48 @@ class Post(mp_tree.MP_Node):
     # ! Tree
     # ! Incompatible with date.auto_now_add=True
     #node_order_by = ['date']
+    
+    # ! get_descendants_group_count could be useful.
+    
+    # IDs. id_form_X <-> from_id_X
+    #      (  String <-> Post  )
+    def id_form_a(self):
+        # Simple post number.
+        return str(self.id)
+    
+    @classmethod
+    def from_id_a(cls, ida):
+        # throws ValueError if int() fails.
+        # also, it might not exist.
+        return cls.objects.get(id=int(ida))
+
+    def id_form_b(self):
+        chunks = lambda l, n: [l[i:i+n] for i in xrange(0, len(l), n)]
+        #pad = lambda x: '%s%s' % ('0' * (Post.steplen - len(x)), x)
+        l_str2int = lambda x: self._str2int(x)
+        c = chunks(self.path, self.steplen)
+        return "%s/%s(%d)" % (l_str2int(c[0]),
+          ".".join([str(l_str2int(i)) for i in c[1:]]), len(c)-1)
+        # ! ? better:
+        #c = chunks(self.path[self.steplen:], self.steplen)
+        #return "%s/%s(%d)" % (self.thread_id,
+        #  ".".join([str(l_str2int(i)) for i in c]), len(c))
+
+    @classmethod
+    def from_id_b(cls, idb):
+        # No format checking. Catch stuff.
+        l_int2str = lambda x: cls._int2str(x).rjust(cls.steplen, '0')
+        # disregard `(n)` part of id if it's there.
+        idb2 = idb.split('(', 1)[0]
+        threadid, npath = idb2.split('/', 1)
+        # ! ? better:
+        # thread_path = Post.objects.get(thread=threadid, depth=1).path
+        anpath = [threadid] + npath.split(".")
+        tpath = "".join([l_int2str(int(i)) for i in anpath])
+        return cls.objects.get(path=tpath)
+
+    # ! consider setting `steplen = 3` - for better maxwidth/maxdepth ratio.
+    steplen = 3  # better maxwidth/maxdepth ratio
 
     def save(self, force_insert=False, force_update=False):
         _log.debug('user = %s, ip = %s' % (threadlocals.get_current_ip(),
@@ -431,6 +473,7 @@ class Post(mp_tree.MP_Node):
     def notify(self, **kwargs):
         if not self.previous:
             all_recipients = set()
+            # ! Likely, `private` should be moved to the thread-level.
             #if self.is_private:
             #    recipients = set(self.private.all())
             #    if recipients:

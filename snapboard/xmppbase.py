@@ -246,16 +246,22 @@ def connkeeper():
     #xmppoutqueue = socket.socket(socket.AF_UNIX, socket.SOCK_DGRAM)
     sys.stderr.write(" D: connecting to the xmppoutqueue...\n")
     xmppoutqueue = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-    pause = 1  # current time to wait until retry
+    pause = 0.5  # current time to wait until retry
+    pause_max = 4.0  # somewhat-around-maximum waiting time.
     while True:
         try:
             xmppoutqueue.connect(XMPPOUTQUEUEADDR)
         except:
-            sys.stderr.write(" ERROR: could not connect to xmppoutqueue!"\
-             " Waiting for %d seconds.\n"%pause)
+            if pause < pause_max:
+                sys.stderr.write(" ERROR: could not connect to "
+                 "xmppoutqueue! Waiting for %s seconds.\n" % pause)
+            elif abs(pause_max - pause) < 0.5:  # got to max.
+                sys.stderr.write(" ERROR: could not connect to "
+                 "xmppoutqueue! Will keep trying.\n")
+                pause += 1
             time.sleep(pause)
-            if pause < 30:
-                pause *= 2  # wait 32 seconds at most, doubling on attempt.
+            if pause < pause_max:
+                pause *= 2  # wait 8 seconds at most, doubling on attempt.
             continue  # try again
         sys.stderr.write(" D: connected to the xmppoutqueue.\n")
         connecting = False

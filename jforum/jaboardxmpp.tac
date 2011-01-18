@@ -94,6 +94,11 @@ def sighuphandler(signum, frame):
     start_new_thread(finishworkersgracefully, (workerlistold, inqueueold))
 signal.signal(signal.SIGHUP, sighuphandler)
 
+def sigtermhandler(signum, frame):
+    global inqueue, workerlist, NWORKERS
+    finishworkersgracefully(workerlist, inqueue)
+signal.signal(signal.SIGTERM, sigtermhandler)
+
 
 # Protocol handlers
 class PresenceHandler(xmppim.PresenceProtocol):

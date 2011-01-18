@@ -84,6 +84,7 @@
                {% endifnotequal %}
                <div class="userpic_wrap">{% avatar post.user %}</div>
                <span class="post_menuright">
+                   #{{ post.id_form_a }} | #{{ post.id_form_b }} | 
                    {% if user.is_authenticated and not user.really_anonymous %}
                        {% ifequal post.user_id user.id %}<span title="{% trans "Edit this post. All revisions are saved!" %}"  class="popup"><a href="{% url snapboard_edit_post post.id %}?next={{ request.get_full_path|urlencode }}%23snap_post{{ post.id }}" onclick="return toggle_edit('{{ post.id }}')">{% trans "edit post" %}</a></span>{% endifequal %}
                        <span class="popup"><a href="{% url snapboard_post_reply post.id %}" onclick="return toggle_reply('{{ post.id }}');">{% trans "reply" %}</a></span>

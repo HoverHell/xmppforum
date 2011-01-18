@@ -45,14 +45,14 @@ def test_setup(**kwargs):
     for c in cats:
         cat = Category.objects.get_or_create(label=c)
 
-    def make_random_post_tree(parent_post, amount, thread):
+    def make_random_post_tree(parent_post, amount, thread, ratio=1):
         text = '\n\n'.join([sampledata.sample_data() for x in range(0, choice(range(2, 5)))])
         # the post data
         postdata = {
           "user": choice(User.objects.all()),
           "thread": thread,
           "text": text,
-          "ip": '.'.join([str(choice(range(1,255))) for x in (1,2,3,4)]),
+          "ip": '.'.join([str(choice(range(2,254))) for x in xrange(4)]),
         }
         # Create a post in tree.
         if parent_post is None:  # Root node.
@@ -62,23 +62,35 @@ def test_setup(**kwargs):
         # allows setting of arbitrary ip
         post.management_save()
         posts_remain = amount - 1  # Minus just-created one
+        
+        # ... got better ideas?
+        # (got non-uniform random distributions?)
+        min = 1
+        max = posts_remain + 1
+        if ratio < 0.5:  # width > depth
+            # don't delegate too much to each child.
+            max = int(posts_remain * ratio * 2) + 2
+        elif ratio > 0.5:  # depth > width:
+            min = int(posts_remain * (ratio - 0.5) * 2) + 1
+
         while posts_remain > 0:  # Distribute remnants
-            next_tree_posts = randrange(1, posts_remain+1)
+            next_tree_posts = randrange(min, max)
             #print(" D: delegating %d,   %d remain " % (xx, x-xx))
             make_random_post_tree(post, next_tree_posts, thread)
             posts_remain -= next_tree_posts
 
-    # create up to 80 posts
-    tc = range(1, 80)
-    for i in range(0, 3):
+    # create up to 100 posts
+    tc = range(1, 100)
+    for i in xrange(3):
         cat = choice(Category.objects.all())
-        subj = choice(sampledata.objects.split('\n'))
+        subj = choice(sampledata.objects.split('\n')) + \
+          " " + ["[e]", "[wide]", "[deep]"][i]
         thread = Thread(subject=subj, category=cat)
         thread.save()
         print 'thread ', i, 'created'
         
         n = choice(tc)  # Amount of posts in whole tread tree
-        make_random_post_tree(None, n, thread)
+        make_random_post_tree(None, n, thread, ratio=[0.5, 1, 0.9][i])
 
 signals.post_syncdb.connect(test_setup, sender=snapboard_app) 
 # vim: ai ts=4 sts=4 et sw=4
