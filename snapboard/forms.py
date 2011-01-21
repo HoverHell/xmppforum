@@ -1,4 +1,3 @@
-from sets import Set
 
 from django import forms
 from django.contrib.auth import authenticate
@@ -30,11 +29,11 @@ class PostForm(forms.Form):
         if len(recipients.strip()) < 1:
             return []
         recipients = filter(lambda x: len(x.strip()) > 0, recipients.split(','))
-        recipients = Set([x.strip() for x in recipients])  # string of usernames
+        recipients = set([x.strip() for x in recipients])  # string of usernames
 
         u = User.objects.filter(username__in=recipients).order_by('username')
         if len(u) != len(recipients):
-            u_set = Set([str(x.username) for x in u])
+            u_set = set([str(x.username) for x in u])
             u_diff = recipients.difference(u_set)
             raise ValidationError(ungettext(
                     "The following is not a valid user:", "The following are not valid user(s): ",

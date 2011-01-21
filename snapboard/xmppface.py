@@ -8,6 +8,11 @@ This is the face-part, which tries to return some response for entered command.
 import django
 from django.utils.translation import ugettext as _
 
+import logging
+_log = logging.getLogger('xmppface')
+# Debug...
+import traceback
+
 # cmdresolver / urlresolver. May be a hack..
 from django.core.urlresolvers import RegexURLResolver
 # Now that's surely a hack, eh?
@@ -23,9 +28,6 @@ from django.core.cache import cache
 # ? Place something instead of "", maybe?
 cmdresolver = RegexURLResolver("", cmdpatterns)
 
-# Debug...
-import sys
-import traceback
 
 def process_post_kwargs(request, kwargs):
     """
@@ -57,9 +59,9 @@ def makecontact(local, remote):
         contact, created = XMPPContact.objects.get_or_create(
           local=local, remote=remote)
     except Exceltion, e:
-        sys.stderr.write("\n --------------- E: Exception %r on "\
-         " GET_OR_CREATE: \n"%(e,))
-        sys.stderr.write(traceback.format_exc())
+        _log.warn("\n --------------- Exception %r on "
+          "GET_OR_CREATE." % e)
+        _log.debug(traceback.format_exc())
         ## Might be necessary:
         ## ref. http://stackoverflow.com/questions/2235318/how-do-i-deal-with-this-race-condition-in-django
         django.db.transaction.commit()
@@ -92,10 +94,10 @@ def processcmd(**indata):
     srcbarejid = src.split("/")[0]  # Strip the resource if any.
     dst = indata.get('dst')
     body = indata.get('body')
-    sys.stderr.write(" -+-+-+-+-+- D: indata: %r.\n" % indata)
+    _log.debug(" -+-+-+-+-+- indata: %r." % indata)
     if 'auth' in indata:  # Got subscribe/auth data. Save it.
         makecontact(dst, src)
-        sys.stderr.write(' ....... auth data. ')
+        _log.debug(' ....... auth data. ')
         authtype = indata['auth']
         subsmapping = {
          'subscribed': {'auth_to': True},
@@ -107,41 +109,40 @@ def processcmd(**indata):
         upd = XMPPContact.objects.filter(local=dst,
          remote=src).update(**subsmapping[authtype])
         if upd != 1:  # ...something happened to be wrong anyway.
-            sys.stderr.write("\n --------------- E: Unexpected failure"\
-             " on updating auth data. Upd is %d.\n"%upd)
-        sys.stderr.write(' ....... changed contact auth.\n')
+            _log.warn(" --------------- Unexpected failure"
+             " on updating auth data. Upd is %d." % upd)
+        _log.debug(' ....... changed contact auth.')
         return  # Nothing else should be in there.
     if 'stat' in indata:  # Got contact status. Save it.
-        sys.stderr.write(' ....... status message. ')
+        _log.debug(' ....... status message.')
         # ! ^ Don't really care about status now. But save the last status
         # anyway.
         statustype = indata['stat']
         cache.set('st_%s'%src, statustype)  # bot's JID is ignored here.
-        sys.stderr.write(' ....... changed contact status. \n')
+        _log.debug(' ....... changed contact status.')
         if 'photo' in indata and indata['photo']:
-            sys.stderr.write(' ... + photo data. ')
+            _log.debug(' ... + photo data.')
             check_photo_update(dst, src, indata['photo'])
         return
     # ... otherwise it's probably a user command.
 
-    sys.stderr.write("\n ------- D: src: %r; body: %r\n" % (src, body))
+    _log.debug("\n ------- src: %r; body: %r" % (src, body))
     request = XmppRequest(srcbarejid)
     
     # ! body should always be an unicode string here. If not - should change
     # ! processcmd's callers.
-    #sys.stderr.write("\n ------- D: bodystr: body: %r\n" % (body))
+    #_log.debug("\n ------- bodystr: body: %r\n" % (body))
     try:
         # ! State-changing might be required, e.g. for multi-part commands.
-        #sys.stderr.write("\n ------- D: resolving...")
+        #_log.debug("\n ------- resolving...")
         callback, callback_args, callback_kwargs = cmdresolver.resolve(body)
         
         # Populate request.POST from body
         request, callback_kwargs = process_post_kwargs(request,
           callback_kwargs)
 
-        sys.stderr.write(("\n ------- D: callback: %r; args: %r; kwargs: %r; "+\
-          " post: %r\n") % \
-          (callback, callback_args, callback_kwargs, request.POST))
+        _log.debug("\n ------- callback: %r (%r, %r); POST: %r" % (
+          callback, callback_args, callback_kwargs, request.POST))
 
         # ...Also, middleware? it's not likely to support XmppResponse though.
 
@@ -150,10 +151,10 @@ def processcmd(**indata):
 
             # ! We do expect an XmppResponse here. May construct one, but...
             if not isinstance(response, XmppResponse):
-                sys.stderr.write("\n ------- E: callback (%r (%r, %r))" % \
-                  (callback, callback_args, callback_kwargs) + \
-                  " returned non-XmppResponse object %r.\n" % response)
-                raise TypeError("Response is not response!")
+                _log.error("\n ------- callback (%r (%r, %r)) has "
+                  "returned non-XmppResponse object %r." % (callback,
+                  callback_args, callback_kwargs, response))
+                raise TypeError("Response is not XmppResponse!")
 
             # May also add registration offer to anonymous users.
         except django.http.Http404, e:
@@ -165,8 +166,9 @@ def processcmd(**indata):
         except Exception, e:
             response = XmppResponse(_("Sorry, something went wrong!\n" \
               "Don't worry, admins weren't notified!"))
-            sys.stderr.write("\n --------------- E: Exception %r when calling callback: \n"%(e,))
-            sys.stderr.write(traceback.format_exc())
+            _log.error("\n --------------- Exception %r when calling "
+                "callback: " % e)
+            _log.debug(traceback.format_exc())
         # Not final. Also, toResponse(), part 1.
     except django.http.Http404, e:  # Http404 from resolver.
         response = XmppResponse(_("No such command. Try 'HELP', maybe?"))

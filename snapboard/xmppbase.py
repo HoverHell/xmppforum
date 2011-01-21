@@ -18,6 +18,8 @@ import time  # periodic reconnect attempts
 import copy
 from thread import start_new_thread  # for reconnector thread
 
+import logging
+_log = logging.getLogger('xmppbase')
 
 # for XmppResponse
 
@@ -111,7 +113,7 @@ class XmppResponse(dict):
             else:
                 self['html'] = html
         else:
-            print " D: skipping HTML part on user's preferences."
+            logging.debug("skipping HTML part on user's preferences.")
         # Body is set forcibly for less possible confusion. Although, some
         # alteration is possible here.
         # Note: in Psi, non-XHTML body is used in displayed notifications.
@@ -126,7 +128,7 @@ class XmppResponse(dict):
         Replaces all <img> tags in htmlsource with some more
         plaintext-representative form.
         """
-        img_tag_re=re.compile(r"</?img((\s+(\w|\w[\w-]*\w)(\s*=\s*" \
+        img_tag_re = re.compile(r"</?img((\s+(\w|\w[\w-]*\w)(\s*=\s*" \
           "(?:\".*?\"|'.*?'|[^'\">\s]+))?)+\s*|\s*)/?>")  # Horrible but proper.
         # ? Where should be all those compiled regexes stored?
         def img_repr(imgstr):
@@ -134,7 +136,7 @@ class XmppResponse(dict):
             Converts an HTML img tag string into informative plaintext:
             [image: http://some/img.png alt:"..." title:"..."]
             """
-            img_param_re=r"(%s)\s*=\s*(\".*?\"|'.*?'|[^'\">\s]+)"
+            img_param_re = r"(%s)\s*=\s*(\".*?\"|'.*?'|[^'\">\s]+)"
             img_src_re = re.compile(img_param_re%"src")  # More special for us.
             repr_params = ["alt", "title"] # Generic interesting params.
             srcmatch = img_src_re.search(imgstr)
@@ -244,7 +246,7 @@ def connkeeper():
     connecting = True
     # ! AF_UNIX socket is currently used.
     #xmppoutqueue = socket.socket(socket.AF_UNIX, socket.SOCK_DGRAM)
-    sys.stderr.write(" D: connecting to the xmppoutqueue...\n")
+    _log.debug("connecting to the xmppoutqueue...")
     xmppoutqueue = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
     pause = 0.5  # current time to wait until retry
     pause_max = 4.0  # somewhat-around-maximum waiting time.
@@ -253,17 +255,17 @@ def connkeeper():
             xmppoutqueue.connect(XMPPOUTQUEUEADDR)
         except:
             if pause < pause_max:
-                sys.stderr.write(" ERROR: could not connect to "
-                 "xmppoutqueue! Waiting for %s seconds.\n" % pause)
+                _log.warn("could not connect to the xmppoutqueue! Waiting "
+                 "for %s seconds." % pause)
             elif abs(pause_max - pause) < 0.5:  # got to max.
-                sys.stderr.write(" ERROR: could not connect to "
-                 "xmppoutqueue! Will keep trying.\n")
+                _log.error("could not connect to the xmppoutqueue!  Will "
+                 "keep trying.")
                 pause += 1
             time.sleep(pause)
             if pause < pause_max:
                 pause *= 2  # wait 8 seconds at most, doubling on attempt.
             continue  # try again
-        sys.stderr.write(" D: connected to the xmppoutqueue.\n")
+        _log.debug("connected to the xmppoutqueue.\n")
         connecting = False
         processing = copy.copy(unsent)
         unsent = []
@@ -285,8 +287,8 @@ def send_xmpp_message(msg):
         # messages.
         xmppoutqueue.send(str(msg)+"\n")
     except:  # ! Should do more reliability increasing here.
-        sys.stderr.write(" ERROR: Could not write to xmppoutqueue! (reconnecting...)\n")
-        sys.stderr.write("    Message was: %s.\n" % str(msg))
+        _log.warn("Could not write to xmppoutqueue! (reconnecting...)")
+        _log.debug("    Message was: %s.\n" % str(msg))
         unsent.append(msg)
         if not connecting:
             xmppoutqueue.close()

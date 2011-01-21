@@ -11,6 +11,10 @@ try:
 except ImportError:
     notification = None
 
+import logging
+_log = logging.getLogger('xmppstuff')
+
+
 from notification.models import Notice, NoticeType, Site, get_language,\
   get_notification_language, activate, get_formatted_messages, \
   should_send, send_mail, LanguageStoreNotAvailable, Context, ugettext
@@ -32,7 +36,7 @@ def send_notifications(users, label, extra_context=None, on_site=True,
     import models
     
     remaining_users = []
-    print(" D: Notifier: users: %r" % users)
+    logging.debug("users: %r" % users)
     # ! Note: queueing is disregarded for XMPP notifications.
     # !!! Most of this is copied from send_now
     if extra_context is None:
@@ -67,10 +71,9 @@ def send_notifications(users, label, extra_context=None, on_site=True,
         if not (jid and ucontacts):
             # Not jid/contact available. Leave him to e-mail notification.
             if user.email:
-                print(" D: Notifier: using e-mail for %r." % user)
                 remaining_users.append(user)
             else:
-                print(" D: Notifier: cannot contact %r." % user)
+                logging.debug("no way to contact %r." % user)
             # Or to none/on-site.
             # ! Will on-site notifications work with that?
             continue  # ! What if it's not XMPP-related notification at all?
@@ -117,7 +120,7 @@ def send_notifications(users, label, extra_context=None, on_site=True,
     # reset environment to original language
     activate(current_language)
 
-    print(" D: Notifier: remaining users: %r" % remaining_users)
+    logging.debug("remaining users: %r" % remaining_users)
     
     # Send remaining (non-XMPP) notifications.
     notification_send_orig(remaining_users, label, extra_context, on_site,
