@@ -1,7 +1,10 @@
-from django.conf.urls.defaults import *
+
 from django.conf import settings
 from django.contrib import admin
 from django.contrib.auth import views as auth_views
+
+# default error handlers:
+from django.conf.urls.defaults import handler404, handler500, patterns, include
 
 admin.autodiscover()
 

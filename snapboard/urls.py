@@ -1,9 +1,10 @@
-from django.conf.urls.defaults import *
 from django.contrib.auth.models import User
 
 from snapboard.feeds import LatestPosts
 from snapboard.rpc import rpc_post, rpc_lookup, rpc_preview
 from snapboard.views import *
+
+from django.conf.urls.defaults import handler404, handler500, patterns, include
 
 feeds = {'latest': LatestPosts}
 

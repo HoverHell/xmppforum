@@ -5,6 +5,15 @@
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
 
+LOGGING_INITIATED = False
+
+# logging setup (copy to settings_local and change there, if needed)
+import logging
+def init_logging():
+    logging.basicConfig(level=logging.INFO,
+      #format='%(asctime)s %(name)s [%(levelname)s]: %(message)s',
+      )
+
 ADMINS = (
     # ('Your Name', 'your_email@domain.com'),
 )
@@ -111,7 +120,8 @@ TIME_ZONE = 'UTC'
 
 # -------   -------   You need this (and urls.py) if you want to change forum address.
 
-ROOT_URLCONF = 'jforum.urls'
+ROOT_URLCONF = 'urls'
+ROOT_CMDCONF = 'cmds'
 LOGIN_REDIRECT_URL = '/snapboard/'
 
 
@@ -205,3 +215,7 @@ try:
     from settings_local import *
 except ImportError:
     pass
+
+# finally configure the logging with possible override.
+if not LOGGING_INITIATED:
+    init_logging()

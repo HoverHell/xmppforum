@@ -94,10 +94,13 @@ def sighuphandler(signum, frame):
     start_new_thread(finishworkersgracefully, (workerlistold, inqueueold))
 signal.signal(signal.SIGHUP, sighuphandler)
 
-def sigtermhandler(signum, frame):
-    global inqueue, workerlist, NWORKERS
-    finishworkersgracefully(workerlist, inqueue)
-signal.signal(signal.SIGTERM, sigtermhandler)
+if __name__ == "__main__":  # main modue - handle signals.
+    server.log.err(" XXX: main. ")
+    def sigtermhandler(signum, frame):
+        server.log.err(" XXX: sigtermed. ")
+        global inqueue, workerlist, NWORKERS
+        finishworkersgracefully(workerlist, inqueue)
+    signal.signal(signal.SIGTERM, sigtermhandler)
 
 
 # Protocol handlers
@@ -348,3 +351,4 @@ presenceHandler.setHandlerParent(echoComponent)
 
 msgHandler = MessageHandler()
 msgHandler.setHandlerParent(echoComponent)
+
