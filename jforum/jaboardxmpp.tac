@@ -31,6 +31,7 @@ except ImportError:
 import traceback  # Debug on exceptions.
 
 from multiprocessing import Process, Queue, active_children, current_process
+from Queue import Empty
 from thread import start_new_thread
 import signal  # Sigint handler.
 import time  # Old processes killing timeout.
@@ -75,7 +76,7 @@ def finishworkersgracefully(workerlist, inqueue):
 def sighuphandler(signum, frame):
     # reload!
     # Shouldn't be executed in child processes, btw.
-    global inqueue, workerlist, NWORKERS
+    global inqueue, workerlist
     try:
         reload(xmppworker)
     except:
@@ -94,9 +95,9 @@ def sighuphandler(signum, frame):
 signal.signal(signal.SIGHUP, sighuphandler)
 
 if __name__ == "__main__":  # main modue - handle signals.
-    server.log.err(" XXX: main. ")
+    server.log.err(" XX: main. ")
     def sigtermhandler(signum, frame):
-        server.log.err(" XXX: sigtermed. ")
+        server.log.err(" XX: sigtermed. ")
         global inqueue, workerlist, NWORKERS
         finishworkersgracefully(workerlist, inqueue)
     signal.signal(signal.SIGTERM, sigtermhandler)
@@ -295,26 +296,28 @@ class VCardHandler(XMPPHandler):
         """
         self.xmlstream.addObserver(VCARD_RESPONSE, self.onVcard)
 
-    def _jparse(el):
-        """ Parses the provided XML element, returning recursed dict with its
-        data (ignoring *some* text nodes). """
-        if not el.firstChildElement():  # nowhere to recurse to.
-            return unicode(el)  # perhaps there's some string, then.
-        outd = {}
-        for child in el.elements():  # * ignoring other text nodes, actually
-            # * ...and overwriting same-name siblings, apparently.
-            outd[child.name] = jparser(child)
-        return outd
 
     def onVcard(self, iq):
+        """ iq response with vCard data received """
+        def _jparse(el):
+            """ Parses the provided XML element, returning recursed dict with its
+            data (ignoring *some* text nodes). """
+            if not el.firstChildElement():  # nowhere to recurse to.
+                return unicode(el)  # perhaps there's some string, then.
+            outd = {}
+            for child in el.elements():  # * ignoring other text nodes, actually
+                # * ...and overwriting same-name siblings, apparently.
+                outd[child.name] = _jparse(child)
+            return outd
+
         server.log.err("onVcard. iq: %r" % iq)
         server.log.err(" ... %r" % iq.children)
         vc = iq.firstChildElement()
         if vc:
             inqueue.put_nowait(
-              {'src': message.getAttribute('from'),
-               'dst': message.getAttribute('to'),
-               'vcard': self._jparse(vc)})
+              {'src': iq.getAttribute('from'),
+               'dst': iq.getAttribute('to'),
+               'vcard': _jparse(vc)})
 
 
 class OutqueueHandler(protocol.Protocol):
@@ -360,10 +363,11 @@ class OutqueueHandler(protocol.Protocol):
                         pass
                 # Everything else should be in place already for most types.
                 server.log.err("6")
-                server.log.err(" r: %r" % response)
-                server.log.err(" rr: %r" % response.toXml())
-                server.log.err("7")
+                server.log.err(u" r: %r" % response)
+                server.log.err(u" rr: %r" % response.toXml())
+                server.log.err(u"7")
                 msgHandler.send(response)
+                server.log.err(u"8")
             else:  # not 'class'
                 pass  # Nothing else implemented yet.
         except ValueError:

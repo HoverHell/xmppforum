@@ -186,12 +186,12 @@ class XmppIq(dict):
 <iq type="get" to="hell@hell.orts.ru">
 <vCard xmlns="vcard-temp" version="2.0" prodid="-//HandGen//NONSGML vGen v1.0//EN"/></iq>
     """
-    def __init__(self, type='get', **kwargs):
+    def __init__(self, iqtype='get', **kwargs):
         """
         Should (usually) get 'src', 'dst', 'content', possibly 'id' in kwargs.
         """
         self['class'] = 'iq'
-        self['type'] = type
+        self['type'] = iqtype
         self.update(kwargs)  # src, dst, id, content, ...
 
     def __str__(self):
