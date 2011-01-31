@@ -711,6 +711,7 @@ class XMPPContact(models.Model):
     # It is preferrable to keep such volatile data in keyvalue storage.
     #status_type = models.CharField(max_length=10,
     #  verbose_name=_('current status'), blank=True)
+
     # last known vCard photo (hexdigest of SHA1 checksum, actually. should
     # always be of length 40 itself). It should be user-specific, not
     # contact-specific, but there's no more appropriate place for it (can

@@ -5,7 +5,6 @@ A jaboard XMPP face server as a standalone server via s2s.
 from twisted.application import service, strports
 from twisted.internet import protocol
 from twisted.words.xish import domish  # For creating messages to send.
-from twisted.words.protocols.jabber.xmlstream import toResponse
 from wokkel import component, server, xmppim
 from sys import stdout, stderr
 
@@ -103,6 +102,26 @@ if __name__ == "__main__":  # main modue - handle signals.
     signal.signal(signal.SIGTERM, sigtermhandler)
 
 
+class AvailabilityPresenceX(xmppim.AvailabilityPresence):
+    """ Slightly extended/fixed class that saves <x> element from the
+    presence stanze.  """
+    childParsers = {
+      ## Those shoulb be 'accumulated' from AvailabilityPresence:
+      #(None, 'show'): '_childParser_show',
+      #(None, 'status'): '_childParser_status',
+      #(None, 'priority'): '_childParser_priority',
+      ('vcard-temp:x:update', 'x'): '_childParser_photo',
+    }
+    
+    def _childParser_photo(self, element):
+        for child in element.elements():  # usually only one.
+            if child.name == 'photo':
+                if child.children:
+                    self.photo = child.children[0]
+                else:
+                    self.photo = ""
+
+
 # Protocol handlers
 class PresenceHandler(xmppim.PresenceProtocol):
     """
@@ -114,12 +133,16 @@ class PresenceHandler(xmppim.PresenceProtocol):
     Note that this handler does not remember any contacts, so it will not
     send presence when starting.
     """
+    
+    
     def __init__(self):
         """
         Some data to store.
         """
         self.statustext = u"Greetings"
         self.subscribedto = {}
+        # small hack (attempt):
+        self.presenceTypeParserMap['available'] = AvailabilityPresenceX
         # ! Ask django-xmppface to ask self to send presences.
 
     def subscribedReceived(self, presence):
@@ -181,11 +204,11 @@ class PresenceHandler(xmppim.PresenceProtocol):
         """
         Available presence was received.
         """
-        server.log.err(" ------- D: A: availableReceived. show: %r"%(presence.show,))
+        server.log.err(" ------- D: A: availableReceived. show: %r" % (
+          presence.show,))
         show = presence.show or "online"
-        # !! vcard photo information is in <x> child of presence stanze. But
-        #  it is unavailable in AvailabilityPresence object.
-        inqueue.put_nowait({'stat': show,  # 'photo': photo,
+        inqueue.put_nowait({'stat': show,
+           'photo': getattr(presence, 'photo', None),
            'src': presence.sender.full(), 'dst': presence.recipient.full()})
 
 
@@ -256,66 +279,113 @@ class MessageHandler(xmppim.MessageProtocol):
             traceback.print_exc()
 
 
-class OutqueueHandler(protocol.Protocol):
-        def connectionMade(self):
-            stderr.write(" D: OutqueueHandler: connection received.\n")
-            
-        datatemp = ""  # for holding partially reveived data
-        dataend = "\n"  # End character for splitting datastream.
-        
-        def ProcessData(self, dataline):
-            """
-             Called from dataReceived for an actual combined data ready for
-             processing (which is determined by newlines in the stream,
-             actually)..
-            """
-            try:
-                x = simplejson.loads(dataline)
-                server.log.err(" ------- D: Got JSON line of length %d:" % len(dataline))
-                server.log.err("     %s        \n  " % dataline)
-                if 'class' in x:
-                    response = domish.Element((None, x['class']))
-                    # Values are supposed to be always present here:
-                    response['to'] = x['dst']
-                    response['from'] = x['src']
-                    for extranode in ('type', 'xml:lang'):
-                        if extranode in x:
-                            response[extranode] = x[extranode]
-                    if 'content' in x:
-                        # We're provided with raw content already.
-                        # It is expected to be valid XML already.
-                        # (if not - remote server will probably drop s2s connection)
-                        response.addRawXml(x['content'])
-                    if x['class'] == 'message':
-                        # Create and send a response.
-                        response['type'] = response.getAttribute('type') or 'chat'
-                        if not 'content' in x:
-                            # This should be done in XmppResponse. Removing it from here.
-                            pass
-                    # Everything else should be in place already for most types.
-                    msgHandler.send(response)
-                else:  # not 'class'
-                    pass  # Nothing else implemented yet.
-            except ValueError:
-                server.log.err(" -------------- E: Failed processing:" \
-                 " %r" % dataline)
+try:
+    from twisted.words.protocols.xmlstream import XMPPHandler
+except ImportError:
+    from wokkel.subprotocols import XMPPHandler
+VCARD_RESPONSE = "/iq[@type='result']/vCard[@xmlns='vcard-temp']"
+class VCardHandler(XMPPHandler):
+    """ """
+    
+    def connectionInitialized(self):
+        """
+        Called when the XML stream has been initialized.
 
-        def dataReceived(self, data):
-            # Process received data for messages to send.
-            server.log.err(" ------- D: Received data of len %d with %d newlines."%(
-             len(data), data.count("\n")))
-            if self.dataend in data:  # final chunk.
-                # Unlike splitlines(), this returns an empty string at the
-                # end if data ends with newline.
-                datas = data.split(self.dataend)
-                self.ProcessData(self.datatemp+datas[0])
-                for datachunk in datas[1:-1]:
-                    # suddenly, more complete messages?
-                    self.ProcessData(datachunk)
-                # Data after last newline, usually empty.
-                self.datatemp = datas[-1]
-            else:  # partial data.
-                self.datatemp += data
+        This sets up an observer for incoming stuff.
+        """
+        self.xmlstream.addObserver(VCARD_RESPONSE, self.onVcard)
+
+    def _jparse(el):
+        """ Parses the provided XML element, returning recursed dict with its
+        data (ignoring *some* text nodes). """
+        if not el.firstChildElement():  # nowhere to recurse to.
+            return unicode(el)  # perhaps there's some string, then.
+        outd = {}
+        for child in el.elements():  # * ignoring other text nodes, actually
+            # * ...and overwriting same-name siblings, apparently.
+            outd[child.name] = jparser(child)
+        return outd
+
+    def onVcard(self, iq):
+        server.log.err("onVcard. iq: %r" % iq)
+        server.log.err(" ... %r" % iq.children)
+        vc = iq.firstChildElement()
+        if vc:
+            inqueue.put_nowait(
+              {'src': message.getAttribute('from'),
+               'dst': message.getAttribute('to'),
+               'vcard': self._jparse(vc)})
+
+
+class OutqueueHandler(protocol.Protocol):
+    def connectionMade(self):
+        stderr.write(" D: OutqueueHandler: connection received.\n")
+        
+    datatemp = ""  # for holding partially reveived data
+    dataend = "\n"  # End character for splitting datastream.
+    
+    def ProcessData(self, dataline):
+        """
+         Called from dataReceived for an actual combined data ready for
+         processing (which is determined by newlines in the stream,
+         actually)..
+        """
+        try:
+            x = simplejson.loads(dataline)
+            server.log.err(" ------- D: Got JSON line of length %d:" % len(dataline))
+            server.log.err(" --    %r        --\n  " % x)
+            if 'class' in x:
+                server.log.err("1")
+                response = domish.Element((None, x['class']))
+                # Values are supposed to be always present here:
+                server.log.err("2")
+                response['to'] = x['dst']
+                response['from'] = x['src']
+                server.log.err("3")
+                for extranode in ('type', 'xml:lang'):
+                    if extranode in x:
+                        response[extranode] = x[extranode]
+                server.log.err("4")
+                if 'content' in x:
+                    # We're provided with raw content already.
+                    # It is expected to be valid XML already.
+                    # (if not - remote server will probably drop s2s connection)
+                    response.addRawXml(x['content'])
+                server.log.err("5")
+                if x['class'] == 'message':
+                    # Create and send a response.
+                    response['type'] = response.getAttribute('type') or 'chat'
+                    if not 'content' in x:
+                        # This should be done in XmppResponse. Removing it from here.
+                        pass
+                # Everything else should be in place already for most types.
+                server.log.err("6")
+                server.log.err(" r: %r" % response)
+                server.log.err(" rr: %r" % response.toXml())
+                server.log.err("7")
+                msgHandler.send(response)
+            else:  # not 'class'
+                pass  # Nothing else implemented yet.
+        except ValueError:
+            server.log.err(" -------------- E: Failed processing:" \
+             " %r" % dataline)
+
+    def dataReceived(self, data):
+        # Process received data for messages to send.
+        server.log.err(u" ------- D: Received data (%r) of len %d with %d "
+          "newlines." % (type(data), len(data), data.count("\n")))
+        if self.dataend in data:  # final chunk.
+            # Unlike splitlines(), this returns an empty string at the
+            # end if data ends with newline.
+            datas = data.split(self.dataend)
+            self.ProcessData(self.datatemp + datas[0])
+            for datachunk in datas[1:-1]:
+                # suddenly, more complete messages?
+                self.ProcessData(datachunk)
+            # Data after the last newline, usually empty.
+            self.datatemp = datas[-1]
+        else:  # partial data.
+            self.datatemp += data
 
 # * Use twistd's --pidfile to write PID.
 
@@ -348,6 +418,9 @@ echoComponent.setServiceParent(application)
 
 presenceHandler = PresenceHandler()
 presenceHandler.setHandlerParent(echoComponent)
+
+vcardHandler = VCardHandler()
+vcardHandler.setHandlerParent(echoComponent)
 
 msgHandler = MessageHandler()
 msgHandler.setHandlerParent(echoComponent)

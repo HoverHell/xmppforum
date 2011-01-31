@@ -71,7 +71,7 @@ def makecontact(local, remote):
 def check_photo_update(local, remote, photo):
     # Might want to optimize (cache) this.
     contact = makecontact(local, remote)
-    if contact.photo == photo:
+    if contact.photosum == photo:
         return  # No need to update.
     barejid = remote.split('/')[0]  # ! status gets a full JID... usually.
     # Could probably get that by moving it all into view. Although this is a
@@ -80,9 +80,13 @@ def check_photo_update(local, remote, photo):
         # not registered.
         return
     # Send XMPP iq request for vcard.
-    iqreq = XmppIq(type='get', src=local, dst=remote, 
-     content='<vCard xmlns="vcard-temp"/>')
+    # XEP-0054, XEP-0153.
+    # ? id=''.join(random.choice(string.ascii_lowercase + string.digits) for x in range(4))
+    iqreq = XmppIq(type='get', src=local, dst=barejid,
+      content=u'<vCard xmlns="vcard-temp"/>')
+    print "iqreq: %r" % iqreq
     send_xmpp_message(iqreq)
+    print "... sent."
      
 def processcmd(**indata):
     """
@@ -123,6 +127,9 @@ def processcmd(**indata):
         if 'photo' in indata and indata['photo']:
             _log.debug(' ... + photo data.')
             check_photo_update(dst, src, indata['photo'])
+        return
+    if 'vcard' in indata:
+        _log.debug(' ....... vCard data.')
         return
     # ... otherwise it's probably a user command.
 
