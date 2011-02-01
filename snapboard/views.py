@@ -78,6 +78,27 @@ def snapboard_default_context(request):
             }
 
 
+def _get_that_post(request, post_id=None):
+    """ Helper function for allowing post-related commands unto unspecified
+    "last notified" post.  Raises Http404 if cannot."""
+    if post_id:
+        post = get_object_or_404(Post, pk=post_id);
+        return post
+    # otherwise - find one!
+    now = time.time()
+    ndata = cache.get('nt_%s' % request.user.username)
+    if ndata:
+        postid, ntime = ndata  # Shouldn't fail, really.
+        if now - ntime < 1:  # For avoiding sudden mistakes. RealtimeWorx.
+            return XmppResponse("You sure? Which post? Please confirm.")
+        try:
+            post = Post.objects.get(pk=postid)
+        except Post.DoesNotExist:
+            raise Http404, "Dunno such. Must've vanished. Specify precise post."
+    else:
+        raise Http404, "Dunno any. Specify precise post."
+
+
 def user_settings_context(request):
     return {'user_settings': request.user.get_user_settings()}
 
@@ -157,7 +178,7 @@ def r_getreturn(request, rpc, next, rpcdata, successtext, postid=None):
             return HttpResponseServerError("RPC return: unknown return.")  # Nothing else to do here.
 
 def r_watch_post(request, post_id=None, next=None, resource=None, rpc=False):
-    post = get_object_or_404(Post, pk=int(post_id))
+    post = _get_that_post(request, post_id)  # should only be done from XMPP.
     thr = post.thread
     if not thr.category.can_read(request.user):
         raise PermissionError, "You are not allowed to do that"
@@ -285,8 +306,8 @@ def post_reply(request, parent_id, thread_id=None, rpc=False):
 post_reply = anonymous_login_required(post_reply)
 
 
-def rpc_geteditform(request, post_id, rpc=True):
-    post = Post.objects.select_related(depth=2).get(pk=post_id)
+#def rpc_geteditform(request, post_id, rpc=True):
+#    post = Post.objects.select_related(depth=2).get(pk=post_id)
 def edit_post(request, original, rpc=False):
     '''
     Edit an existing post.
@@ -736,23 +757,9 @@ def answer_invitation(request, invitation_id):
             context_instance=RequestContext(request, processors=extra_processors))
 answer_invitation = login_required(answer_invitation)
 
+
 def xmppresourcify(request, resource=None, post_id=None):
-    if post_id:
-        post = get_object_or_404(Post, pk=post_id);
-    else:
-        # find one!
-        now = time.time()
-        ndata = cache.get('nt_%s'%request.user.username)
-        if ndata:
-            postid, ntime = ndata  # Shouldn't fail, really.
-            if now - ntime < 1:  # For avoiding sudden mistakes. RealtimeWorx.
-                return XmppResponse("You sure? Which post? Please confirm.")
-            try:
-                post = Post.objects.get(pk=postid)
-            except Post.DoesNotExist:
-                raise Http404, "Dunno such. Must've vanished. Specify precise post."
-        else:
-            raise Http404, "Dunno any. Specify precise post."
+    post = _get_that_post(request, post_id)
     if not resource:
         resource="#%d-%d"%(post.id, post.thread.id)
     wl, created = WatchList.objects.get_or_create(user=request.user, post=post)
@@ -761,6 +768,7 @@ def xmppresourcify(request, resource=None, post_id=None):
     # Do we need HTTP-availability of this? (can just use
     # success_or_reverse_redirect).
     return XmppResponse("okay.")
+
 
 def xmpp_get_help(request, subject=None):
     '''

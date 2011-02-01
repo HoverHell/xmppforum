@@ -306,7 +306,7 @@ def send_xmpp_message(msg):
             except Exception:
                 pass  # (probably it was None)
             _log.debug("    Starting the reconnector... ")
-            start_new_thread(connkeeper(), ())
+            start_new_thread(connkeeper, ())
         
 
 def render_to_response(*args, **kwargs):
