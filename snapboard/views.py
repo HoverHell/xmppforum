@@ -178,7 +178,8 @@ def r_getreturn(request, rpc, next, rpcdata, successtext, postid=None):
             return HttpResponseServerError("RPC return: unknown return.")  # Nothing else to do here.
 
 def r_watch_post(request, post_id=None, next=None, resource=None, rpc=False):
-    post = _get_that_post(request, post_id)  # should only be done from XMPP.
+    post = _get_that_post(request, post_id)
+    # ^ 'auto' fetching should only be done from XMPP.
     thr = post.thread
     if not thr.category.can_read(request.user):
         raise PermissionError, "You are not allowed to do that"

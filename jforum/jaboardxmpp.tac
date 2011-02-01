@@ -35,6 +35,7 @@ CFG = {
 
 import settings  # XXX: not nice non-overridable way.
 
+
 def cfg_override(cfg, settings_module):
     """ Grab whatever was overriden in settings. """
     for key, val in cfg.iteritems():
@@ -73,7 +74,7 @@ def createworkerpool(targetfunc, nworkers):
     Returns tuple (workerlist, inqueue). """
     inqueue = Queue()
     workerlist = []
-    for i in xrange(nworkers): # pylint: disable-msg=W0612
+    for i in xrange(nworkers):  # pylint: disable-msg=W0612
         new_worker = Process(target=targetfunc, args=(inqueue, ))
         new_worker.start()
         workerlist.append(new_worker)
@@ -106,6 +107,7 @@ def finishworkersgracefully(workerlist, inqueue):
             workprc.terminate()
         del(workprc)
 
+
 # pylint: disable-msg=W0613
 # :W0613: *Unused argument %r*
 # pylint: disable-msg=W0703
@@ -137,14 +139,12 @@ def sighuphandler(signum, frame):
 #signal.signal(signal.SIGHUP, sighuphandler)
 
 
-if __name__ == "__main__":  # main modue - handle signals.
-    stderr.write(" XX: main. ")
-    def sigqhandler(signum, frame):
-        """ Kill gracefully on quit-signals."""
-        stderr.write(" XX: sigtermed. ")
-        finishworkersgracefully(g_workerlist, g_inqueue)
-    signal.signal(signal.SIGTERM, sigqhandler)
-    signal.signal(signal.SIGINT, sigqhandler)
+def sigqhandler(signum, frame):
+    """ Kill gracefully on quit-signals."""
+    stderr.write(" XX: sigtermed. ")
+    finishworkersgracefully(g_workerlist, g_inqueue)
+signal.signal(signal.SIGTERM, sigqhandler)
+signal.signal(signal.SIGINT, sigqhandler)
 
 
 # pylint: disable-msg=C0103
@@ -161,7 +161,7 @@ class AvailabilityPresenceX(xmppim.AvailabilityPresence):
       #(None, 'priority'): '_childParser_priority',
       ('vcard-temp:x:update', 'x'): '_childParser_photo',
     }
-    
+
     def _childParser_photo(self, element):
         """ Adds the 'photo' data if such element exists. """
         self.photo = None
@@ -185,7 +185,7 @@ class PresenceHandler(xmppim.PresenceProtocol):
     Note that this handler does not remember any contacts, so it will not
     send presence when starting.
     """
-    
+
     def __init__(self):
         """ Some data to store. """
         xmppim.PresenceProtocol.__init__(self)
@@ -306,9 +306,11 @@ except ImportError:
     from wokkel.subprotocols import XMPPHandler
 
 VCARD_RESPONSE = "/iq[@type='result']/vCard[@xmlns='vcard-temp']"
+
+
 class VCardHandler(XMPPHandler):
     """ Subprotocol handler that processes received vCard iq responses. """
-    
+
     def connectionInitialized(self):
         """ Called when the XML stream has been initialized.
         Sets up an observer for incoming stuff. """
@@ -341,7 +343,7 @@ class VCardHandler(XMPPHandler):
 
 class OutqueueHandler(protocol.Protocol):
     """ Relay for sending messages through the outqueue. """
-    
+
     def __init__(self):
         pass
 
@@ -373,7 +375,8 @@ class OutqueueHandler(protocol.Protocol):
                 if 'content' in x:
                     # We're provided with raw content already.
                     # It is expected to be valid XML.
-                    # (if not - remote server will probably drop s2s connection)
+                    # (if not - remote server will probably drop the s2s
+                    # connection)
                     ## ? Process it with BeautifulSoup? :)
                     response.addRawXml(x['content'])
                 if x['class'] == 'message':

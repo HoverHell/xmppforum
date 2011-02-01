@@ -560,7 +560,7 @@ class WatchList(models.Model):
     post = models.ForeignKey(Post, verbose_name=_('post'),
       related_name='sb_watchinglist')
     # This can be implemented for all notification types, though:
-    xmppresource = models.CharField(max_length=80, 
+    xmppresource = models.CharField(max_length=80, null=True, blank=True,
       verbose_name=_('xmpp resource'))
 
     class Meta:

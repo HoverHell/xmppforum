@@ -129,11 +129,14 @@ def update_vcard(local, remote, vcard):
         return
     from django.core.files.base import ContentFile
     contentf = ContentFile(pdata)
-    #contentf.name = 'xf-vcard-auto-avatar.%s' % ext
     _log.debug("... creating avatar...")
     contentf.name = 'xf-vcard-auto-avatar'
-    # ! TODO: check if auto-avatar is already presemt replace if it is.
+    # autobasename = 'xf-vcard-auto-avatar.%s'
+    #contentf.name = autobasename % extension
     autoav = Avatar(user=user, avatar=contentf)
+    # ! TODO: check if auto-avatar is already presemt replace if it is.
+    # Avatar.objects.filter(
+    #  avatar__startswith=avatar_file_path(av, autobasename % '')).exists()
     autoav.save()
     _log.debug("... saved.")
 
