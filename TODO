@@ -1,0 +1,5 @@
+
+-- xmppface:
+  * !! Make it a separate module/app!
+  * allow custom 404 / 500 / ... handlers?
+  * put run_... stuff into management commands

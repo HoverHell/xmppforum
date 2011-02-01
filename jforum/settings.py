@@ -66,13 +66,13 @@ MEDIA_ROOT = os.path.join(os.path.dirname(__file__), 'snapboard/media')
 # Only AF_UNIX socket for now. Non-crossplatform but somewhat easy to fix.
 # Should not be relative, usually. But OK if XMPP and all django processes
 #  are run in the same current dir.
-SOCKET_ADDRESS = 'xmppoutqueue'
+SOCKET_ADDRESS = 'var/xmppoutqueue'
 
 
 ## sort-of optional KV storage. Read django documentation (for now) on what
 ## can be used here.
-## And read the wiki to see what will not work without it :)
-#CACHE_BACKEND = 'memcached://unix:memcached?timeout=0'
+## Read the wiki to see what will not work without it.
+#CACHE_BACKEND = 'memcached://unix:var/memcached?timeout=0'
 
 ## Simple sqlite database.
 DATABASE_ENGINE = 'sqlite3'
@@ -169,6 +169,7 @@ INSTALLED_APPS = (
     'avatar',
     'treebeard',
     'snapboard',
+    #'xmppface',
 )
 
 # List of callables that know how to import templates from various sources.

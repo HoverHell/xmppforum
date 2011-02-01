@@ -138,7 +138,7 @@ def update_vcard(local, remote, vcard):
     _log.debug("... saved.")
 
 
-def processcmd(**indata):
+def processcmd(indata):
     """
     Gets a source jid and command text and returns XmppResponse.
 

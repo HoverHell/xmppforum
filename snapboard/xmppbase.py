@@ -12,7 +12,6 @@ import sys
 
 # For send_xmpp_message
 from django.conf import settings
-XMPPOUTQUEUEADDR = getattr(settings, 'SOCKET_ADDRESS', 'xmppoutqueue')
 import socket
 import time  # periodic reconnect attempts
 import copy
@@ -36,18 +35,18 @@ from django.http import HttpResponseRedirect
 
 import re  # Stripping XHTML images.
 
+# For serialization of XmppResponse
 # django uses best json available
-from django.utils import simplejson # For serialization of XmppResponse
+from django.utils import simplejson
 
 
 class XmppRequest(object):
-    """
-     XmppRequest is a class partially compatible with HttpRequest, so it can
-     be used as a request variable in the views.
+    """ XmppRequest is a class partially compatible with HttpRequest, so it
+    can be used as a request variable in the views.
 
-     It doesn't provide most of the data now, though, so using it now with
-     html templates is not only wrong but also impossible.
-    """
+    It doesn't provide most of the data now, though, so using it now with
+    html templates is not only wrong but is also usually impossible.  """
+
     def __init__(self, srcjid):
         import models
         # This isn't really meant for anything yet.
@@ -177,14 +176,16 @@ class XmppResponse(dict):
         selfrepr['content'] = content
         return simplejson.dumps(selfrepr)  # Should be string.
 
+
 class XmppIq(dict):
     """
     XmppResponse-like object for XMPP iq messages.
     """
     """
     Example:
-<iq type="get" to="hell@hell.orts.ru">
-<vCard xmlns="vcard-temp" version="2.0" prodid="-//HandGen//NONSGML vGen v1.0//EN"/></iq>
+    <iq type="get" to="hell@hell.orts.ru">
+    <vCard xmlns="vcard-temp" version="2.0" 
+     prodid="-//HandGen//NONSGML vGen v1.0//EN"/></iq>
     """
     def __init__(self, iqtype='get', **kwargs):
         """
@@ -232,6 +233,8 @@ class XmppPresence(dict):
         selfrepr['content'] = content
         return simplejson.dumps(selfrepr)
 
+
+# XXX: Not very good to do that, but it works.
 xmppoutqueue = None
 connecting = True
 unsent = []
@@ -243,11 +246,13 @@ def connkeeper():
     global xmppoutqueue
     global connecting
     global unsent
+    XMPPOUTQUEUEADDR = getattr(settings, 'SOCKET_ADDRESS', 'var/xmppoutqueue')
     connecting = True
     # ! AF_UNIX socket is currently used.
     #xmppoutqueue = socket.socket(socket.AF_UNIX, socket.SOCK_DGRAM)
     _log.debug("connecting to the xmppoutqueue...")
     xmppoutqueue = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+    # ? Move this stuff to settings: ?
     pause = 0.5  # current time to wait until retry
     pause_max = 4.0  # somewhat-around-maximum waiting time.
     while True:
@@ -272,7 +277,9 @@ def connkeeper():
         for msg in processing:
             send_xmpp_message(msg)
         break  # success.
-start_new_thread(connkeeper, ())
+## Development: don't bother until there is something to be sent.
+#start_new_thread(connkeeper, ())
+connecting = False
 
 def send_xmpp_message(msg):
     """
@@ -280,18 +287,25 @@ def send_xmpp_message(msg):
     provider. Should generally be called with XmppResponse argument with all
     necessary fields set.
     """
+    global xmppoutqueue
+    global unsent
     # It uses global pre-initialized xmppoutqueue connection.
     try:
         # msg decides itself on how to be dumped.
         # And newline is used to split socket datastream into separate
         # messages.
         xmppoutqueue.send(str(msg)+"\n")
-    except:  # ! Should do more reliability increasing here.
+    except Exception:  # ! Should do more reliability increasing here.
         _log.warn("Could not write to xmppoutqueue! (reconnecting...)")
         _log.debug("    Message was: %s.\n" % str(msg))
         unsent.append(msg)
+        _log.debug("x1")
         if not connecting:
-            xmppoutqueue.close()
+            try:
+                xmppoutqueue.close()
+            except Exception:
+                pass  # (probably it was None)
+            _log.debug("    Starting the reconnector... ")
             start_new_thread(connkeeper(), ())
         
 
@@ -319,6 +333,7 @@ def render_to_response(*args, **kwargs):
         args = (args[0] + '.html',) + args[1:]  # ...
         return render_to_response_orig(*args, **kwargs)
 
+
 def login_required(function=None):
     http_login_required = login_required_orig(function)
     def decorate(request, *args, **kwargs):  # request is explicit.
@@ -331,6 +346,7 @@ def login_required(function=None):
             return http_login_required(request, *args, **kwargs)
     return decorate
 
+
 def direct_to_template(request, template):
     if isinstance(request, XmppRequest):  # At least it's XMPP.
         # Not adding '.xmpp' here.
@@ -338,6 +354,7 @@ def direct_to_template(request, template):
           django.template.loader.render_to_string(template,
           context_instance=django.template.RequestContext(request)))
     # ! May need direct_to_template_orig?
+
 
 def success_or_reverse_redirect(*args, **kwargs):
     # Remove reverse()-irrelevant parts of kwargs:
