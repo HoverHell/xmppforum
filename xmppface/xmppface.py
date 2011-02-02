@@ -141,7 +141,7 @@ def update_vcard(local, remote_b, vcard):
     # ! It's user's problem if user uploads an avatar with such a special
     #  name :)
     old_autoav_qs = Avatar.objects.filter(user=user,
-      avatar__startswith=avatar_file_path(av, autobasename % ''))[:1]
+      avatar__startswith=avatar_file_path(autoav, autobasename % ''))[:1]
     if old_autoav_qs:  # Already have some. Replace it.
         # ! XXX: non-parallel-safe here.
         old_autoav = old_autoav_qs[0]
