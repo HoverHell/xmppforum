@@ -6,7 +6,7 @@ from twisted.application import service, strports
 from twisted.internet import protocol
 from twisted.words.xish import domish  # For creating messages to send.
 from wokkel import component, server, xmppim
-from sys import stderr
+import sys
 
 
 # Try to use django to get best available json library (for decoding IPC
@@ -18,7 +18,7 @@ except ImportError:  # No Django? Well, we're abstract enough.
 
 import traceback  # Debug on exceptions.
 
-from multiprocessing import Process, Queue, current_process
+from multiprocessing import Process, Queue
 from Queue import Empty
 from thread import start_new_thread
 import signal  # Sig handlers.
@@ -43,6 +43,7 @@ def cfg_override(cfg, settings_module):
     return cfg
 
 CFG = cfg_override(CFG, settings)
+g_workerlist, g_inquque = None, None
 
 
 def worker(w_inqueue):
@@ -53,19 +54,23 @@ def worker(w_inqueue):
     import settings
     setup_environ(settings)
 
-    from snapboard import xmppface
-    # from multiprocessing import current_process
-    while True:
-        try:
+    from xmppface import xmppface
+    from multiprocessing import current_process
+    try:
+        while True:
+            #try:
             data = w_inqueue.get()
-        except KeyboardInterrupt:
-            data = "QUIT"  # bit hax-y.
-            # also, does not catch interrupts when processing.
-        if data == "QUIT":
-            # ? Which logging to use?
-            print("Process %r: received QUIT." % current_process())
-            return
-        xmppface.processcmd(data)
+            #except KeyboardInterrupt:
+            #    data = "QUIT"  # bit hax-y.
+            #    # also, does not catch interrupts when processing.
+            if data == "QUIT":
+                # ? Which logging to use?
+                print("Process %r: received QUIT." % current_process())
+                return
+            xmppface.processcmd(data)
+    except KeyboardInterrupt:
+        print("Process %r: Interrupted; finishing." % current_process())
+        return
 
 
 def createworkerpool(targetfunc, nworkers):
@@ -85,7 +90,7 @@ def finishworkersgracefully(workerlist, inqueue):
     """ Tell workers to quit, or kill them if they don't. """
     for i in xrange(len(workerlist) + 1):  # pylint: disable-msg=W0612
         # (+1 for certainty)
-        inqueue.put("QUIT")
+        inqueue.put_nowait("QUIT")
     time.sleep(0.3)
     waitforkill = False
     for workprc in workerlist:  # Anyone still alive?
@@ -141,10 +146,15 @@ def sighuphandler(signum, frame):
 
 def sigqhandler(signum, frame):
     """ Kill gracefully on quit-signals."""
-    stderr.write(" XX: sigtermed. ")
-    finishworkersgracefully(g_workerlist, g_inqueue)
-signal.signal(signal.SIGTERM, sigqhandler)
-signal.signal(signal.SIGINT, sigqhandler)
+    sys.stderr.write(" XX: sigtermed. ")
+    try:
+        finishworkersgracefully(g_workerlist, g_inqueue)
+    except Exception, e:
+        traceback.print_exc()
+
+
+#signal.signal(signal.SIGTERM, sigqhandler)
+#signal.signal(signal.SIGINT, sigqhandler)
 
 
 # pylint: disable-msg=C0103

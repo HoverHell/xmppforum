@@ -1,6 +1,11 @@
 
-from django.conf.urls.defaults import patterns, include
+from django.conf.urls.defaults import patterns
+
+# Note: `include` does not work well for cmdpatterns, so using this weird
+# construction instead:
+
+from xmppface.util import RegexCmdResolver
 
 cmdpatterns = patterns('',
-  ('', include('snapboard.cmds')),
+  RegexCmdResolver('', 'snapboard.cmds'),
 )

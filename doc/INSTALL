@@ -34,7 +34,7 @@ to create a default database (it will ask few questions). After that, you
 
 to start the django development server, and
 
-   ENV/bin/python $(which twistd) -y jaboardxmpp.tac -n --pidfile \
+   ENV/bin/python $(which twistd) -y xmppface/jaboardxmpp.tac -n --pidfile \
      jaboardxmpp.pid
 
 to run XMPP server (or you can use explicit path to twistd).

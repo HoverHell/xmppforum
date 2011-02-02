@@ -14,6 +14,8 @@ from django.core.cache import cache
 
 from treebeard import mp_tree
 
+from xmppface.xmppstuff import send_notifications
+
 # Monkey-patching no-copying way:
 def get_rly_annotated_list(self):
     return super(mp_tree.MP_Node, self).get_annotated_list(self)
@@ -95,7 +97,6 @@ __all__ = [
     'PermissionError', 'is_user_banned', 'is_ip_banned',
     'Category', 'Invitation', 'Group', 'Thread', 'Post', 'Moderator',
     'WatchList', 'AbuseReport', 'UserSettings', 'IPBan', 'UserBan',
-    'XMPPContact',
     ]
 
 _log = logging.getLogger('snapboard.models')
@@ -445,8 +446,9 @@ class Post(mp_tree.MP_Node):
     steplen = 3  # better maxwidth/maxdepth ratio
 
     def save(self, force_insert=False, force_update=False):
-        _log.debug('user = %s, ip = %s' % (threadlocals.get_current_ip(),
-            threadlocals.get_current_user()))
+        # ? huh?
+        #_log.debug('user = %s, ip = %s' % (threadlocals.get_current_ip(),
+        #    threadlocals.get_current_user()))
 
         # hack to disallow admin setting arbitrary users to posts
         if getattr(self, 'user_id', None) is None:
@@ -592,7 +594,8 @@ class UserSettings(models.Model):
             help_text = _('Threads per page'), verbose_name=_('threads per page'))
     jid = models.EmailField(
             unique = True, blank = True, null = True,
-            help_text = _('Jabber ID'), verbose_name=_('jid'))
+            help_text = _('Jabber ID (that gets full access to your account)'),
+            verbose_name=_('jid'))
     disable_xmpp_xhtml = models.BooleanField(
             default = False,
             help_text = _('Do not send XHTML subpart (formatted message)'),
@@ -623,6 +626,10 @@ class UserSettings(models.Model):
     def __unicode__(self):
         return _('%s\'s preferences') % self.user
 
+
+## Hack up User and AnonymouseUser classes for convenience.
+# Note that it monkey-patches the whole django.contrib.auth.models.User
+# class (and AnonymouseUser too) in the python-instance-wide import.
 User.really_anonymous = False
 AnonymousUser.really_anonymous = False
 DEFAULT_USER_SETTINGS  = UserSettings()
@@ -690,67 +697,21 @@ class IPBan(models.Model):
         settings.SNAP_BANNED_IPS = set((x for (x,) in c.fetchall()))
 
 
-class XMPPContact(models.Model):
-    '''
-    Contains authentication status and contact's status for all known XMPP
-    contacts.
-    '''
-    # Length is increased to reduce chance of problems with *very* long JIDs.
-    remote = models.EmailField(max_length=100,
-      verbose_name=_('remote jid'))
-    local = models.EmailField(max_length=85, 
-      verbose_name=_('local jid'))
-    # Determines if bot has subsctiption to this contact.
-    auth_to = models.BooleanField(default=False, 
-      verbose_name=_('subscribed to'))
-    # ...and if the contact is subscribed to bot's (local) jid.
-    # ? In which case it can really be 'false', actually?
-    auth_from = models.BooleanField(default=False,
-      verbose_name=_('subscribed from'))
-    # Status type: online / chat / away / xa / dnd / unavail.
-    # It is preferrable to keep such volatile data in keyvalue storage.
-    #status_type = models.CharField(max_length=10,
-    #  verbose_name=_('current status'), blank=True)
-
-    # last known vCard photo (hexdigest of SHA1 checksum, actually. should
-    # always be of length 40 itself). It should be user-specific, not
-    # contact-specific, but there's no more appropriate place for it (can
-    # possibly store in the added avatar's filename/object, though).
-    photosum = models.CharField(max_length=42, 
-      verbose_name=_('photo checksum'), blank=True)
-    # ? Need any other fields?
-
-    def __unicode__(self):
-        return '%s - %s' % (self.remote, self.local)
-
-    class Meta:
-        verbose_name = _('xmpp contact')
-        verbose_name_plural = _('xmpp contacts')
-        unique_together = ("remote", "local")
-
-
-from types import FunctionType
+# currently unused.
 def cachefetch(key, default=None, timeout=0):
-    '''
-    Slightly advanced cache.get() that can use result of a function and an
-    additional timout parameter in case of cache miss.
-    '''
+    """ Slightly advanced cache.get() that can use result of a function and
+    an additional timout parameter in case of cache miss.  """
     data = cache.get(key)
     if data is None:
         if default is not None:
-            if isinstance(f, FunctionType):
+            if callable(f):
                 data = default()
             else:
                 data = default
             cache.set(key, data, timeout)
-    # no data, no default - return actual None.
+    # no data, no default - returns actual None.
     return data
 
 
 signals.post_save.connect(IPBan.update_cache, sender=IPBan)
 signals.post_delete.connect(IPBan.update_cache, sender=IPBan)
-
-from xmppstuff import send_notifications
-
-# vim: ai ts=4 sts=4 et sw=4
-

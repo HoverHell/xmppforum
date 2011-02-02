@@ -1,4 +1,11 @@
-<presence from="kalan.001@gmail.com/BitlBeeCB5F3D1F" to="hoverhell@gmail.com">
+
+<presence from="ff@chat.friendfeed.com" to="hoverhell@gmail.com">
+<ns2:x xmlns:ns2="vcard-temp:x:update">
+<ns2:photo>3e695c6b758322ce99586c8f4430dd753ff37d12</ns2:photo>
+</ns2:x>
+</presence>
+
+<presence from="xxx@gmail.com/BitlBeeCB5F3D1F" to="hoverhell@gmail.com">
 <priority>1</priority>
 <show>away</show>
 <status>Away: screen detached. Say what you want to say, delivery is guaranteed.</status>
@@ -9,17 +16,20 @@
 </presence>
 
 
+<iq type="get" to="xxx@gmail.com" id="a100ba">
+<vCard xmlns="vcard-temp" version="2.0" prodid="-//HandGen//NONSGML vGen
+v1.0//EN"/>
+</iq>
 
 <iq type="get" to="hell@hell.orts.ru"><vCard xmlns="vcard-temp" version="2.0" prodid="-//HandGen//NONSGML vGen v1.0//EN"/></iq>
 
 
-
-<iq from="kalan.001@gmail.com" type="result" to="hoverhell@gmail.com/hheee528EE87B" id="a100ba">
+<iq from="xxx@gmail.com" type="result" to="hoverhell@gmail.com/hheee528EE87B" id="a100ba">
 <vCard xmlns="vcard-temp">
-<FN>Kalan</FN>
+<FN>xxx</FN>
 <PHOTO>
 <TYPE>image/jpg</TYPE>
-<BINVAL>/9j/4AAQSkZJRgABAQAAAQABAAD/2wCEAAUDBAoJBwcHCAkGCAcHBgcHBwcHBwcHBwcGBwcHBgcHBwcHChAMBwgOCQcHDBUMDhERHxMfBwwWGCIeGBAeHx4BBQUFBwcIDAgJDxQMDAwUFBQUFBQUFBQSFBQUEhIUHhQeFBQSFB4UHhQUFB4eHhQeFBQeHhQUHh4eFBQeFBQUFP/AABEIAGAAYAMBIgACEQEDEQH/xAAbAAACAgMBAAAAAAAAAAAAAAADBAIFAQYHAP/EACsQAAIBAgUCBQQDAAAAAAAAAAACAwEEBRJCUmITkiIycoKiBhRD8hUW8P/EABoBAAIDAQEAAAAAAAAAAAAAAAEDAgQFAAb/xAAlEQACAgEDAwUBAQAAAAAAAAAAAQIDERIxQQQhUQUTFDJhQhX/2gAMAwEAAhEDEQA/ANths11D0NpCUSXgVbzkVWpPkuxpkuDYVhi05AlI1KCO65BvvORHS1yNxNFuyqAkdSsrPyI0kTUw6OoVNSwWPWXSGjA2kiaVLGGqsSlc48FVUqTzJgloToMURSEjKBdRngc6IpdjCkuqopJMCaQfGWSlbXjY5xHjI1BiCsKw2DbfiOQ22X9QSjV4Ixuu8jcc6hklIQRrtLWzdV0oIloRZhfcCtrN38quWln9PtqZFLHD6s3EsaZdXiM67rNGxoUV2WbsBZYIm7MWceCrpFlv1XiETHF3FCfV3T2Zq1dCl3YeuCKAlwbaNQ42o0mJqwr5F65Hqmtfya/LhDCr2LKbgsqNs7heeJG1INr9SthuMXT9PLtKJzJXQz0oW1fI542MPuCR4synoPj2+TxynSzf6WsO/wCQzbRwr+U51/LesjXGH9IPYtfIdVKOrx38K/lMTY9DpY5SuIO2omt0wmXp2r7Mt1dZXD6o6Dc4wreUTriC7jTqTuxOjuTh6fXEs/60uEblFiirqDf2NVNMTkwVWUn8KvkRL1Sx8G11+pn0+ElD9SMvnY0q4mbTnAUR2/3iOfQ04Ir1Ge2Mmt5z1HJqhJUNTUYCyQWoVKkkiGobYi5IKTM2rcS0hXiKxpl8oZatuf2leffYs1rG4Z83pBV5Me9rt6mPUo+lUUgotD/e/D1G2r7ia5t2UXkjl5gWt35ktP6D3fwf6ir5mI1xJF5FbW2YhS3Ykqo8si+qmtkBjhGobYykqh45gykytGKJw2w9Bh2YBDKPQ3K7kETlItVxiMQYWmrxDFLZF8qoAW8XcEpdKVm5clqOjwSqiHqSIukx9wm5AdaK2pO47Pkl2Wxl71NoB79doSsK7k7iFYl3J3Elg5tmEuuKdpLr5tEPaDbIupAMl6ihSzshbkluzVFkM0lE+oepIaGDJyPUmbcSpPyK/MSzMDSg62WC3XI99024rqMZox2hB9xlnS65GaXTbitoxKjg0oOtj9bltxjq13CdGJ0qdhA1vyHo/IxnB0J0TiHAGz//2Q==</BINVAL>
+<BINVAL>/9j/4AAQ...iHAGz//2Q==</BINVAL>
 </PHOTO>
 </vCard>
 </iq>

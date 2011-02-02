@@ -3,3 +3,5 @@
   * !! Make it a separate module/app!
   * allow custom 404 / 500 / ... handlers?
   * put run_... stuff into management commands
+  * Add customizable prefixes for all cache.* stuff (at least in a separate
+   module)

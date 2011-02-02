@@ -1,3 +1,4 @@
+
 from snapboard.models import *
 from django.contrib import admin
 
@@ -47,10 +48,6 @@ class GroupAdmin(admin.ModelAdmin):
     filter_horizontal = ('users', 'admins')
 
 
-class XMPPContactAdmin(admin.ModelAdmin):
-    model = XMPPContact
-    list_display = ('remote', 'local', 'auth_to', 'auth_from', 'photosum')
-
 class WatchListAdmin(admin.ModelAdmin):
     model = WatchList
     list_display = ('user', 'post', 'xmppresource')
@@ -65,7 +62,3 @@ admin.site.register(UserSettings, UserSettingsAdmin)
 admin.site.register(UserBan, UserBanAdmin)
 admin.site.register(IPBan, IPBanAdmin)
 admin.site.register(Group, GroupAdmin)
-admin.site.register(XMPPContact, XMPPContactAdmin)
-admin.site.register(WatchList, WatchListAdmin)
-
-# vim: ai ts=4 sts=4 et sw=4

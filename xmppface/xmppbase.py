@@ -20,10 +20,8 @@ from thread import start_new_thread  # for reconnector thread
 import logging
 _log = logging.getLogger('xmppbase')
 
-# for XmppResponse
-
-# For render_to_response wrapper
-from django.shortcuts import render_to_response as render_to_response_orig
+# for XmppReq/Resp...
+from django.contrib.auth.models import AnonymousUser
 
 # for login_required wrapper
 from django.contrib.auth.decorators import login_required as login_required_orig
@@ -40,6 +38,36 @@ import re  # Stripping XHTML images.
 from django.utils import simplejson
 
 
+# Monkey-patch HttpRequest so it gets is_xmpp() as well.
+import django.http
+django.http.HttpRequest.is_xmpp = lambda self: False
+
+
+def _get_user_qs(jid):
+    """ Attempts to find a User with the specified JID. Returns filter
+    QuerySet. """
+    from django.contrib.auth.models import User
+    try:
+        # ! XXX: This depends on snapboard-specific UserSettings model.
+        # ? Add User ForeignKey to XmppContact?
+        return User.objects.filter(sb_usersettings__jid__exact=jid)
+    except Exception:  # FieldError?
+        _log.error("_get_user_qs: Could not search for a User by JID!")
+        _log.debug(traceback.format_exc())
+        return None
+
+
+def _get_user_or_anon(jid):
+    """ Returns a user with the specified JID or AnonymousUser if there's no
+    such (registered) user.  """
+    user_qs = _get_user_qs(jid)[:1]
+    if user_qs:
+        return user_qs[0]
+    from django.contrib.auth.models import AnonymousUser
+    return AnonymousUser()
+
+
+# Can pretty much derive it from django.http.HttpRequest
 class XmppRequest(object):
     """ XmppRequest is a class partially compatible with HttpRequest, so it
     can be used as a request variable in the views.
@@ -48,31 +76,35 @@ class XmppRequest(object):
     html templates is not only wrong but is also usually impossible.  """
 
     def __init__(self, srcjid):
-        import models
-        # This isn't really meant for anything yet.
         self.srcjid = srcjid
-        # "Authentication":
-        try:
-            self.user = models.User.objects.get(sb_usersettings__jid__exact=srcjid)
-        except models.User.DoesNotExist:
-            self.user = models.AnonymousUser()
+        self.user = _get_user_or_anon(srcjid)
         # Populating extra fields:
         self.META = {'REMOTE_ADDR': srcjid}
-        self.POST = {}
-        self.GET = {}
+        self.POST, self.GET = {}, {}
         # Stuff ftom HttpRequest:
         #self.GET, self.POST, self.COOKIES, self.META, self.FILES = None, \
         #  None, None, {}, {}, {}, {}, {}
 
+    def is_ajax(self):
+        """ HttpRequest-compatible function. Returns False. """
+        return False
+
+    def is_xmpp(self):
+        """ Request is XmppRequest and suggests that XmppResponse is
+        expected.  """
+        return True
+
+    def __repr__(self):
+        # ! TODO.
+        return "<XmppRequest ...>"
+
 
 class XmppResponse(dict):
-    """
-    Possibly unnecessary object, analogous to HttpResponse.
+    """ Possibly unnecessary object, analogous to HttpResponse.
 
     Can be used for any XMPP message.
 
-    Currently it is a subclass of dict with few extras.
-    """
+    Currently it is a subclass of dict with few extras.  """
     def __init__(self, html=None, body=None, src=None, dst=None, id=None,
       user=None):
         self['class'] = 'message'
@@ -99,8 +131,7 @@ class XmppResponse(dict):
         self['id'] = id
 
     def setuser(self, user=None):
-        import models
-        self.user = user or models.AnonymousUser()
+        self.user = user or AnonymousUser()
         self.usersettings = self.user.get_user_settings()
 
     def setxhtml(self, html):
@@ -310,17 +341,15 @@ def send_xmpp_message(msg):
         
 
 def render_to_response(*args, **kwargs):
-    """
-    A render_to_response wrapper that allows using it for both HttpRequest
-    and XmppRequest.
-    """
-
+    """ A render_to_response wrapper that allows using it for both
+    HttpRequest and XmppRequest.  """
+    from django.shortcuts import render_to_response as render_to_response_orig
     # There should be other ways to determine an Xmpp request, no?
     # Or it would be 'other function'.
     # Also, may args[0] not possibly contain template name?
     try:
         request = kwargs['context_instance']['request']
-        IsXmpp = isinstance(request, XmppRequest)
+        IsXmpp = isinstance(request, XmppRequest)  # ! TODO: request.is_xmpp()?
     except:  # Something is not right, but it's probably not XMPP anyway.
         request = None
         IsXmpp = False
@@ -337,11 +366,11 @@ def render_to_response(*args, **kwargs):
 def login_required(function=None):
     http_login_required = login_required_orig(function)
     def decorate(request, *args, **kwargs):  # request is explicit.
-        if isinstance(request, XmppRequest):
+        if isinstance(request, XmppRequest):  # ! XXX: request.is_xmpp()
             if request.user.is_authenticated:
                 return function(request, *args, **kwargs)
             else:
-                pass  # ! Access denied and offer registration here.
+                pass  # ! TODO: Access denied and offer registration here.
         else:  # Not XMPP. use original decorated.
             return http_login_required(request, *args, **kwargs)
     return decorate

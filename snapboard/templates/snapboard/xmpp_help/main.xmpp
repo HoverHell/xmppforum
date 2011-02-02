@@ -9,7 +9,7 @@ You can use '!' instead of '#'.</p>
 <strong>r</strong> — same as previous, omit post id to use last notified; omit resource to use automatically constructed one.<br />
 <strong>#/5432 text</strong> — reply to post #5432.<br />
 <strong>w #/5432</strong> — watch post #5432 (and its whole tree of replies). Resource can be specified as well.<br />
-<strong>WHOAMI</strong> (who) — fond out your username<br />
+<strong>WHOAMI</strong> (who) — find out your username<br />
 <strong>HELP subject</strong> (h) — help on subject</p>
 
 <p><em>Available subjects:</em><br />

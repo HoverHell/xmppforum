@@ -168,8 +168,8 @@ INSTALLED_APPS = (
     'registration',
     'avatar',
     'treebeard',
+    'xmppface',
     'snapboard',
-    #'xmppface',
 )
 
 # List of callables that know how to import templates from various sources.

@@ -1,41 +1,34 @@
-"""
-This module is an unfinished (yet) attempt to add XMPP/IM/cmd support to
+""" This module is an unfinished (yet) attempt to add XMPP/IM/cmd support to
 django in the same way that it implements HTTP/HTML.
 
-This is the face-part, which tries to return some response for entered command.
-"""
+This is the face-part, which tries to return some response for an entered
+command.  """
 
 import django
 from django.utils.translation import ugettext as _
 
 import logging
 _log = logging.getLogger('xmppface')
-# Debug...
-import traceback
+import traceback  # Debug...
 
-# cmdresolver / urlresolver. May be a hack..
-from django.core.urlresolvers import RegexURLResolver
-# Now that's surely a hack, eh?
-from cmds import cmdpatterns
 
-#from xmppbase import *
-from xmppbase import XmppRequest, XmppIq, XmppResponse, send_xmpp_message
+from .xmppbase import (XmppRequest, XmppIq, XmppResponse, 
+  send_xmpp_message, _get_user_qs)
 # Dumping of extra info into there:
-import models
 from .models import XMPPContact
+from .util import RegexCmdResolver
+
 from django.core.cache import cache
 
-# Couple of things here should probably be in a class.
-# ? Place something instead of "", maybe?
-cmdresolver = RegexURLResolver("", cmdpatterns)
+
+# ? XXX: Allow overriding ROOT_CMDCONF in settings?
+cmdresolver = RegexCmdResolver("", "cmds")
 
 
 def process_post_kwargs(request, kwargs):
-    """
-    Retreives all 'POST_' (and 'GET_') keys from kwargs and adds them to the
-    request's POST/GET data.  Returns tuple of (request, kwargs) modifying
-    actual request.
-    """
+    """ Retreives all 'POST_' (and 'GET_') keys from kwargs and adds them to
+    the request's POST/GET data.  Returns tuple of (request, kwargs)
+    modifying actual request.  """
     newkwargs = {}
     # Those two checks shouldn't actually be necessary.
     if not getattr(request, 'POST', None):
@@ -51,11 +44,10 @@ def process_post_kwargs(request, kwargs):
             newkwargs[key] = value
     return (request, newkwargs)
 
+
 def makecontact(local, remote):
-    '''
-    Bunch of race-condition-avoiding hacks to make sure specified unique
-    XMPPContact object exists and can be update()'d.
-    '''
+    """ Bunch of race-condition-avoiding hacks to make sure specified unique
+    XMPPContact object exists and can be update()'d.  """
     try:
         contact, created = XMPPContact.objects.get_or_create(
           local=local, remote=remote)
@@ -63,36 +55,47 @@ def makecontact(local, remote):
         _log.warn("\n --------------- Exception %r on "
           "GET_OR_CREATE." % exc)
         _log.debug(traceback.format_exc())
-        ## Might be necessary:
-        ## ref. http://stackoverflow.com/questions/2235318/how-do-i-deal-with-this-race-condition-in-django
+        ## ! XXX: Might be necessary:
+        ## http://stackoverflow.com/questions/2235318/
         django.db.transaction.commit()
         contact = XMPPContact.objects.get(local=local, remote=remote)
     return contact
 
-def check_photo_update(local, remote, photo):
+
+def check_photo_update(local, remote_b, photo):
     """ See if we don't use the advertised contact's photo (avatar) and
     request it if necessary. """
     # Might want to optimize (cache) this.
-    contact = makecontact(local, remote)
+    # ! XXX: for user with >1 bot contacts, vCard would be requested many
+    #  times.
+    contact = makecontact(local, remote_b)
     if contact.photosum == photo:
         return  # No need to update.
-    barejid = remote.split('/')[0]  # ! status gets a full JID... usually.
     # Could probably get that by moving it all into view. Although this is a
     # controversial architectural decision.
-    if not models.User.objects.filter(sb_usersettings__jid__exact=barejid).exists():
-        # not registered.
+    if not _get_user_qs(remote_b).exists():  # not registered.
         return
     # Send XMPP iq request for vcard.
     # XEP-0054, XEP-0153.
-    # ? id=''.join(random.choice(string.ascii_lowercase + string.digits) for x in range(4))
-    iqreq = XmppIq(iqtype='get', src=local, dst=barejid,
+    # ? id=''.join(random.choice(string.ascii_lowercase + string.digits
+    #     ) for x in range(4))
+    # ? Appropriate to send it ti the base JID?
+    iqreq = XmppIq(iqtype='get', src=local, dst=remote_b,
       content=u'<vCard xmlns="vcard-temp"/>')
     print "iqreq: %r" % iqreq
     send_xmpp_message(iqreq)
-    print "... sent."
+    # Save new photo checksum.
+    # ! XXX: Might be problematic if user fails to answer this Iq request
+    # Possible: conpute checksum of the received data (for saving it).
+    # Also, check gajim source?
+    upd = XMPPContact.objects.filter(local=local,
+      remote=remote_b).update(photosum=photo)
+    print "... done."
 
 
-def update_vcard(local, remote, vcard):
+def update_vcard(local, remote_b, vcard):
+    """ Process a received vCard data.  Saves vCard photo as user's avatar
+    if possible. """
     """ example:
      {u'DESC': u'something',
       u'PHOTO': {
@@ -103,19 +106,19 @@ def update_vcard(local, remote, vcard):
     # same bit as in check_photo_update above
     _log.debug("update_vcard.")
     try:
-        from avatar.models import Avatar
+        # ! XXX: avatar_file_path might be quite version-specific.
+        from avatar.models import Avatar, avatar_file_path
     except ImportError:
-        _log.debug("... could not import Avatar model.")
+        _log.debug("... could not import Avatar model!")
         return  # nothing to do then.
-    barejid = remote.split('/')[0]
-    try:
-        user = models.User.objects.get(sb_usersettings__jid__exact=barejid)
-    except models.User.DoesNotExist:
-        _log.debug(" ... vCard for an unregistered JID.")
+    user_qs = _get_user_qs(remote_b)[:1]
+    if not user_qs:
+        _log.debug(" ... vCard for an unregistered JID!")
         return
+    user = user_qs[0]
     photo = vcard.get('PHOTO')
     if not isinstance(photo, dict):
-        _log.debug("... no usable PHOTO data.")
+        _log.debug("... no usable PHOTO data!")
         return  # something's not here.
     import base64
     binval = photo.get('BINVAL')
@@ -130,30 +133,35 @@ def update_vcard(local, remote, vcard):
     from django.core.files.base import ContentFile
     contentf = ContentFile(pdata)
     _log.debug("... creating avatar...")
-    contentf.name = 'xf-vcard-auto-avatar'
-    # autobasename = 'xf-vcard-auto-avatar.%s'
-    #contentf.name = autobasename % extension
+    #contentf.name = 'xf-vcard-auto-avatar'
+    autobasename = 'xf-vcard-auto-avatar.%s'
+    contentf.name = autobasename % extension
     autoav = Avatar(user=user, avatar=contentf)
-    # ! TODO: check if auto-avatar is already presemt replace if it is.
-    # Avatar.objects.filter(
-    #  avatar__startswith=avatar_file_path(av, autobasename % '')).exists()
-    autoav.save()
-    _log.debug("... saved.")
+    # Check if auto-avatar is already presemt, replace if it is.
+    # ! It's user's problem if user uploads an avatar with such a special
+    #  name :)
+    old_autoav_qs = Avatar.objects.filter(user=user,
+      avatar__startswith=avatar_file_path(av, autobasename % ''))[:1]
+    if old_autoav_qs:  # Already have some. Replace it.
+        # ! XXX: non-parallel-safe here.
+        old_autoav = old_autoav_qs[0]
+        autoav.primary = old_autoav.primary  # XXX: Not very nice.
+        old_autoav.delete()
+    else:  # save the new one,
+        autoav.save()
+    _log.debug("... av done.")
 
 
 def processcmd(indata):
-    """
-    Gets a source jid and command text and returns XmppResponse.
-
-    Should get no unkeyworded arguments.
-    """
+    """ Processes XMPP-originating data such as statuses, text commands,
+    etc.  """
     src = indata.get('src')
     srcbarejid = src.split("/")[0]  # Strip the resource if any.
     dst = indata.get('dst')
     body = indata.get('body')
     _log.debug(" -+-+-+-+-+- indata: %r." % indata)
     if 'auth' in indata:  # Got subscribe/auth data. Save it.
-        makecontact(dst, src)
+        makecontact(dst, src)  # ! XXX: dst/resource?
         _log.debug(' ....... auth data. ')
         authtype = indata['auth']
         subsmapping = {
@@ -164,29 +172,30 @@ def processcmd(indata):
         }
         # That one should be minimalistic & atomic.
         upd = XMPPContact.objects.filter(local=dst,
-         remote=src).update(**subsmapping[authtype])
+          remote=srcbarejid).update(**subsmapping[authtype])
         if upd != 1:  # ...something happened to be wrong anyway.
             _log.warn(" --------------- Unexpected failure"
-             " on updating auth data. Upd is %d." % upd)
+              " on updating auth data. Upd is %d." % upd)
         return  # Nothing else should be in there.
     if 'stat' in indata:  # Got contact status. Save it.
         # ! ^ Don't really care about status now. But save the last status
         # anyway.
         statustype = indata['stat']
-        cache.set('st_%s'%src, statustype)  # bot's JID is ignored here.
+        cache.set(u'st_%s' % src, statustype)  # bot's JID is ignored here.
         if 'photo' in indata and indata['photo']:
             _log.debug(' ... + photo data.')
-            check_photo_update(dst, src, indata['photo'])
+            check_photo_update(dst, srcbarejid, indata['photo'])
         return
     if 'vcard' in indata:
         _log.debug(' ....... vCard data.')
-        update_vcard(dst, src, indata['vcard'])
+        update_vcard(dst, srcbarejid, indata['vcard'])
         return
     # ... otherwise it's probably a user command.
 
     _log.debug("\n ------- src: %r; body: %r" % (src, body))
+
     request = XmppRequest(srcbarejid)
-    
+
     # ! body should always be an unicode string here. If not - should change
     # ! processcmd's callers.
     #_log.debug("\n ------- bodystr: body: %r\n" % (body))
@@ -216,8 +225,8 @@ def processcmd(indata):
 
             # May also add registration offer to anonymous users.
         except django.http.Http404, exc:
-            # Using Http404 here not very right, eh?
-            # But is certainly more simple.
+            # Using Http404 here is more simple.
+            # ! TODO: Add support for handler404, etc?
             response = XmppResponse("404: %s" % exc)
         except django.core.exceptions.PermissionDenied, exc:
             response = XmppResponse(_("Access Denied.") + " %s" % exc)

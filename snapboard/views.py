@@ -21,13 +21,12 @@ from django.core.cache import cache
 # For easy notification resource handling:
 from notification import models as notification
 
-# XmppFace
-import xmppbase
-from xmppbase import XmppRequest, XmppResponse
-from xmppbase import render_to_response, success_or_reverse_redirect
-from xmppstuff import send_notifications
 #from django.contrib.auth.decorators import login_required
-from xmppbase import login_required
+# XmppFace
+import xmppface.xmppbase
+from xmppface.xmppbase import (XmppRequest, XmppResponse, render_to_response,
+ success_or_reverse_redirect, login_required)
+from xmppface.xmppstuff import send_notifications
 
 # Avatar form in UserSettings
 from avatar.models import Avatar, avatar_file_path
@@ -502,7 +501,7 @@ def thread_index(request, num_limit=None, num_start=None):
         thread_list = Thread.view_manager.get_query_set()
     thread_list = filter(lambda t: t.category.can_view(request.user), thread_list)
     # ! This should be common with few more views, probably.
-    if isinstance(request, XmppRequest):  # Apply Xmpp-specific limits
+    if isinstance(request, XmppRequest):  # Apply Xmpp-specific limits  # ! TODO: request.is_xmpp() ?
         # ? int() failure would mean programming error... or not?
         num_start=int(num_start or 1)-1 # Starting from humanized '1'.
         num_limit=int(num_limit or 20)

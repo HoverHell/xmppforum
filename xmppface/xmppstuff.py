@@ -19,7 +19,7 @@ from notification.models import Notice, NoticeType, Site, get_language,\
 
 import django  
 from django.core.urlresolvers import reverse
-from xmppbase import XmppResponse, XmppPresence, send_xmpp_message
+from .xmppbase import XmppResponse, XmppPresence, send_xmpp_message
 
 #from models import XMPPContact
 
