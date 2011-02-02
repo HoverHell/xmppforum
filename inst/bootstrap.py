@@ -1133,7 +1133,8 @@ def create_bootstrap_script(extra_text, python_version=''):
 
 
 DEFDIR = "ENV"  # default target directory for virtualenv.
-INST_BASE = 'inst/'  # location of req-.txt files.
+REQ_BASE = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+  "requirements%s.txt")
 
 def extend_parser(parser):
     parser.add_option(
@@ -1162,17 +1163,17 @@ def after_install(options, home_dir):
     # explicit path to the python should not be required, but is generally
     # more safe (will rather fail than do wronf stuff).
     rpip = lambda x: subprocess.call([join(home_dir, bin, 'python'),
-      join(home_dir, bin, 'pip'), 'install', '-U', '-r', INST_BASE + x])
+      join(home_dir, bin, 'pip'), 'install', '-U', '-r', x])
 
     if options.dinstall:
         print " ------- Installing minimal requirements."
-        rpip('requirements-d.txt')
+        rpip(REQ_BASE % '-d')
     else:
         print " ------- Installing basic requirements."
-        rpip('requirements.txt')
+        rpip(REQ_BASE % '')
         if options.cinstall:
             print " ------- Installing C-based requirements."
-            rpip('requirements-c.txt')
+            rpip(REQ_BASE % '-c')
 
 
 ##file site.py
