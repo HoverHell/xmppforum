@@ -329,18 +329,33 @@ def edit_post(request, original, rpc=False):
         postform = PostForm(request.POST)
         if postform.is_valid():
             # create the post
-            parent = orig_post.get_parent()
             postdata = {
                     "user": request.user,
                     "thread": orig_post.thread,
                     "text": postform.cleaned_data['post'],
                     "previous": orig_post,
             }
+
+            ## Hax: v1.
+            ## Move the previous revision to the special place in the tree.
+            #post = Post(**postdata)
+            # place it into the original post place
+            #post.path, post.depth, post.numchild = orig_post.path,
+            #  orig_post.depth, orig_post.numchild
+            # and move the original into the special place.
+            #newpath = '0' * Post.steplen + orig_post.path
+            #target = Post.objects.filter(path=newpath)[:1]
+            #if target:  # some post is already there - prev. rev., probably.
+            #    pass  # NIY.
+            #else:  # nothing there.
+            #    orig_post.path = newpath
+
+            parent = orig_post.get_parent()
             if parent:
                 post = parent.add_child(**postdata)
             else:
                 post = Post.add_root(**postdata)
-            post.save()
+            post.save()  # so that jointed objects are accessible.
             post.private = orig_post.private.all()
             post.is_private = orig_post.is_private
             post.save()

@@ -5,16 +5,14 @@ Currently contains only notification wrapper, that probably shouldn't be
 implemented this way in the first place.
 """
 
-try:
-    from notification.models import send as notification_send_orig
-    from notification import models as notification
-except ImportError:
-    notification = None
 
 import logging
 _log = logging.getLogger('xmppstuff')
 
 
+from notification.models import send as notification_send_orig
+from notification import models as notification
+## XXX: Not very nice overriding of send_notifications for the XMPP support.
 from notification.models import Notice, NoticeType, Site, get_language,\
   get_notification_language, activate, get_formatted_messages, \
   should_send, send_mail, LanguageStoreNotAvailable, Context, ugettext

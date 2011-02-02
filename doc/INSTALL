@@ -1,39 +1,40 @@
 
 xmppforum is mostly self-containing, and uses only Python-based
-dependencies. However, some of those dependencies are based on C code and,
+dependencies.  However, some of those dependencies are based on C code and,
 therefore, it's easier to install them using distribution methods.
 
 To set up a virtual environment with all django dependencies, you can just
-run "python bootstrap.py". However, you will still need some more python
-libraries.
+run "python inst/bootstrap.py".  However, you will still need some more
+python libraries.
 
-You can instead use "python bootstrap.py -c" if you want those compiled &
-installed as well (which requires, at least, GCC and git).
+You can instead use "python inst/bootstrap.py -c" if you want those compiled
+and installed as well (which requires, at least, GCC and git).
 
 Or, if you're running Debian or similar distribution, you can try using
-"python bootstrap.py -d" after installing some packages by running
+"python inst/bootstrap.py -d" after installing some packages by running
 
   aptitude install python-django python-imaging python-wokkel \
     python-django-treebeard python-django-registration python-simplejson git
 
-.
+.  Note that this requires `git` as well (for now).
 
-After running bootstrap, you get the 'ENV' directory.
-Change dir to "jforum",
- add option overrides to settings_local.py (copy from settings.py what needs
-   to be changed)
- and then run:
+By running bootstrap, you get the 'ENV' directory and, hopefully, all the
+ requirements installed.
+After that, add option overrides to settings_local.py (copy from settings.py
+ what needs to be changed - it is organized in sections by likelihood of
+ requiring overrides),
+And then run:
 
-   ../ENV/bin/python manage.py syncdb
+   ENV/bin/python manage.py syncdb
 
 to create a default database (it will ask few questions). After that, you
  can
 
-   ../ENV/bin/python manage.py runserver 0.0.0.0:8000
+   ENV/bin/python manage.py runserver 0.0.0.0:8000
 
 to start the django development server, and
 
-   ../ENV/bin/python $(which twistd) -y jaboardxmpp.tac -n --pidfile \
+   ENV/bin/python $(which twistd) -y jaboardxmpp.tac -n --pidfile \
      jaboardxmpp.pid
 
 to run XMPP server (or you can use explicit path to twistd).

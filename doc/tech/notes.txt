@@ -1,0 +1,111 @@
+
+<presence from="ff@chat.friendfeed.com" to="hoverhell@gmail.com">
+<ns2:x xmlns:ns2="vcard-temp:x:update">
+<ns2:photo>3e695c6b758322ce99586c8f4430dd753ff37d12</ns2:photo>
+</ns2:x>
+</presence>
+
+
+
+? Auto-creating of XMPP users should probably be handled over login_required
+ (since it gets the 'request' object), with options like "show registering
+ offer", "warn about registration and offer to set the name" and
+ "automatically register and use JID as username"
+
+TODO: make XMPP XHTML templates use non-relative links.
+
+WARN: can't use 'include' in ptf templates.
+
+            {{ page_obj.start_index|add:forloop.counter|add:-1 }}
+
+
+imgtag_re=re.compile(r'<img\s+(src=[\'"](?P<src>.*?)[\'"]|(?P<alt>alt=)|(?P<title>title=))[^>]*>');
+m=imgtag_re.findall(t); m[0]
+
+
+*** These modified files were found in JOE when it aborted on Thu Apr 29 02:04:42 2010
+*** JOE was aborted by UNIX signal 1
+
+*** File 'notes.txt'
+
+<presence from="ff@chat.friendfeed.com" to="hoverhell@gmail.com">
+<ns2:x xmlns:ns2="vcard-temp:x:update">
+<ns2:photo>3e695c6b758322ce99586c8f4430dd753ff37d12</ns2:photo>
+</ns2:x>
+</presence>
+
+<iq type="get" to="kalan.001@gmail.com" id="a100ba">
+<vCard xmlns="vcard-temp" version="2.0" prodid="-//HandGen//NONSGML vGen
+v1.0//EN"/>
+</iq>
+
+
+<presence from="kalan.001@gmail.com/BitlBeeCB5F3D1F"
+to="hoverhell@gmail.com">
+<priority>1</priority>
+<show>away</show>
+<status>Away: screen detached. Say what you want to say, delivery is
+guaranteed.</status>
+<c xmlns="http://jabber.org/protocol/caps"
+node="http://bitlbee.org/xmpp/caps" ver="1.2.3"/>
+<x xmlns="vcard-temp:x:update">
+<photo>6d5f1f420ae9da5879de2f54e853325c28a1d27b</photo>
+</x>
+</presence>
+
+
+<iq from="kalan.001@gmail.com" type="result"
+to="hoverhell@gmail.com/hheee528EE87B" id="a100ba">
+<vCard xmlns="vcard-temp">
+<FN>Kalan</FN>
+<PHOTO>
+<TYPE>image/jpg</TYPE>
+<BINVAL>/9j/4AAQSkZJRgABAQAAAQABAAD/2wCEAAUDBAoJBwcHCAkGCAcHBgcHBwcHBwcHBwcGBwcHBgcHBwcHChAMBwgOCQcHDBUMDhERHxMfBwwWGCIeGBAeHx4BBQUFBwcIDAgJDxQMDAwUFBQUFBQUFBQSFBQUEhIUHhQeFBQSFB4UHhQUFB4eHhQeFBQeHhQUHh4eFBQeFBQUFP/AABEIAGAAYAMBIgACEQEDEQH/xAAbAAACAgMBAAAAAAAAAAAAAAADBAIFAQYHAP/EACsQAAIBAgUCBQQDAAAAAAAAAAACAwEEBRJCUmITkiIycoKiBhRD8hUW8P/EABoBAAIDAQEAAAAAAAAAAAAAAAEDAgQFAAb/xAAlEQACAgEDAwUBAQAAAAAAAAAAAQIDERIxQQQhUQUTFDJhQhX/2gAMAwEAAhEDEQA/ANths11D0NpCUSXgVbzkVWpPkuxpkuDYVhi05AlI1KCO65BvvORHS1yNxNFuyqAkdSsrPyI0kTUw6OoVNSwWPWXSGjA2kiaVLGGqsSlc48FVUqTzJgloToMURSEjKBdRngc6IpdjCkuqopJMCaQfGWSlbXjY5xHjI1BiCsKw2DbfiOQ22X9QSjV4Ixuu8jcc6hklIQRrtLWzdV0oIloRZhfcCtrN38quWln9PtqZFLHD6s3EsaZdXiM67rNGxoUV2WbsBZYIm7MWceCrpFlv1XiETHF3FCfV3T2Zq1dCl3YeuCKAlwbaNQ42o0mJqwr5F65Hqmtfya/LhDCr2LKbgsqNs7heeJG1INr9SthuMXT9PLtKJzJXQz0oW1fI542MPuCR4synoPj2+TxynSzf6WsO/wCQzbRwr+U51/LesjXGH9IPYtfIdVKOrx38K/lMTY9DpY5SuIO2omt0wmXp2r7Mt1dZXD6o6Dc4wreUTriC7jTqTuxOjuTh6fXEs/60uEblFiirqDf2NVNMTkwVWUn8KvkRL1Sx8G11+pn0+ElD9SMvnY0q4mbTnAUR2/3iOfQ04Ir1Ge2Mmt5z1HJqhJUNTUYCyQWoVKkkiGobYi5IKTM2rcS0hXiKxpl8oZatuf2leffYs1rG4Z83pBV5Me9rt6mPUo+lUUgotD/e/D1G2r7ia5t2UXkjl5gWt35ktP6D3fw
+
+
+? Auto-creating of XMPP users should probably be handled over login_required
+ (since it gets the 'request' object), with options like "show registering
+ offer", "warn about registration and offer to set the name" and
+ "automatically register and use JID as username"
+
+TODO: make XMPP XHTML templates use non-relative links.
+
+WARN: can't use 'include' in ptf templates.
+
+            {{ page_obj.start_index|add:forloop.counter|add:-1 }}
+
+
+imgtag_re=re.compile(r'<img\s+(src=[\'"](?P<src>.*?)[\'"]|(?P<alt>alt=)|(?P<title>title=))[^>]*>');
+m=imgtag_re.findall(t); m[0]
+
+
+*** File '(Unnamed)'
+er
+err
+xmppworker
+
+*** File '(Unnamed)'
+usersett
+setu
+xmppbase
+views
+setus
+setu
+users
+UserS
+null
+UserSet
+
+*** File '(Unnamed)'
+xmppbase.py
+xmppstuff.py
+xmppbase.py
+../../jaboard-hg-co-a/snapboard/xmppbase.py
+xmppbase.py
+xmppbase.py
+xmppbase.py
+models.py
+models.py
+cmds.py
+notes.txt
+notes.txt

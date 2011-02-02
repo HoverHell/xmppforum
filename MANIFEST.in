@@ -1,3 +1,0 @@
-recursive-include snapboard/locale *.po *.mo
-recursive-include snapboard *.html *.txt
-include LICENSE

@@ -1,0 +1,9 @@
+
+See doc/INSTALL for instructions on setting this software up and running.
+
+== About ==
+
+In short, this is an attempt to build a forum software that is completely
+usable over IM (XMPP) text interface (taking Juick as an example), and with
+support for neat tree-like structure of messages (taking LiveJournal as an
+example) - fixing shortcomings of ideological source projects when possible.

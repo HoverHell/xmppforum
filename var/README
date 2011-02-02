@@ -1,0 +1,5 @@
+This is directory for relative-path temporary files (like UNIX
+file-sockets).  Most likely it should have permissions set to `0700` to
+prevent unauthorized socket access.
+
+Sqlite3 database file can also be put here.

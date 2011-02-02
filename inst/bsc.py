@@ -16,8 +16,8 @@ import virtualenv
 
 EXTRA_TEXT = """
 
-DEFDIR = "ENV"
-
+DEFDIR = "ENV"  # default target directory for virtualenv.
+INST_BASE = 'inst/'  # location of req-.txt files.
 
 def extend_parser(parser):
     parser.add_option(
@@ -46,7 +46,7 @@ def after_install(options, home_dir):
     # explicit path to the python should not be required, but is generally
     # more safe (will rather fail than do wronf stuff).
     rpip = lambda x: subprocess.call([join(home_dir, bin, 'python'),
-      join(home_dir, bin, 'pip'), 'install', '-U', '-r', x])
+      join(home_dir, bin, 'pip'), 'install', '-U', '-r', INST_BASE + x])
 
     if options.dinstall:
         print " ------- Installing minimal requirements."
