@@ -3,6 +3,7 @@
 {% load avatar_tags %}
 {% load i18n pagination_tags %}
 <div>
+
 <div id="snap_top_post" class="snap_top_post">
     <div id="snap_post{{ top_post.id }}" class="snap_post">
         {% if top_post.censor %}<div class="post_censored">{% else %}{% ifnotequal top_post.abuse 0 %}<div class="post_reported">{% endifnotequal %}{% endif %}
@@ -52,9 +53,9 @@
             {% endifequal %}
         </div>
         {% if top_post.censor %}</div>{% else %}{% ifnotequal top_post.abuse 0 %}</div>{% endifnotequal %}{% endif %}
+    </div>
+</div>
 
-</div>
-</div>
 {% autopaginate post_list user_settings.ppp %}
 {% paginate %}
 {% for top_answer in post_list %}

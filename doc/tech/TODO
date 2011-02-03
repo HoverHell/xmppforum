@@ -1,7 +1,25 @@
 
 -- xmppface:
-  * !! Make it a separate module/app!
-  * allow custom 404 / 500 / ... handlers?
   * put run_... stuff into management commands
+  * ?? Should it be usable without django settings? Or
+   django-dummy-settings-mechanisms are good enough to not care?
+  ...
+  * allow custom 404 / 500 / ... handlers?
   * Add customizable prefixes for all cache.* stuff (at least in a separate
    module)
+  ...
+  * almost done: !! Make it a separate module/app! 
+
+-- snapbase:
+  * fix / implement post revisions. Problem is:
+   http://stackoverflow.com/questions/4870802/
+  ...
+  * Review CSRF protection stuff. References:
+   http://djangobook.com/en/2.0/chapter16/
+  * Review AJAXy stuff. References:
+   http://stackoverflow.com/questions/4740569/ajax-views-with-django
+  * Try to DRY the settings view regarding Avatar.  If impossible - move
+   the avatar settings away after all.
+  * Try to DRY notification XMPP support. Looks like might have to find out
+   what django-notification developer meant for such stuff. (Unanswered
+   question at http://stackoverflow.com/questions/2562492/ ).

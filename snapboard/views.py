@@ -62,19 +62,19 @@ if ANONYMOUS_NAME:
 else:
     def anonymous_login_required(function=None):
         return login_required(function)
+
         
 def snapboard_default_context(request):
-    """
-    Provides some default information for all templates.
+    """ Provides some default information for all templates.
 
-    This should be added to the settings variable TEMPLATE_CONTEXT_PROCESSORS
-    """
+    This should be added to the settings variable
+    TEMPLATE_CONTEXT_PROCESSORS """
     return {
-            'SNAP_MEDIA_PREFIX': SNAP_MEDIA_PREFIX,
-            'SNAP_POST_FILTER': SNAP_POST_FILTER,
-            'LOGIN_URL': settings.LOGIN_URL,
-            'LOGOUT_URL': settings.LOGOUT_URL,
-            }
+      'SNAP_MEDIA_PREFIX': SNAP_MEDIA_PREFIX,
+      'SNAP_POST_FILTER': SNAP_POST_FILTER,
+      'LOGIN_URL': settings.LOGIN_URL,
+      'LOGOUT_URL': settings.LOGOUT_URL,
+      }
 
 
 def _get_that_post(request, post_id=None):
@@ -101,12 +101,12 @@ def _get_that_post(request, post_id=None):
 def user_settings_context(request):
     return {'user_settings': request.user.get_user_settings()}
 
+
 extra_processors = [user_settings_context]
 
+
 def rpc(request):
-    '''
-    Delegates simple rpc requests.
-    '''
+    """ Delegates simple rpc requests.  """
     if not request.POST:
         return HttpResponseServerError("RPC data is absent")
     
@@ -156,11 +156,10 @@ def rpc(request):
     return HttpResponse(simplejson.dumps(response_dict),
      mimetype='application/javascript')
 
+
 def r_getreturn(request, rpc, next, rpcdata, successtext, postid=None):
-    '''
-    Common function for RPCable views to easily return some appropriate
-    data (rpcdata or next-redirect).
-    '''
+    """ Common function for RPCable views to easily return some appropriate
+    data (rpcdata or next-redirect).  """
     if rpc:  # explicit request to return RPC-usable data
         # Can do conversion in rpc(), though.
         return rpcdata
@@ -176,6 +175,8 @@ def r_getreturn(request, rpc, next, rpcdata, successtext, postid=None):
             # else?
             return HttpResponseServerError("RPC return: unknown return.")  # Nothing else to do here.
 
+
+@login_required
 def r_watch_post(request, post_id=None, next=None, resource=None, rpc=False):
     post = _get_that_post(request, post_id)
     # ^ 'auto' fetching should only be done from XMPP.
@@ -201,6 +202,7 @@ def r_watch_post(request, post_id=None, next=None, resource=None, rpc=False):
           "Watch added.", postid=post.id)
 
 
+@anonymous_login_required
 def thread(request, thread_id):
 
     thr = get_object_or_404(Thread, pk=thread_id)
@@ -255,9 +257,9 @@ def thread(request, thread_id):
     return render_to_response('snapboard/thread',
             render_dict,
             context_instance=RequestContext(request, processors=extra_processors))
-thread = anonymous_login_required(thread)
 
 
+@anonymous_login_required
 def post_reply(request, parent_id, thread_id=None, rpc=False):
     # thread_id paremeter was considered unnecessary here.
     # Although, '#thread_id/post_id_in_thread' might be preferrable to using
@@ -303,15 +305,15 @@ def post_reply(request, parent_id, thread_id=None, rpc=False):
              context,
              context_instance=RequestContext(request,
               processors=extra_processors))
-post_reply = anonymous_login_required(post_reply)
+
 
 
 #def rpc_geteditform(request, post_id, rpc=True):
 #    post = Post.objects.select_related(depth=2).get(pk=post_id)
+
+@anonymous_login_required  # ! Anonymous post revisions! yay!
 def edit_post(request, original, rpc=False):
-    '''
-    Edit an existing post.
-    '''
+    """ Edit an existing post.  """
     # revision=None covers for a serious bug that allows one post to be
     # edited twice, thus creating serious problems in the database (two
     # 'latest' posts).
@@ -386,13 +388,10 @@ def edit_post(request, original, rpc=False):
              context,
              context_instance=RequestContext(request,
               processors=extra_processors))
-edit_post = anonymous_login_required(edit_post)  # ! Anonymous post revisions! yay!
 
 
 def show_revisions(request, post_id):
-    '''
-    See all revisions of a specific post (for non-JS browsing).
-    '''
+    """ See all revisions of a specific post (for non-JS browsing).  """
     orig_post = get_object_or_404(Post, pk=int(post_id))
 
     # revision => newer
@@ -416,12 +415,9 @@ def show_revisions(request, post_id):
             context_instance=RequestContext(request, processors=extra_processors))
 
 
-##
-# Should new discussions be allowed to be private?  Leaning toward no.
+@anonymous_login_required
 def new_thread(request, cat_id):
-    '''
-    Start a new discussion.
-    '''
+    """ Start a new discussion.  """
     category = get_object_or_404(Category, pk=cat_id)
     if not category.can_create_thread(request.user):
         raise PermissionError, "You cannost post in this category"
@@ -455,14 +451,12 @@ def new_thread(request, cat_id):
             'form': threadform,
             },
             context_instance=RequestContext(request, processors=extra_processors))
-new_thread = anonymous_login_required(new_thread)
 
 
+@login_required
 def watchlist(request):
-    '''
-    This page shows the posts that have been marked as 'watched'
-    by the user.
-    '''
+    """ This page shows the posts that have been marked as "watched" by the
+    user.  """
     post_list = filter(lambda p: p.thread.category.can_view(request.user),
       [w.post for w in WatchList.objects.select_related(depth=3).filter(user=request.user)])
     # Pagination? Looks nice to allow in-url parameter like "?ppp=100".
@@ -470,8 +464,9 @@ def watchlist(request):
     return render_to_response('snapboard/watchlist',
             {'posts': post_list},
             context_instance=RequestContext(request, processors=extra_processors))
-watchlist = login_required(watchlist)
 
+
+@login_required
 def private_index(request):
     thread_list = [thr for thr in Thread.view_manager.get_private(request.user) if thr.category.can_read(request.user)]
 
@@ -482,6 +477,8 @@ def private_index(request):
             context_instance=RequestContext(request, processors=extra_processors))
 private_index = login_required(private_index)
 
+
+@anonymous_login_required
 def category_thread_index(request, cat_id):
     cat = get_object_or_404(Category, pk=cat_id)
     if not cat.can_read(request.user):
@@ -491,7 +488,7 @@ def category_thread_index(request, cat_id):
     return render_to_response('snapboard/thread_index_categoryless',
             render_dict,
             context_instance=RequestContext(request, processors=extra_processors))
-category_thread_index = anonymous_login_required(category_thread_index)
+
 
 def thread_index(request, num_limit=None, num_start=None):
     if request.user.is_authenticated():
@@ -511,10 +508,9 @@ def thread_index(request, num_limit=None, num_start=None):
             render_dict,
             context_instance=RequestContext(request, processors=extra_processors))
 
+
 def locate_post(request, post_id):
-    '''
-    Redirects to a post, given its ID.
-    '''
+    """ Redirects to a post, given its ID.  """
     post = get_object_or_404(Post, pk=post_id)
     if not post.thread.category.can_read(request.user):
         raise PermissionError, "You cannot see it"
@@ -545,20 +541,20 @@ def locate_post(request, post_id):
         page = preceding_count // ppp + 1
     return HttpResponseRedirect('%s?page=%i#snap_post%i' % (reverse('snapboard_thread', args=(post.thread.id,)), page, post.id))
 
-def category_index(request):
-    return render_to_response('snapboard/category_index',
-            {
-            'cat_list': [c for c in Category.objects.all() if c.can_view(request.user)],
-            },
-            context_instance=RequestContext(request, processors=extra_processors))
 
+def category_index(request):
+    return render_to_response('snapboard/category_index', {
+      'cat_list': [c for c in Category.objects.all() if c.can_view(request.user)],
+      },
+      context_instance=RequestContext(request, processors=extra_processors))
+
+
+@login_required
 def edit_settings(request):
-    '''
-    Allow user to edit his/her profile. Requires login.
+    """ Allow user to edit his/her profile.  Requires login.
 
     There are 4 buttons on this page: choose avatar, delete avatar, upload
-    avatar, change settings.
-    '''
+    avatar, change settings.  """
     userdata, userdatacreated = UserSettings.objects.get_or_create(user=request.user)
     avatar, avatars = _get_avatars(request.user)
     if avatar:
@@ -566,7 +562,7 @@ def edit_settings(request):
     else:
         kwargs = {}
     settings_form, primary_avatar_form, upload_avatar_form = None, None, None
-    # ! Actually, the avatars code was mostly copied from avatar/views.py
+    # ! XXX: Actually, the avatars code was mostly copied from avatar/views.py
     # ! Which is problematic if avatar module is updated
     # ! but blends in much better.
     if request.method == 'POST':
@@ -628,8 +624,9 @@ def edit_settings(request):
              'primary_avatar_form': primary_avatar_form,
              'avatar': avatar,  'avatars': avatars, },
             context_instance=RequestContext(request, processors=extra_processors))
-edit_settings = login_required(edit_settings)
 
+
+@login_required
 def manage_group(request, group_id):
     group = get_object_or_404(Group, pk=group_id)
     if not group.has_admin(request.user):
@@ -647,8 +644,9 @@ def manage_group(request, group_id):
             'snapboard/manage_group',
             render_dict,
             context_instance=RequestContext(request, processors=extra_processors))
-manage_group = login_required(manage_group)
 
+
+@login_required
 def invite_user_to_group(request, group_id):
     group = get_object_or_404(Group, pk=group_id)
     if not group.has_admin(request.user):
@@ -674,8 +672,9 @@ def invite_user_to_group(request, group_id):
     return render_to_response('snapboard/invite_user',
             {'form': form, 'group': group},
             context_instance=RequestContext(request, processors=extra_processors))
-invite_user_to_group = login_required(invite_user_to_group)
 
+
+@login_required
 def remove_user_from_group(request, group_id):
     group = get_object_or_404(Group, pk=group_id)
     if not group.has_admin(request.user):
@@ -702,13 +701,13 @@ def remove_user_from_group(request, group_id):
     else:
         raise Http404, "Ain't here!"  # ?
     return HttpResponse('ok')
-remove_user_from_group = login_required(remove_user_from_group)
 
+
+@login_required
 def grant_group_admin_rights(request, group_id):
-    '''
-    Although the Group model allows non-members to be admins, this view won't 
-    let it.
-    '''
+    """ """
+    """ Although the Group model allows non-members to be admins, this view
+    won"t let it.  """
     group = get_object_or_404(Group, pk=group_id)
     if not group.has_admin(request.user):
         raise PermissionError, "What?"
@@ -728,8 +727,9 @@ def grant_group_admin_rights(request, group_id):
     else:
         raise Http404, "Ain't here!"
     return HttpResponse('ok')
-grant_group_admin_rights = login_required(grant_group_admin_rights)
 
+
+@login_required
 def discard_invitation(request, invitation_id):
     if not request.method == 'POST':
         raise Http404, "Ain't here!"
@@ -743,8 +743,9 @@ def discard_invitation(request, invitation_id):
     else:
         request.user.message_set.create(message=_('The invitation was discarded.'))
     return HttpResponse('ok')
-discard_invitation = login_required(discard_invitation)
 
+
+@login_required
 def answer_invitation(request, invitation_id):
     invitation = get_object_or_404(Invitation, pk=invitation_id, sent_to=request.user) # requires testing!
     form = None
@@ -770,10 +771,11 @@ def answer_invitation(request, invitation_id):
     return render_to_response('snapboard/invitation',
             {'form': form, 'invitation': invitation},
             context_instance=RequestContext(request, processors=extra_processors))
-answer_invitation = login_required(answer_invitation)
 
 
+@login_required
 def xmppresourcify(request, resource=None, post_id=None):
+    _log.debug("resourcify: user: %r" % request.user)
     post = _get_that_post(request, post_id)
     if not resource:
         resource="#%d-%d"%(post.id, post.thread.id)
@@ -786,11 +788,8 @@ def xmppresourcify(request, resource=None, post_id=None):
 
 
 def xmpp_get_help(request, subject=None):
-    '''
-    Returns help message to the user, possibly on the specific subject.
-
-    Can theoretically be used in the web view as well.
-    '''
+    """ Returns help message to the user, possibly on the specific subject.
+    Can theoretically be used in the web view as well.  """
     subject = subject or "main"
     try:
         return render_to_response('snapboard/xmpp_help/%s'%subject, 
@@ -800,12 +799,10 @@ def xmpp_get_help(request, subject=None):
     except TemplateDoesNotExist:
         raise Http404, "No such help subject"
 
-def xmpp_register_cmd(request, nickname=None, password=None):
-    '''
-    Provides all necessart registration-related functionality for XMPP.
 
-    XMPP-only view.
-    '''
+def xmpp_register_cmd(request, nickname=None, password=None):
+    """ Provides all necessary registration-related functionality for XMPP.
+    XMPP-only view.  """
     if nickname is None:  # Allow registration w/o specifying nickname.
         nickname = request.srcjid
     # We're going to register one anyway.
@@ -855,12 +852,10 @@ RPC_AACTIONS = ["watch", "geteditform", "getreplyform"]
 
 
 def _brand_view(func):
-    '''
-    Mark a view as belonging to SNAPboard.
+    """ Mark a view as belonging to SNAPboard.
 
-    Allows the UserBanMiddleware to limit the ban to SNAPboard in larger 
-    projects.
-    '''
+    Allows the UserBanMiddleware to limit the ban to SNAPboard in larger
+    projects.  """
     setattr(func, '_snapboard', True)
 
 _brand_view(rpc)
