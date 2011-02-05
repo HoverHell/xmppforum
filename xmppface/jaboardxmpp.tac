@@ -50,16 +50,16 @@ def worker(w_inqueue):
     # loading happens after the start.
     from multiprocessing import current_process
     curproc = "Process %r" % current_process()
-    print "%s: starting."
+    print "%s: starting." % curproc
 
     from django.core.management import setup_environ
     import settings
     setup_environ(settings)
 
-    from . import xmppface
+    from xmppface import xmppface
     try:
         while True:
-            print "%s: waiting for stuff to process."
+            print "%s: waiting for stuff to process." % curproc
             data = w_inqueue.get()
             if data == "QUIT":
                 # ? Which logging to use?

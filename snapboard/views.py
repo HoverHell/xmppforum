@@ -821,14 +821,44 @@ def xmpp_register_cmd(request, nickname=None, password=None):
             if request.user.is_authenticated():
                 # ? What to do here, really?
                 return XmppResponse(_("You are already registered"))
-            else:
+            else:  # 'authenticate into' an existing webuser.
                 rusersettings.jid = request.srcjid  # replace its JID
+                # ! XXX: jid might be not unique!
                 rusersettings.save()
                 return XmppResponse(_("JID setting updated successfully."))
         else:
-            raise PermissionError, "Authentication to existing user failed"
+            raise PermissionError, "Authentication to an existing user failed"
     # Optional: change state to 'password input' if no password
     # !! Possible problem if password (or, esp., both) contain spaces.
+
+
+@login_required
+def xmpp_web_login_cmd(request):
+    """ Lets XMPP users log in into the web without using any password. 
+    Uses the 'loginurl' django app.  """
+    import loginurl.utils
+    from django.contrib.sites.models import Site
+    current_site = Site.objects.get_current()
+    key = loginurl.utils.create(request.user)
+    url = u"http://%s%s" % (
+      unicode(current_site.domain),
+      reverse('loginurl_login', kwargs={'key': key.key}),
+    )
+    # * note that this reverse() requires quite a hack as of loginurl 0.1.3
+    return XmppResponse('Login url: <a href="%s">%s</a> .' % (url, url))
+
+
+@login_required
+def xmpp_web_changepw(request, password=''):
+    """ Change (or set) user's password for web login.  Can be empry
+    (effectively disabling logging in with pasword).  """
+    # JID is supposedly trusted and can *just* change it.
+    request.user.set_password(password)
+    if password:
+        return XmppResponse("Password changed.")
+    else:
+        return XmppResponse("Password disabled.") 
+
 
 # RPC information with previous functions.
 RPC_OBJECT_MAP = {

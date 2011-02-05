@@ -1170,6 +1170,7 @@ def after_install(options, home_dir):
         rpip(REQ_BASE % '-d')
     else:
         print " ------- Installing basic requirements."
+        rpip(REQ_BASE % '-d')  # basic is a superset of minimal.
         rpip(REQ_BASE % '')
         if options.cinstall:
             print " ------- Installing C-based requirements."

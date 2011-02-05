@@ -1,0 +1,39 @@
+* Post revisions:
+ #1: Special place (in the tree) for old revisions.
+   Hidden category "[internals]" / thread "[revisions]" / post "[here]" ->
+    children
+   (-) clutters the category tree.
+ #2: separate data.
+   ex.: [PostTree] P123 @ 010204 -> (data) -> [PostData] P123 V3 ->
+    (previous) -> [PostData] P123 V2 -> ...
+   (-) slightly less obvious Post access.
+     (?) can be fixed by __getattr__ ?
+   (-) More Confusing Models.
+ #3: sane place (new sibling for storing older revision)?
+   (-) Extra filtering.
+   (-) Possibly confusing numeration.
+
+* XMPP workflows:
+ * user -> (new) -> XMPP -> (some login_required view)
+  #1 Automatic registration as JID-named user.
+   (!?) sa username@ part of the JID if possible?
+   +? allow to change name if username == JID?
+   ** ? JID as public username?
+   + url_for_web_login
+  #2 Register cmd with username. [done!]
+   + allow to authenticate into existing user with password [done!]
+   + change_password cmd! [!]
+   ** ? plaintext passwords in IM ?
+   + url_for_web_login
+
+  * ? warn XMPP user if not registered (if Anonymous)?
+
+! greeting_msg view! (with saying `request.user`)  
+! url_for_web_login
+
+* Web workflows:
+ user -> (new) -> web -> register (+optional e-mail)
+  ... -> XMPP.
+ #1: Enter JID in settings to delegate full access to [done!]
+ #2: Password-auth from XMPP. [done!]
+ ...?

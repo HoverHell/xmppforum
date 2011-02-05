@@ -50,3 +50,17 @@ urlpatterns += patterns('',
 urlpatterns += patterns('',
     (r'^avatar/', include('avatar.urls')),
 )
+
+## loginurl
+try:
+    import loginurl.urls
+except ImportError:
+    pass
+else:  # do our scary things!..
+    pl1 = [rep for rep in loginurl.urls.urlpatterns if
+      rep.callback == loginurl.urls.login]
+    if pl1:  # force a proper name unto it.
+        pl1[0].name = 'loginurl_login'
+    urlpatterns += patterns('',
+        (r'^loginurl/', include('loginurl.urls'), {}, 'loginurl'),
+    )

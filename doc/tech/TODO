@@ -3,6 +3,9 @@
   * put run_... stuff into management commands
   * ?? Should it be usable without django settings? Or
    django-dummy-settings-mechanisms are good enough to not care?
+  * [in progress] ? registration-related XMPP workflow?
+  * ! move xmpp_... views into this package.
+  * !! move sb_usersettings__jid into some more general place.
   ...
   * allow custom 404 / 500 / ... handlers?
   * Add customizable prefixes for all cache.* stuff (at least in a separate
