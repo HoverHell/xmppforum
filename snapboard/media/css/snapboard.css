@@ -7,6 +7,10 @@ color:#099;
 text-decoration:none;
 }
 
+div.snapboard a.redlink {
+color: red;
+}
+
 div.snapboard .errorlist {
 color:red;
 }
