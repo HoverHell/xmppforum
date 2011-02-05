@@ -363,17 +363,27 @@ def render_to_response(*args, **kwargs):
         return render_to_response_orig(*args, **kwargs)
 
 
-def login_required(function=None):
-    http_login_required = login_required_orig(function)
-    def decorate(request, *args, **kwargs):  # request is explicit.
-        if isinstance(request, XmppRequest):  # ! XXX: request.is_xmpp()
-            if request.user.is_authenticated:
-                return function(request, *args, **kwargs)
-            else:
-                pass  # ! TODO: Access denied and offer registration here.
-        else:  # Not XMPP. use original decorated.
-            return http_login_required(request, *args, **kwargs)
-    return decorate
+def xmpp_loginreq_handler(request, function, *args, **kwargs):
+    """ Default action (view) for an unregistered JID who tries to do
+    something which is login_required. """
+    return XmppResponse("Please register to do this.")
+    
+
+def get_login_required_wrapper(xmpp_unreg_view=xmpp_loginreq_handler):
+    def login_required_towrap(function=None):
+        http_login_required = login_required_orig(function)
+        def decorate(request, *args, **kwargs):  # request is explicit here.
+            if isinstance(request, XmppRequest):  # ! XXX: request.is_xmpp()
+                if request.user.is_authenticated():
+                    return function(request, *args, **kwargs)
+                else:
+                    return xmpp_unreg_view(request, function,
+                      *args, **kwargs)
+            else:  # Not XMPP. use original decorated.
+                return http_login_required(request, *args, **kwargs)
+        return decorate
+    return login_required_towrap
+login_required = get_login_required_wrapper()
 
 
 def direct_to_template(request, template):

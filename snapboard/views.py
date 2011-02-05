@@ -25,7 +25,7 @@ from notification import models as notification
 # XmppFace
 import xmppface.xmppbase
 from xmppface.xmppbase import (XmppRequest, XmppResponse, render_to_response,
- success_or_reverse_redirect, login_required)
+ success_or_reverse_redirect, login_required, get_login_required_wrapper)
 from xmppface.xmppstuff import send_notifications
 
 # Avatar form in UserSettings
@@ -46,11 +46,9 @@ ANONYMOUS_NAME = getattr(settings, 'ANONYMOUS_NAME', 'Anonymous')
 if ANONYMOUS_NAME:
     ANONYMOUS_USER = User.objects.get(username=ANONYMOUS_NAME)
     def anonymous_login_required(function=None):
-        """
-        Decorator to replace auth's AnonymousUser with an actual usable user for
-        particular views. Sets user.realy_anonymous if replaced. Configurable by
-        ANONYMOUS_NAME in the settings.
-        """
+        """ Decorator to replace auth's AnonymousUser with an actual usable
+        user for particular views.  Sets user.really_anonymous if replaced. 
+        Configurable by ANONYMOUS_NAME in the settings.  """
         def anon_decorate(request, *args, **kwargs):
             if request.user.is_authenticated():
                 return function(request, *args, **kwargs)
@@ -84,6 +82,9 @@ def _get_that_post(request, post_id=None):
         post = get_object_or_404(Post, pk=post_id);
         return post
     # otherwise - find one!
+    # TODO: include the user full jid into the search!..
+    # (that will allow to make one-to-one conversations basically
+    # seamlessly.
     now = time.time()
     ndata = cache.get('nt_%s' % request.user.username)
     if ndata:
@@ -104,6 +105,65 @@ def user_settings_context(request):
 
 extra_processors = [user_settings_context]
 
+
+## XMPP registration/autoregistration stuff.
+# TODO: move it to xmppface.views;
+# also, probably need a global get_login_required_wrapper(xmpp_unreg_view)
+# setting.
+
+def xmpp_register_cmd(request, nickname=None, password=None):
+    """ Provides all necessary registration-related functionality for XMPP.
+    XMPP-only view.  """
+    if nickname is None:  # Allow registration w/o specifying nickname.
+        nickname = request.srcjid
+    # We're going to register one anyway.
+    ruser, created = User.objects.get_or_create(username=nickname)
+    rusersettings, c = UserSettings.objects.get_or_create(user=ruser)
+    if created:  # Okay, registered one.
+        rusersettings.jid = request.srcjid
+        if password is not None:
+            ruser.set_password(password)
+        ruser.save()
+        rusersettings.save()
+        return XmppResponse(_("Registration successful."))
+    else:
+        # Note: check_password can be True if passord is None
+        if (password is not None) and ruser.check_password(password):
+            if request.user.is_authenticated():
+                # ? What to do here, really?
+                return XmppResponse(_("You are already registered"))
+            else:  # 'authenticate into' an existing webuser.
+                rusersettings.jid = request.srcjid  # replace its JID
+                # ! XXX: jid might be not unique!
+                rusersettings.save()
+                return XmppResponse(_("JID setting updated successfully."))
+        else:
+            raise PermissionError, "Authentication to an existing user failed."
+    # Optional: change state to 'password input' if no password
+    # !! Possible problem if password (or, esp., both) contain spaces.
+
+
+def xmpp_autoregister_user(request, function, *args, **kwargs):
+    """ If XMPP user needs to be registered - try to register, and tell
+    either way.  """
+    jidname = request.src.split('@')[0]
+    from django.contrib.auth.models import User
+    if User.objects.filter(username__iexact=jidname).exists():
+        return XmppResponse("You have to register to do this."
+          "Additionally, username '%r' is unavailable so I could not "
+          "autoregister you" % jidname)
+    else:  # no such user - just autoregister him!
+        # Use that view to actually register:
+        regresp = xmpp_register_cmd(request, jidname)
+        # ? do the initial command, too? Perhaps not.
+        return XmppResponse("You were just registered as '%s'. Please "
+          "re-send the command to actually do it." % jidname)
+
+
+login_required = get_login_required_wrapper(xmpp_autoregister_user)
+
+
+## RPC/similar stuff:
 
 def rpc(request):
     """ Delegates simple rpc requests.  """
@@ -201,6 +261,8 @@ def r_watch_post(request, post_id=None, next=None, resource=None, rpc=False):
           'msg':_('This thread has been added to your favorites.')},
           "Watch added.", postid=post.id)
 
+
+## Base stuff.
 
 @anonymous_login_required
 def thread(request, thread_id):
@@ -306,10 +368,6 @@ def post_reply(request, parent_id, thread_id=None, rpc=False):
              context_instance=RequestContext(request,
               processors=extra_processors))
 
-
-
-#def rpc_geteditform(request, post_id, rpc=True):
-#    post = Post.objects.select_related(depth=2).get(pk=post_id)
 
 @anonymous_login_required  # ! Anonymous post revisions! yay!
 def edit_post(request, original, rpc=False):
@@ -551,7 +609,7 @@ def category_index(request):
 
 @login_required
 def edit_settings(request):
-    """ Allow user to edit his/her profile.  Requires login.
+    """ Allow user to edit own profile.  Requires login.
 
     There are 4 buttons on this page: choose avatar, delete avatar, upload
     avatar, change settings.  """
@@ -773,12 +831,15 @@ def answer_invitation(request, invitation_id):
             context_instance=RequestContext(request, processors=extra_processors))
 
 
+## More XMPP stuff.
+# ! XXX: Should be in xmppface.views, too.
+
 @login_required
 def xmppresourcify(request, resource=None, post_id=None):
     _log.debug("resourcify: user: %r" % request.user)
     post = _get_that_post(request, post_id)
     if not resource:
-        resource="#%d-%d"%(post.id, post.thread.id)
+        resource="#%d-%d" % (post.id, post.thread.id)
     wl, created = WatchList.objects.get_or_create(user=request.user, post=post)
     wl.xmppresource = resource  # Just replace it.
     wl.save()
@@ -798,38 +859,6 @@ def xmpp_get_help(request, subject=None):
             processors=extra_processors))
     except TemplateDoesNotExist:
         raise Http404, "No such help subject"
-
-
-def xmpp_register_cmd(request, nickname=None, password=None):
-    """ Provides all necessary registration-related functionality for XMPP.
-    XMPP-only view.  """
-    if nickname is None:  # Allow registration w/o specifying nickname.
-        nickname = request.srcjid
-    # We're going to register one anyway.
-    ruser, created = User.objects.get_or_create(username=nickname)
-    rusersettings, c = UserSettings.objects.get_or_create(user=ruser)
-    if created:  # Okay, registered one.
-        rusersettings.jid = request.srcjid
-        if password is not None:
-            ruser.set_password(password)
-        ruser.save()
-        rusersettings.save()
-        return XmppResponse(_("Registration successful."))
-    else:
-        # Note: check_password can be True if passord is None
-        if (password is not None) and ruser.check_password(password):
-            if request.user.is_authenticated():
-                # ? What to do here, really?
-                return XmppResponse(_("You are already registered"))
-            else:  # 'authenticate into' an existing webuser.
-                rusersettings.jid = request.srcjid  # replace its JID
-                # ! XXX: jid might be not unique!
-                rusersettings.save()
-                return XmppResponse(_("JID setting updated successfully."))
-        else:
-            raise PermissionError, "Authentication to an existing user failed"
-    # Optional: change state to 'password input' if no password
-    # !! Possible problem if password (or, esp., both) contain spaces.
 
 
 @login_required
@@ -859,6 +888,16 @@ def xmpp_web_changepw(request, password=''):
     else:
         return XmppResponse("Password disabled.") 
 
+
+@login_required
+def xmpp_unregister_cmd(request):
+    """ Disassociate (log off?) JID from the user.  """
+    # ! XXX: Should check if password is empty?
+    request.user.sb_usersettings.jid = None
+    return XmppResponse("Goodbye, %r." % request.user.username) 
+
+
+## ...
 
 # RPC information with previous functions.
 RPC_OBJECT_MAP = {

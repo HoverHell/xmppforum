@@ -26,3 +26,5 @@
   * Try to DRY notification XMPP support. Looks like might have to find out
    what django-notification developer meant for such stuff. (Unanswered
    question at http://stackoverflow.com/questions/2562492/ ).
+
+  * Move Anonymous support into a separate app!
