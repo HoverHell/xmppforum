@@ -33,6 +33,8 @@ from avatar.models import Avatar, avatar_file_path
 from avatar.forms import PrimaryAvatarForm, UploadAvatarForm
 from avatar.views import _get_avatars, _notification_updated
 
+from django.contrib.sites.models import Site
+
 from snapboard.forms import *
 from snapboard.models import *
 from snapboard.models import AnonymousUser
@@ -67,6 +69,7 @@ def snapboard_default_context(request):
 
     This should be added to the settings variable
     TEMPLATE_CONTEXT_PROCESSORS """
+    # ? XXX: Add site.name here for use instead of 'XMPP Forum'?
     return {
       'SNAP_MEDIA_PREFIX': SNAP_MEDIA_PREFIX,
       'SNAP_POST_FILTER': SNAP_POST_FILTER,
@@ -309,11 +312,17 @@ def thread(request, thread_id):
     #  "snapboard_post"."id" AND "snapboard_watchlist"."user_id" =
     #  "snapboard_post"."user_id"'}).get(pk=132).wlc
 
+    try:  # totally optional
+        forum_name = Site.objects.get_current().name
+    except Exception:  # whatever.
+        forum_name = ""
+
     render_dict.update({
             'top_post': top_post,
             'post_list': post_list,
             'postform': postform,
             'thr': thr,
+            'forum_name': forum_name,
             })
     
     return render_to_response('snapboard/thread',
@@ -866,7 +875,6 @@ def xmpp_web_login_cmd(request):
     """ Lets XMPP users log in into the web without using any password. 
     Uses the 'loginurl' django app.  """
     import loginurl.utils
-    from django.contrib.sites.models import Site
     current_site = Site.objects.get_current()
     key = loginurl.utils.create(request.user)
     url = u"http://%s%s" % (

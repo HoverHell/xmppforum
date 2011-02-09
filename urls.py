@@ -4,14 +4,24 @@ from django.contrib import admin
 from django.contrib.auth import views as auth_views
 
 # default error handlers:
-from django.conf.urls.defaults import handler404, handler500, patterns, include
+from django.conf.urls.defaults import (handler404, handler500,
+  patterns, include)
 
 admin.autodiscover()
 
+# Address under the site root for forum main URLs.
+mainurl = 'xmppboard'
+
 urlpatterns = patterns('',
-    (r'^snapboard/', include('snapboard.urls')),
-    (r'^accounts/login/$', auth_views.login, {'template_name': 'snapboard/signin.html'}, 'auth_login'),
-    (r'^accounts/logout/$', auth_views.logout, {'template_name': 'snapboard/signout.html'}, 'auth_logout'),
+    (r'^%s/' % mainurl, include('snapboard.urls')),
+    (r'^snapboard/(?P<suburl>.*)$',
+      'django.views.generic.simple.redirect_to',
+      {'url': '/%s/%%(suburl)s' % mainurl}),
+
+    (r'^accounts/login/$', auth_views.login,
+      {'template_name': 'snapboard/signin.html'}, 'auth_login'),
+    (r'^accounts/logout/$', auth_views.logout,
+      {'template_name': 'snapboard/signout.html'}, 'auth_logout'),
 
     # admin:
     (r'^admin/(.*)', admin.site.root),
@@ -19,7 +29,8 @@ urlpatterns = patterns('',
 
 urlpatterns += patterns('',
     ## Redirect to snapboard home by default.
-    (r'^$', 'django.views.generic.simple.redirect_to', {'url': '/snapboard'}),
+    (r'^$', 'django.views.generic.simple.redirect_to',
+      {'url': '/%s/' % mainurl}),
 )
 
 import notification
