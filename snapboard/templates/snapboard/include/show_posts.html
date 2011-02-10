@@ -127,12 +127,12 @@
     {% if post.is_flat %}
       <div id="snap_post{{ post.id }}" class="snap_post flat_post">
     {% else %}
-      {% ifnotequal post.depth 2 %}
-        <div class="thread_crutch">
-      {% endifnotequal %}
       {% if not post.next_sibling %}
-        <div class="thread_turn">
+        <div class="thread_crutch">
       {% endif %}
+      {% ifnotequal post.depth 2 %}
+        <div class="thread_turn">
+      {% endifnotequal %}
       <div id="snap_post{{ post.id }}" class="snap_post">
     {% endif %}
       {% if post.censor %}
