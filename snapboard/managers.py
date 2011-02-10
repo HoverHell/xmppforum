@@ -16,26 +16,7 @@ class PostManager(models.Manager):
         select['abuse'] = extra_abuse_count
 
         return super(PostManager, self).get_query_set().extra(
-            select=select).exclude(revision__isnull=False).order_by('odate')
-
-    #def posts_for_thread(self, thread_id, user):
-    #    '''
-    #    Returns a query set filtered to contain only the posts the user is
-    #    allowed to see with regards the post's ``private`` and ``censor``
-    #    attributes.
-    #    This does not perform any category permissions check.
-    #    '''
-    #    # XXX: Before the Post.private refactor, the query here used to return
-    #    # duplicate values, forcing the use of SELECT DISTINCT.
-    #    # Do we still have such a problem, and if so, why?
-    #    qs = self.get_query_set().filter(thread__id=thread_id).select_related().distinct()
-    #    if user.is_authenticated():
-    #        qs = qs.filter((Q(user=user) | Q(is_private=False) | Q(private__exact=user)))
-    #    else:
-    #        qs = qs.exclude(is_private=True)
-    #    if not getattr(user, 'is_staff', False):
-    #        qs = qs.exclude(censor=True)
-    #    return qs
+            select=select).order_by('odate')
 
 
 class ThreadManager(models.Manager):
@@ -52,7 +33,6 @@ class ThreadManager(models.Manager):
         extra_post_count = """
             SELECT COUNT(*) FROM snapboard_post
                 WHERE snapboard_post.thread_id = snapboard_thread.id
-                AND snapboard_post.revision_id IS NULL
                 AND NOT snapboard_post.censor
             """
         # figure out who started the discussion
@@ -101,13 +81,6 @@ class ThreadManager(models.Manager):
     def get_favorites(self, user):
         wl = user.sb_watchlist.all()
         return self.get_query_set().filter(pk__in=[x.thread_id for x in wl])
-
-    def get_private(self, user):
-        from snapboard.models import Post
-        import sets
-        post_list = Post.objects.filter(private__exact=user).select_related()
-        thread_ids = sets.Set([p.thread.id for p in post_list])
-        return self.get_query_set().filter(pk__in=thread_ids)
 
     def get_category(self, cat_id):
         return self.get_query_set().filter(category__id=cat_id)

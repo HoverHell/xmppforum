@@ -95,7 +95,7 @@ __all__ = [
     'SNAP_PREFIX', 'SNAP_MEDIA_PREFIX', 'SNAP_POST_FILTER',
     'NOBODY', 'ALL', 'USERS', 'CUSTOM', 'PERM_CHOICES', 'PERM_CHOICES_RESTRICTED',
     'PermissionError', 'is_user_banned', 'is_ip_banned',
-    'Category', 'Invitation', 'Group', 'Thread', 'Post', 'Moderator',
+    'Category', 'Invitation', 'Group', 'Thread', 'Post_revisions', 'Post', 'Moderator',
     'WatchList', 'AbuseReport', 'UserSettings', 'IPBan', 'UserBan',
     ]
 
@@ -353,7 +353,7 @@ class Thread(models.Model):
         # are visible to him
         qs = self.post_set.filter(revision=None)
         if user.is_authenticated():
-            qs = qs.filter(Q(user=user) | Q(is_private=False) | Q(private__exact=user))
+            qs = qs.filter(Q(user=user))
         if not getattr(user, 'is_staff', False):
             qs = qs.exclude(censor=True)
         if before:
@@ -361,41 +361,89 @@ class Thread(models.Model):
         return qs.count()
 
 
-class Post(mp_tree.MP_Node):
-    """
-    Post objects store information about revisions.
-
-    Both forward and backward revisions are stored as ForeignKeys.
-    """
+class Post_base(models.Model):
+    """ An abstract class for two related models: post tree and old post
+    revisions.  """
     # blank=True to get admin to work when the user field is missing
     user = models.ForeignKey(User, editable=False, blank=True, default=None,
-            verbose_name=_('user'), related_name='sb_created_posts_set')
-
+      verbose_name=_('user'))
+    ## Cannot really use related_name since there's two models that use this
+    ## same field.
+    #, related_name='sb_created_posts_set')
     thread = models.ForeignKey(Thread, verbose_name=_('thread'))
     text = models.TextField(verbose_name=_('text'))
-    date = models.DateTimeField(editable=False, auto_now_add=True, verbose_name=_('date'))
-    ip = models.IPAddressField(verbose_name=_('ip address'), blank=True, null=True)
-
-    private = models.ManyToManyField(User,
-            related_name="sb_private_posts_set", null=True, verbose_name=_('private recipients'))
-    # The 'private message' status is denormalized by the ``is_private`` flag.
-    # It's currently quite hard to do the denormalization automatically
-    # If ManyRelatedManager._add_items() fired some signal on update, it would help.
-    # Right now it's up to the code that changes the 'private' many-to-many field to
-    # change ``is_private``.
-    is_private = models.BooleanField(_('private'), default=False, editable=False)
-
-    # (null or ID of post - most recent revision is always a diff of previous)
+    date = models.DateTimeField(editable=False, auto_now_add=True,
+      verbose_name=_('date'))
+    ip = models.IPAddressField(verbose_name=_('ip address'),
+      blank=True, null=True)
+    
     odate = models.DateTimeField(editable=False, null=True)
-    revision = models.ForeignKey("self", related_name="rev",
-            editable=False, null=True, blank=True)
-    previous = models.ForeignKey("self", related_name="prev",
-            editable=False, null=True, blank=True)
 
+    class Meta:
+        abstract = True
+
+    @classmethod
+    def make_from_post(cls, post):
+        """ Create an object from another object, possibly of a slightly
+        different class (like tree Post).  """
+        data = {}
+        for field in cls._meta.fields:
+            if field.primary_key:
+                # Have to make this to create new object, not find an
+                # existing one.
+                # Can explicitly use 'Post_base' instead, also.
+                continue
+            # Assuming that all default fields for cls are None and thus
+            # skipping 'None's from attribute values.
+            attrdata = getattr(post, field.name, None)
+            if attrdata is not None:
+                data[field.name] = attrdata
+        print "New post: %r" % data
+        return cls(**data)
+
+    def __unicode__(self):
+        return u''.join( (u'#', unicode(self.id), u': ', unicode(self.user), u' @ ',
+         unicode(self.date)) )
+
+
+class Post_revisions(Post_base):
+    """ Plain list of posts linked by 'revision' relations. """
+
+    # Related names here look somewhat confusing.
+    # AFAIU, 'prev' points to the next newer edit of the post same as
+    # 'revision', and 'rev' - to the next older version, same as 'previous'. 
+    ## But actually, is 'revision' necessary?
+    previous = models.ForeignKey("self", related_name="prev",
+      editable=False, null=True, blank=True)
+    #revision = models.ForeignKey("self", related_name="rev",
+    #  editable=False, null=True, blank=True)
+
+    def get_newer(self):
+        """ A simple helper that should get the next newer version from any
+        of two models derived from Post_base.  """
+        next_ver = self.prev_last.get()
+        if next_ver:  # is Post.
+            return next_ver
+        else:  # is Post_revisions.
+            return self.prev.get()
+
+    class Meta:
+        verbose_name = _('post revision')
+        verbose_name_plural = _('post revisions')
+
+
+class Post(Post_base, mp_tree.MP_Node):
+    """ Tree-aligned set of posts (of latest versions). """
+    ## Moderation:
+    ## ? XXX: Is it appropriate to apply it only to latest versions of
+    ## posts? Moderating particular edits is doubtful.
     # (boolean set by mod.; true if abuse report deemed false)
     censor = models.BooleanField(default=False, verbose_name=_('censored'))  # moderator level access
     freespeech = models.BooleanField(default=False, verbose_name=_('protected'))  # superuser level access
 
+    ## Revisions are in a different model here.
+    previous = models.ForeignKey(Post_revisions, related_name="prev_last",
+      editable=False, null=True, blank=True)
     #objects = models.Manager()  # needs to be explicit due to below
     #view_manager = managers.PostManager()
     
@@ -442,8 +490,9 @@ class Post(mp_tree.MP_Node):
         tpath = "".join([l_int2str(int(i)) for i in anpath])
         return cls.objects.get(path=tpath)
 
-    # ! consider setting `steplen = 3` - for better maxwidth/maxdepth ratio.
-    steplen = 3  # better maxwidth/maxdepth ratio
+    # for (possibly) better maxwidth/maxdepth ratio.
+    # *might* run out of root posts, though!
+    steplen = 3
 
     def save(self, force_insert=False, force_update=False):
         # ? huh?
@@ -457,6 +506,7 @@ class Post(mp_tree.MP_Node):
         # disregard any modifications to ip address
         self.ip = threadlocals.get_current_ip()
 
+        ## ! XXX This looks doubtul (with tree-sorted trees):
         if self.previous is not None:
             self.odate = self.previous.odate
         elif not self.id:
@@ -475,16 +525,6 @@ class Post(mp_tree.MP_Node):
     def notify(self, **kwargs):
         if not self.previous:
             all_recipients = set()
-            # ! Likely, `private` should be moved to the thread-level.
-            #if self.is_private:
-            #    recipients = set(self.private.all())
-            #    if recipients:
-            #        send_notifications(
-            #            recipients,
-            #            'private_post_received',
-            #            {'post': self}
-            #        )
-            #        all_recipients = all_recipients.union(recipients)
             posttree = self.get_ancestors()
             #recipients = set((wl.user for wl in WatchList.objects.filter(thread=self.thread) if wl.user not in all_recipients))
             recipients = []
@@ -518,15 +558,12 @@ class Post(mp_tree.MP_Node):
 
     def get_edit_form(self):
         from forms import PostForm
-        return PostForm(initial={'post':self.text})
-
-    def __unicode__(self):
-        return u''.join( (u'#', unicode(self.id), u': ', unicode(self.user), u' @ ',
-         unicode(self.date)) )
+        return PostForm(instance=self) #initial={'text': self.text})
 
     class Meta:
         verbose_name = _('post')
         verbose_name_plural = _('posts')
+
 
 # Signals make it hard to handle the notification of private recipients
 #if notification:

@@ -16,15 +16,19 @@
 -- snapbase:
   * fix / implement post revisions. Problem is:
    http://stackoverflow.com/questions/4870802/
+    * in process.
+    * ! rework related javascript to grab all revisions (RPC 'getrevisions')
+     and then display them as asked.
   ...
   * Review CSRF protection stuff. References:
    http://djangobook.com/en/2.0/chapter16/
   * Review AJAXy stuff. References:
    http://stackoverflow.com/questions/4740569/ajax-views-with-django
+   / django-piston?
   * Try to DRY the settings view regarding Avatar.  If impossible - move
    the avatar settings away after all.
   * Try to DRY notification XMPP support. Looks like might have to find out
    what django-notification developer meant for such stuff. (Unanswered
    question at http://stackoverflow.com/questions/2562492/ ).
 
-  * Move Anonymous support into a separate app!
+  * Move Anonymous support into a separate app?

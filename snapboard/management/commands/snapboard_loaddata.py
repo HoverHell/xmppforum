@@ -139,32 +139,3 @@ class Command(BaseCommand):
 #
 #   def _handle_object(self, node):
 #       raise NotImplementedError
-
-def to_0_2_1(stream):
-    '''
-    Sets the is_private attribute of Post objects.
-    '''
-    try:
-        from lxml import etree
-        from lxml.builder import E
-    except ImportError:
-        print 'lxml could not be found. It is required for the conversion to work. Get lxml at http://codespeak.net/lxml/'
-        import sys
-        sys.exit(1)
-    stream.seek(0)
-    tree = etree.parse(stream)
-    stream.truncate()
-    root = tree.getroot()
-    for elt in root.iterfind('.//field[@name="private"]'):
-        if len(elt):
-            # The element has children: set is_private=True on its parent
-            elt.getparent().append(E.field('True', {'name': 'is_private', 'type': 'BooleanField'}))
-    tree.write(stream)
-    stream.seek(0)
-    return stream
-
-# Mapping of version triples to converters
-converters = {
-    (0, 2, 1): to_0_2_1
-}
-
