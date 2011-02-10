@@ -10,25 +10,20 @@ padding: 0 5px 0 5px;
 }
 
 div.snapboard div.thread_turn {
-position:absolute;
-top:25px;
-left:4px;
-padding:0;
-margin:0;
-width:6px;
-height:2px;
-background-color:#000000;
+padding:0 0 0 10px;
+margin:7px 0 0 0;
+background: transparent url(../../media/img/thread_turn.gif) repeat-x scroll 0px 25px;
+float:left;
+clear:left;
 }
 
 div.snapboard div.thread_crutch {
-width:2px;
-height:9999px;
 background-color:#FFFFFF;
-position:absolute;
-top:27px;
-left:2px;
 padding:0;
 margin:0;
+float:left;
+clear:left;
+background: transparent url(../../media/img/thread_crutch_r.png) no-repeat scroll 2px 26px;
 }
 
 div.snapboard div.post_text {
@@ -48,11 +43,11 @@ font-weight:700;
 }
 
 div.snapboard div.snap_post {
-padding: 0 0 0 10px;
-margin: 7px 0 0 0;
-background: transparent url(../../media/img/thread_line.gif) repeat-y scroll 12px 0;
-position:relative;
-overflow:hidden;
+background: transparent url(../../media/img/thread_line.gif) repeat-y scroll 2px 0;
+float:left;
+clear:left;
+margin:0;
+padding:0;
 }
 
 div.snapboard div.snap_top_post div.snap_post {
@@ -65,8 +60,6 @@ div.snapboard div.flat_post {
 margin:0;
 padding:0;
 background: transparent url(../../media/img/thread_line.gif) repeat-y scroll 2px 0;
-position:relative;
-overflow:hidden;
 }
 
 div.snapboard .post_text h1 {
@@ -131,7 +124,9 @@ div.snapboard div.snap_post div.post_reported {
 border: 1px solid #D0D0D0;
 background-color:#F9F9F9;
 padding:0 0 3px 0;
+margin:0;
 max-width:700px;
+float:left;
 }
 
 div.snapboard div.snap_post div.flat_color {
@@ -167,6 +162,7 @@ border:2px solid red;
 background-color:#F9F9F9;
 padding:0 0 3px 0;
 max-width:700px;
+margin:0;
 }
 
 div.snapboard div.post_header {
