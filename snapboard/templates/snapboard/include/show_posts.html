@@ -122,18 +122,23 @@
 {% for top_answer in post_list %}
   {% for post, post_info in top_answer.get_flathelper_list %}
     {% if not post_info.open %}
-      </div>
+      </td>
+      </tr>
+      </table>
     {% endif %}
+
+  <table cellspacing="0" cellpadding="0" border="0" class="post_table">
+  <tr>
     {% if post.is_flat %}
-      <div id="snap_post{{ post.id }}" class="snap_post flat_post">
+      <td id="snap_post{{ post.id }}" class="snap_post flat_post">
     {% else %}
-      {% if not post.next_sibling %}
-        <div class="thread_crutch">
-      {% endif %}
+      <td colspan="2" class="post_top_padding"></td>
+      </tr>
+      <tr>
       {% ifnotequal post.depth 2 %}
-        <div class="thread_turn">
+        <td class="thread_turn">{% if not post.next_sibling %}<table class="thread_crutch"></table>{% endif %}</td>
       {% endifnotequal %}
-      <div id="snap_post{{ post.id }}" class="snap_post">
+      <td id="snap_post{{ post.id }}" class="snap_post">
     {% endif %}
       {% if post.censor %}
         {% if post.is_flat %}
@@ -238,27 +243,18 @@
         </div>
         <div style="display:none" id="snap_post_reply{{ post.id }}" ></div>
       {% if post.censor %}
-        </div>
+        <!-- div for post.censor --></div>
       {% else %}
         {% ifnotequal post.abuse 0 %}
-          </div>
+          <!-- div for post.reported --></div>
         {% endifnotequal %}
       {% endif %}
-
     {% for close in post_info.close %}
-      </div>
-    {% endfor %}
-    {% if post.is_flat %}
-      <div id="snap_post{{ post.id }}" class="snap_post flat_post">
-    {% else %}
-      <div id="snap_post{{ post.id }}" class="snap_post">
-      {% ifnotequal post.depth 2 %}
-        </div>
-      {% endifnotequal %}
-      {% if not post.next_sibling %}
-        </div>
-      {% endif %}
-    {% endif %}
+        </td>
+        </tr>
+        </table> <!-- for close in post_info.close -->
+    {% endfor %} 
   {% endfor %}
+
 {% endfor %}            
 

@@ -1,3 +1,48 @@
+div.snapboard table.post_table {
+float:left;
+clear:left;
+width:100%;
+}
+
+div.snapboard td.thread_turn {
+background: transparent url(../../media/img/thread_turn.gif) no-repeat scroll 4px 25px;
+width:10px;
+height:100%;
+}
+
+div.snapboard table.thread_crutch {
+background: transparent url(../../media/img/thread_crutch.gif) repeat-y scroll 2px 0px;
+width:100%;
+height:100%;
+margin:27px 0 0 0;
+}
+
+div.snapboard td.post_top_padding {
+height:7px;
+}
+
+div.snapboard td.snap_post {
+background: transparent url(../../media/img/thread_line.gif) repeat-y scroll 2px 0;
+}
+
+div.snapboard td.snap_post div.post_reported {
+border: 1px solid #D0D0D0;
+background-color:#F9F9F9;
+padding:0 0 3px 0;
+margin:0;
+width:100%;
+max-width:700px;
+}
+
+div.snapboard td.snap_post div.flat_color {
+/*border-left: 4px solid #DCDCDC;*/
+/*background-color:#F0F0FF;*/
+border-color:#ECECEC;
+}
+
+div.snapboard td.snap_post div.flat_header {
+background-color:#ECECEC;
+}
 div.snapboard div.userpic_wrap img {
 display: block;
 float:left;
@@ -9,24 +54,6 @@ clear:both;
 padding: 0 5px 0 5px;
 }
 
-div.snapboard div.thread_turn {
-padding:0 0 0 10px;
-margin:7px 0 0 0;
-background: transparent url(../../media/img/thread_turn.gif) repeat-x scroll 0px 25px;
-float:left;
-clear:left;
-width:100%;
-}
-
-div.snapboard div.thread_crutch {
-background-color:#FFFFFF;
-padding:0;
-margin:0;
-float:left;
-clear:left;
-background: transparent url(../../media/img/thread_crutch_r.png) no-repeat scroll 2px 26px;
-width:100%;
-}
 
 div.snapboard div.post_text {
 display:block;
@@ -44,26 +71,11 @@ div.snapboard .post_text strong {
 font-weight:700;
 }
 
-div.snapboard div.snap_post {
-background: transparent url(../../media/img/thread_line.gif) repeat-y scroll 2px 0;
-float:left;
-clear:left;
-margin:0;
-padding:0;
-width:100%;
-max-width:700px;
-}
 
 div.snapboard div.snap_top_post div.snap_post {
 padding:0 0 0 10px;
 background: none;
 position:static;
-}
-
-div.snapboard div.flat_post {
-margin:0;
-padding:0;
-background: transparent url(../../media/img/thread_line.gif) repeat-y scroll 2px 0;
 }
 
 div.snapboard .post_text h1 {
@@ -124,41 +136,9 @@ div.snapboard span.post_summary {
 color:#B0BFAC;
 }
 
-div.snapboard div.snap_post div.post_reported {
-border: 1px solid #D0D0D0;
-background-color:#F9F9F9;
-padding:0 0 3px 0;
-margin:0;
-width:100%;
-float:left;
-}
-
-div.snapboard div.snap_post div.flat_color {
-/*border-left: 4px solid #DCDCDC;*/
-/*background-color:#F0F0FF;*/
-border-color:#ECECEC;
-}
-
-div.snapboard div.snap_post div.flat_header {
-background-color:#ECECEC;
-}
 div.snapboard div.snap_top_post div.post_reported {
 border: none;
 background-color:transparent;
-}
-
-div.snapboard hr.postend {
-background-color:#CCC;
-border:0 solid #CCC;
-height:1px;
-width:80%;
-}
-
-div.snapboard hr.firstpost {
-background-color:#000;
-border:0 solid #000;
-height:1px;
-width:80%;
 }
 
 div.snapboard div.post_censored {
