@@ -13,10 +13,10 @@ and installed as well (which requires, at least, GCC and git).
 Or, if you're running Debian or similar distribution, you can try using
 "python inst/bootstrap.py -d" after installing some packages by running
 
-  aptitude install python-django python-imaging python-wokkel \
+  sudo aptitude install python-django python-imaging python-wokkel \
     python-django-treebeard python-django-registration python-simplejson git
 
-.  Note that this requires `git` as well (for now).
+or just "inst/deb_apt.sh".
 
 By running bootstrap, you get the 'ENV' directory and, hopefully, all the
  requirements installed.

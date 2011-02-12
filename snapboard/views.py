@@ -284,15 +284,30 @@ def thread(request, thread_id):
 
     # this must come after the post so new messages show up
 
-    ## Revisions of root node become a serious special case.
-    ## Not sure about right way, so this is more of a hack-in:
-    # Get original tree root (really, better point to it in the Thread object!)
-    top_post_0 = Post.objects.filter(thread=thread_id, depth=1)[0]
-    # Get latest version of top post (to display it).
-    top_post = Post.objects.get(thread=thread_id, depth=1)
-    # Get all replies.
-    post_list = Post.get_children(top_post_0)  # Paginated by this list.
-    
+    top_post = Post.objects.filter(thread=thread_id, depth=1)[0]
+    # Get list of all replies.
+    post_list = Post.get_children(top_post)  # Paginated by this list.
+
+    ## sorting by last answer.
+    if request.GET.get('sl', None) == '1':
+        ### v1: unoptimal:
+        #for post in post_list:
+        #    post.last_answer_date = Post.get_tree(post).order_by("-date")[0].date
+        #post_list = sorted(post_list, key=lambda p: p.last_answer_date, reverse=True)
+        ### v2: SQLed.
+        ## Not sure what 'ESCAPE' is meant to do here. Grabbed from
+        ## treebeard queries:
+        ##  cls.objects.filter(path__startswith=parent.path,
+        ##  depth__gte=parent.depth)
+        ## !! somewhat SQLite-specific (concat is '||')
+        post_list = post_list.extra(select={
+          "lastanswer": """SELECT date FROM snapboard_post AS child
+            WHERE (child.path LIKE (snapboard_post.path || '%%') AND
+              child.depth >= snapboard_post.depth)
+            ORDER BY date DESC LIMIT 1 """
+        }).order_by("-lastanswer")
+
+
     # Additional note: annotating watched posts in the tree can be done, for
     # example, by using 
     # WatchList.objects.filter(post__in=pl, user=request.user),
@@ -318,16 +333,16 @@ def thread(request, thread_id):
         forum_name = ""
 
     render_dict.update({
-            'top_post': top_post,
-            'post_list': post_list,
-            'postform': postform,
-            'thr': thr,
-            'forum_name': forum_name,
-            })
+      'top_post': top_post,
+      'post_list': post_list,
+      'postform': postform,
+      'thr': thr,
+      'forum_name': forum_name,
+    })
     
     return render_to_response('snapboard/thread',
-            render_dict,
-            context_instance=RequestContext(request, processors=extra_processors))
+      render_dict,
+      context_instance=RequestContext(request, processors=extra_processors))
 
 
 @anonymous_login_required
@@ -346,30 +361,29 @@ def post_reply(request, parent_id, thread_id=None, rpc=False):
             raise PermissionError, "You are not allowed to post in this thread"
         postform = PostForm(request.POST)
         if postform.is_valid():
-            postobj = parent_post.add_child(thread = thr,
-                    user = request.user,
-                    text = postform.cleaned_data['post'],
-                    )
+            postobj = parent_post.add_child(
+              thread=thr,
+              user=request.user,
+              text=postform.cleaned_data['text'],
+            )
             postobj.save()
             postobj.notify()
             return success_or_reverse_redirect('snapboard_locate_post',
               args=(postobj.id,), req=request, msg="Posted successfully.")
     else:
         context = {'postform': PostForm(), 
-         "parent_post": parent_post}
+          "parent_post": parent_post}
         if rpc:  # get form, not page.
-            return {"html":
-             render_to_string('snapboard/include/addpost.html',
-              context,
-              context_instance=RequestContext(request,
-               processors=extra_processors))
-             }
+            return {
+              "html": render_to_string('snapboard/include/addpost.html',
+                context, context_instance=RequestContext(request,
+                  processors=extra_processors))
+            }
         else:
             # ...non-JS reply form.
             return render_to_response('snapboard/post_reply',
-             context,
-             context_instance=RequestContext(request,
-              processors=extra_processors))
+              context, context_instance=RequestContext(request,
+                processors=extra_processors))
 
 
 @anonymous_login_required  # ! Anonymous post revisions! yay!
@@ -542,25 +556,29 @@ def locate_post(request, post_id):
     # as well as the total
     #total = post.thread.count_posts(request.user)
 
-    # ...everything is visible, threads paginated by first-leve answers.
+    # ...everything is visible, threads paginated by first-level answers.
     # Looks funny, meh.
-    root=post.get_root()
+    root = post.get_root()
+    # amount of paginated objects:
     total = root.get_children_count()
-    answer = post.get_ancestors()[1] if post.depth > 2 else post
-    preceding_count = (i for i,x in enumerate(answer.get_siblings()) if x == answer).next()+1
-    
-    # Later TODO: correct for possible thread rollups - add ?unfold=threadnum or smth.
-    
-    #preceding_count = post.thread.count_posts(request.user, before=post.date)
-    # Check the user's settings to locate the post in the various pages
+
     settings = request.user.get_user_settings()
     ppp = settings.ppp
-    if total < ppp:
+    if total < ppp:  # nowhere tp look for.
         page = 1
-    elif settings.reverse_posts:
-        page = (total - preceding_count - 1) // ppp + 1
     else:
-        page = preceding_count // ppp + 1
+        # object amongst paginated we're looking for.
+        answer = post.get_ancestors()[1] if post.depth > 2 else post
+        # ...what; anyway, find the index number of the target object.
+        # (not very nicely done, yes)
+        # not sure about '+1' either.
+        preceding_count = (i for i, x in enumerate(answer.get_siblings())
+          if x == answer).next() + 1
+        
+        if settings.reverse_posts:
+            page = (total - preceding_count - 1) // ppp + 1
+        else:
+            page = preceding_count // ppp + 1
     return HttpResponseRedirect('%s?page=%i#snap_post%i' % (reverse('snapboard_thread', args=(post.thread.id,)), page, post.id))
 
 
