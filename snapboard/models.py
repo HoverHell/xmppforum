@@ -20,16 +20,18 @@ from xmppface.xmppstuff import send_notifications
 def get_rly_annotated_list(self):
     return super(mp_tree.MP_Node, self).get_annotated_list(self)
 
-def get_adv_annotated_list(self):
-    """
-    Gets an annotated list from a tree branch, adding some advanced info
-    along the way.
-    """
+## Most likely this stuff should be moved into the Post manager.
+def get_adv_annotated_list(self, qs=None):
+    """ Gets an annotated list from a tree branch, adding some advanced info
+    along the way.  """
     result, info = [], {}
     start_depth, prev_depth, ddepth, rdepth = (None, -1, None, None)
     prev_siblings = []  # list of possible previous (or last) siblings
 
-    for node in self.get_tree(self):
+    if qs is None:
+        qs = self.get_tree(self)
+    
+    for node in qs:
         depth = node.get_depth()
         if start_depth is None:
             start_depth = depth
@@ -69,8 +71,11 @@ def get_adv_annotated_list(self):
 def get_flathelper_list(self):
     """ Adds few more information to annotated list (retreived from
     specified node) to display "straight" branches as flat """
+    # hack-helper for extra data. Will probably be removed later.
+    from django.db.models import Count
+    qs = self.get_tree(self).annotate(abuse=Count('sb_abusereport_set'))
     # ! branched from revision 250:310d63a10571 (tag 'flatpost'), minimized.
-    annotated = get_adv_annotated_list(self)
+    annotated = get_adv_annotated_list(self, qs)
     prev_node, prev_info = annotated[0]
     def is_alone(n, i):
         """ "node is the only direct child" (no siblings). depends on the
