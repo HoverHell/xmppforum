@@ -141,14 +141,17 @@
       <td id="snap_post{{ post.id }}" class="snap_post">
     {% endif %}
       {% if post.censor %}
+      {# ! XXX: should not show censored posts unless user.is_staff? #}
       <div class="post_basic post_censored{% if post.is_flat %} flat_color{% endif %}">
       {% else %}
-        {% ifnotequal post.abuse 0 %}
-        <div class="post_basic post_reported{% if post.is_flat %} flat_color{% endif %}">
-        {% else %}
-        <div class="post_basic">
-        {% endifnotequal %}
-      {% endif %}
+        <div class="post_basic
+          {% ifnotequal post.abuse 0 %}post_reported{% endifnotequal %}
+          {% if post.is_flat %} flat_color{% endif %}
+          ">
+      {% endif %}{# post.censor else #}
+      {% if post.censor and not user.is_staff %}
+        <br/>Censored post.<br/><br/>
+      {% else %}
         <div id="post_rpc_feedback{{ post.id }}" class="rpc_message">
           <!-- This DIV is for RPC feedback messages for individual posts -->
         </div>
@@ -210,6 +213,7 @@
           <div style="display:none" id="snap_post_edit{{ post.id }}"></div>
         </div>
         <div style="display:none" id="snap_post_reply{{ post.id }}" ></div>
+      {% endif %}{# post.censor and not user.is_staff  else #}
       <!-- div for post_censor or post_reported or post_basic --></div>
     {% for close in post_info.close %}
         </td>

@@ -27,22 +27,25 @@ background: transparent url(../../media/img/thread_line.gif) repeat-y scroll 2px
 
 div.snapboard td.snap_post div.post_basic {
 border: 1px solid #D0D0D0;
+border-bottom: 1px solid #E9E9E9;
 background-color:#F9F9F9;
 padding:0 0 3px 0;
 margin:0;
 width:100%;
 max-width:700px;
 }
-
-div.snapboard td.snap_post div.post_reported {
-border: 1px solid #D050D0;
-}
-
 div.snapboard td.snap_post div.flat_color {
 /*border-left: 4px solid #DCDCDC;*/
 /*background-color:#F0F0FF;*/
 border-color:#ECECEC;
 }
+div.snapboard td.snap_post div.post_reported {
+border-color: #D050D0;
+}
+div.snapboard div.post_censored {
+border: 2px solid red;
+}
+
 
 div.snapboard td.snap_post div.flat_header {
 background-color:#ECECEC;
@@ -143,10 +146,6 @@ color:#B0BFAC;
 div.snapboard div.snap_top_post div.post_reported {
 border: none;
 background-color:transparent;
-}
-
-div.snapboard div.post_censored {
-border:2px solid red;
 }
 
 div.snapboard div.post_header {
