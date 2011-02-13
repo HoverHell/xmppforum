@@ -4,17 +4,20 @@ clear:left;
 width:100%;
 }
 
-div.snapboard td.thread_turn {
-background: transparent url(../../media/img/thread_turn.gif) no-repeat scroll 4px 25px;
-width:10px;
-height:100%;
+div.snapboard div.thread_turn {
+margin:0 0 0 2px;
+width:6px;
+height:25px;
+border-bottom:2px solid;
+border-left:2px solid;
+padding:0;
 }
 
-div.snapboard table.thread_crutch {
-background: transparent url(../../media/img/thread_crutch.gif) repeat-y scroll 2px 0px;
-width:100%;
+div.snapboard td.thread_crutch {
 height:100%;
-margin:27px 0 0 0;
+width:10px;
+background-color:#FFFFFF;
+vertical-align:top;
 }
 
 div.snapboard td.post_top_padding {
