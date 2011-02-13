@@ -2,6 +2,8 @@
 django-mailer
 django-notification
 django-pagination
+django-loginurl
+-e git+https://github.com/oppianmatt/django-defaultsite.git#egg=django-defaultsite
 ## For now, git-version is required since 1.0.5 doesn't have
 ## UploadAvatarForm.
 #django-avatar

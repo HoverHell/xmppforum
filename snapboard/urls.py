@@ -7,7 +7,7 @@ xmppforum """
 from django.contrib.auth.models import User
 
 from snapboard.feeds import LatestPosts
-from snapboard.rpc import rpc_post, rpc_lookup, rpc_preview
+from snapboard.rpc import rpc_lookup, rpc_preview
 from snapboard.views import *
 
 from django.conf.urls.defaults import patterns
@@ -21,7 +21,6 @@ js_info_dict = {
 
 urlpatterns = patterns('',
     (r'^$', thread_index, {}, 'snapboard_index'),
-    (r'^private/$', private_index, {}, 'snapboard_private_index'),
     (r'^categories/$', category_index, {}, 'snapboard_category_index'),
     (r'^watchlist/$', watchlist, {}, 'snapboard_watchlist'),
     # Please note that next two have to end with post id (required for
@@ -64,7 +63,6 @@ urlpatterns = patterns('',
 
     ## RPC
     (r'^rpc/action/$', rpc, {}, 'snapboard_rpc_action'),
-    (r'^rpc/postrev/$', rpc_post, {}, 'snapboard_rpc_postrev'),
     (r'^rpc/preview/$', rpc_preview, {}, 'snapboard_rpc_preview'),
     (r'^rpc/user_lookup/$', rpc_lookup,
         {

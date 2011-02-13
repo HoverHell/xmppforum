@@ -6,7 +6,6 @@ DEBUG = True
 TEMPLATE_DEBUG = DEBUG
 
 LOGGING_INITIATED = False
-
 # logging setup (copy to settings_local and change there, if needed)
 import logging
 def init_logging():
@@ -19,10 +18,21 @@ ADMINS = (
 )
 MANAGERS = ADMINS
 
+### django-defaultsite:
+### Define an initial "base address" (set on first syncdb).
+### Used in web-links in e-mail and XMPP messages.
+### Can be changed later in admin interface in "Sites" category.
+## The domain to use to replace 'example.com'. Defaults to your machine's hostname.
+#SITE_DOMAIN = 'example.com'
+## The site's name. Defaults to 'defaultsite' otherwise.
+SITE_NAME = 'xmppforum'
+
 
 # -------   -------   -------   Addresses and stuff. Almost certainly have to be changed.
 
 DEFAULT_FROM_EMAIL = "jfu@localhost"
+
+
 
 # URL that handles the media served from MEDIA_ROOT.
 # Example: "http://media.lawrence.com"
@@ -167,10 +177,18 @@ INSTALLED_APPS = (
     'notification',
     'registration',
     'avatar',
+    'loginurl',
+    'defaultsite',
     'treebeard',
     'xmppface',
     'snapboard',
 )
+
+AUTHENTICATION_BACKENDS = (
+    'django.contrib.auth.backends.ModelBackend',
+    'loginurl.backends.LoginUrlBackend',
+)
+        
 
 # List of callables that know how to import templates from various sources.
 # In django 1.2 cached loader can be used:

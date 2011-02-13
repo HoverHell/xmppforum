@@ -6,39 +6,21 @@ from django.forms import widgets, ValidationError
 from django.utils.translation import ugettext_lazy as _
 from django.utils.translation import ungettext
 
-from snapboard.models import Category, UserSettings
+from snapboard.models import Category, UserSettings, Post
 
 
-class PostForm(forms.Form):
-    post = forms.CharField(
-            label='',
-            widget=forms.Textarea(attrs={
-                'rows': '8',
-                'cols': '120',
-            }),
-        )
-    private = forms.CharField(
-            label=_("Recipients"),
-            max_length=150,
-            widget=forms.TextInput(),
-            required=False,
-            )
-
-    def clean_private(self):
-        recipients = self.cleaned_data['private']
-        if len(recipients.strip()) < 1:
-            return []
-        recipients = filter(lambda x: len(x.strip()) > 0, recipients.split(','))
-        recipients = set([x.strip() for x in recipients])  # string of usernames
-
-        u = User.objects.filter(username__in=recipients).order_by('username')
-        if len(u) != len(recipients):
-            u_set = set([str(x.username) for x in u])
-            u_diff = recipients.difference(u_set)
-            raise ValidationError(ungettext(
-                    "The following is not a valid user:", "The following are not valid user(s): ",
-                    len(u_diff)) + ' '.join(u_diff))
-        return u
+class PostForm(forms.ModelForm):
+    text = forms.CharField(
+      label='',
+      widget=forms.Textarea(attrs={
+        'rows': '8',
+        'cols': '120',
+      }),
+    )
+    
+    class Meta:
+        model = Post
+        fields = ('text', )
 
 
 class ThreadForm(forms.Form):

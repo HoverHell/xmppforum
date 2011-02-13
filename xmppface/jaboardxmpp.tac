@@ -1,6 +1,4 @@
-"""
-A jaboard XMPP face server as a standalone server via s2s.
-"""
+""" A jaboard XMPP face server as a standalone server via s2s.  """
 
 from twisted.application import service, strports
 from twisted.internet import protocol
@@ -50,26 +48,26 @@ def worker(w_inqueue):
     """ multiprocessing worker that grabs tasks (requests) from queue and
     gives them to the xmppface layer. """
     # loading happens after the start.
+    from multiprocessing import current_process
+    curproc = "Process %r" % current_process()
+    print "%s: starting." % curproc
+
     from django.core.management import setup_environ
     import settings
     setup_environ(settings)
 
     from xmppface import xmppface
-    from multiprocessing import current_process
     try:
         while True:
-            #try:
+            print "%s: waiting for stuff to process." % curproc
             data = w_inqueue.get()
-            #except KeyboardInterrupt:
-            #    data = "QUIT"  # bit hax-y.
-            #    # also, does not catch interrupts when processing.
             if data == "QUIT":
                 # ? Which logging to use?
-                print("Process %r: received QUIT." % current_process())
+                print "%s: received QUIT." % curproc
                 return
             xmppface.processcmd(data)
     except KeyboardInterrupt:
-        print("Process %r: Interrupted; finishing." % current_process())
+        print "%s: Interrupted; finishing." % curproc
         return
 
 

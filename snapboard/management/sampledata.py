@@ -13,10 +13,13 @@ def test_setup(**kwargs):
 
 
     if not settings.DEBUG:
-        return 
+        return
+    
+    if not kwargs.get('interactive', True):
+        return
 
     if Thread.objects.all().count() > 0:
-        # return, since there seem to already be threads in the database.
+        # return if there seem to already be threads in the database.
         return
     
     # ask for permission to create the test

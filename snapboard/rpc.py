@@ -12,27 +12,6 @@ def _sanitize(text):
     return render_filter(striptags(text), "safe")
 
 
-def rpc_post(request):
-    show_id = int(request.GET['show'])
-    orig_id = int(request.GET['orig'])
-    post = Post.objects.get(pk=show_id)
-    if not post.thread.category.can_read(request.user):
-        raise PermissionError
-
-    prev_id = ''
-    rev_id = ''
-    if post.revision is not None:
-        rev_id = str(post.revision.id)
-    if post.previous is not None:
-        prev_id = str(post.previous.id)
-
-    resp = {'text': _sanitize(post.text),
-            'prev_id': prev_id,
-            'rev_id': rev_id,
-            }
-    return HttpResponse(simplejson.dumps(resp), mimetype='application/javascript')
-
-
 def rpc_preview(request):
     text = request.raw_post_data 
     return HttpResponse(simplejson.dumps({'preview': _sanitize(text)}),
@@ -126,8 +105,4 @@ def rpc_quote(request, **kwargs):
     post = Post.objects.select_related().get(id=kwargs['oid'])
     if not post.thread.category.can_read(request.user):
         raise PermissionError
-    if post.is_private and post.user != request.user and not post.private.filter(id=request.user.id).count():
-        raise PermissionDenied
     return {'text': post.text, 'author': unicode(post.user)}
-
-# vim: ai ts=4 sts=4 et sw=4

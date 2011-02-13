@@ -25,13 +25,15 @@ from notification import models as notification
 # XmppFace
 import xmppface.xmppbase
 from xmppface.xmppbase import (XmppRequest, XmppResponse, render_to_response,
- success_or_reverse_redirect, login_required)
+ success_or_reverse_redirect, login_required, get_login_required_wrapper)
 from xmppface.xmppstuff import send_notifications
 
 # Avatar form in UserSettings
 from avatar.models import Avatar, avatar_file_path
 from avatar.forms import PrimaryAvatarForm, UploadAvatarForm
 from avatar.views import _get_avatars, _notification_updated
+
+from django.contrib.sites.models import Site
 
 from snapboard.forms import *
 from snapboard.models import *
@@ -46,11 +48,9 @@ ANONYMOUS_NAME = getattr(settings, 'ANONYMOUS_NAME', 'Anonymous')
 if ANONYMOUS_NAME:
     ANONYMOUS_USER = User.objects.get(username=ANONYMOUS_NAME)
     def anonymous_login_required(function=None):
-        """
-        Decorator to replace auth's AnonymousUser with an actual usable user for
-        particular views. Sets user.realy_anonymous if replaced. Configurable by
-        ANONYMOUS_NAME in the settings.
-        """
+        """ Decorator to replace auth's AnonymousUser with an actual usable
+        user for particular views.  Sets user.really_anonymous if replaced. 
+        Configurable by ANONYMOUS_NAME in the settings.  """
         def anon_decorate(request, *args, **kwargs):
             if request.user.is_authenticated():
                 return function(request, *args, **kwargs)
@@ -62,19 +62,20 @@ if ANONYMOUS_NAME:
 else:
     def anonymous_login_required(function=None):
         return login_required(function)
+
         
 def snapboard_default_context(request):
-    """
-    Provides some default information for all templates.
+    """ Provides some default information for all templates.
 
-    This should be added to the settings variable TEMPLATE_CONTEXT_PROCESSORS
-    """
+    This should be added to the settings variable
+    TEMPLATE_CONTEXT_PROCESSORS """
+    # ? XXX: Add site.name here for use instead of 'XMPP Forum'?
     return {
-            'SNAP_MEDIA_PREFIX': SNAP_MEDIA_PREFIX,
-            'SNAP_POST_FILTER': SNAP_POST_FILTER,
-            'LOGIN_URL': settings.LOGIN_URL,
-            'LOGOUT_URL': settings.LOGOUT_URL,
-            }
+      'SNAP_MEDIA_PREFIX': SNAP_MEDIA_PREFIX,
+      'SNAP_POST_FILTER': SNAP_POST_FILTER,
+      'LOGIN_URL': settings.LOGIN_URL,
+      'LOGOUT_URL': settings.LOGOUT_URL,
+      }
 
 
 def _get_that_post(request, post_id=None):
@@ -84,6 +85,9 @@ def _get_that_post(request, post_id=None):
         post = get_object_or_404(Post, pk=post_id);
         return post
     # otherwise - find one!
+    # TODO: include the user full jid into the search!..
+    # (that will allow to make one-to-one conversations basically
+    # seamlessly.
     now = time.time()
     ndata = cache.get('nt_%s' % request.user.username)
     if ndata:
@@ -101,12 +105,71 @@ def _get_that_post(request, post_id=None):
 def user_settings_context(request):
     return {'user_settings': request.user.get_user_settings()}
 
+
 extra_processors = [user_settings_context]
 
+
+## XMPP registration/autoregistration stuff.
+# TODO: move it to xmppface.views;
+# also, probably need a global get_login_required_wrapper(xmpp_unreg_view)
+# setting.
+
+def xmpp_register_cmd(request, nickname=None, password=None):
+    """ Provides all necessary registration-related functionality for XMPP.
+    XMPP-only view.  """
+    if nickname is None:  # Allow registration w/o specifying nickname.
+        nickname = request.srcjid
+    # We're going to register one anyway.
+    ruser, created = User.objects.get_or_create(username=nickname)
+    rusersettings, c = UserSettings.objects.get_or_create(user=ruser)
+    if created:  # Okay, registered one.
+        rusersettings.jid = request.srcjid
+        if password is not None:
+            ruser.set_password(password)
+        ruser.save()
+        rusersettings.save()
+        return XmppResponse(_("Registration successful."))
+    else:
+        # Note: check_password can be True if passord is None
+        if (password is not None) and ruser.check_password(password):
+            if request.user.is_authenticated():
+                # ? What to do here, really?
+                return XmppResponse(_("You are already registered"))
+            else:  # 'authenticate into' an existing webuser.
+                rusersettings.jid = request.srcjid  # replace its JID
+                # ! XXX: jid might be not unique!
+                rusersettings.save()
+                return XmppResponse(_("JID setting updated successfully."))
+        else:
+            raise PermissionError, "Authentication to an existing user failed."
+    # Optional: change state to 'password input' if no password
+    # !! Possible problem if password (or, esp., both) contain spaces.
+
+
+def xmpp_autoregister_user(request, function, *args, **kwargs):
+    """ If XMPP user needs to be registered - try to register, and tell
+    either way.  """
+    jidname = request.src.split('@')[0]
+    from django.contrib.auth.models import User
+    if User.objects.filter(username__iexact=jidname).exists():
+        return XmppResponse("You have to register to do this."
+          "Additionally, username '%r' is unavailable so I could not "
+          "autoregister you" % jidname)
+    else:  # no such user - just autoregister him!
+        # Use that view to actually register:
+        regresp = xmpp_register_cmd(request, jidname)
+        # ? do the initial command, too? Perhaps not.
+        return XmppResponse("You were just registered as '%s'. Please "
+          "re-send the command to actually do it." % jidname)
+
+
+login_required = get_login_required_wrapper(xmpp_autoregister_user)
+
+
+## RPC/similar stuff:
+
 def rpc(request):
-    '''
-    Delegates simple rpc requests.
-    '''
+    """ Delegates simple rpc requests.  """
     if not request.POST:
         return HttpResponseServerError("RPC data is absent")
     
@@ -156,11 +219,10 @@ def rpc(request):
     return HttpResponse(simplejson.dumps(response_dict),
      mimetype='application/javascript')
 
+
 def r_getreturn(request, rpc, next, rpcdata, successtext, postid=None):
-    '''
-    Common function for RPCable views to easily return some appropriate
-    data (rpcdata or next-redirect).
-    '''
+    """ Common function for RPCable views to easily return some appropriate
+    data (rpcdata or next-redirect).  """
     if rpc:  # explicit request to return RPC-usable data
         # Can do conversion in rpc(), though.
         return rpcdata
@@ -176,6 +238,8 @@ def r_getreturn(request, rpc, next, rpcdata, successtext, postid=None):
             # else?
             return HttpResponseServerError("RPC return: unknown return.")  # Nothing else to do here.
 
+
+@login_required
 def r_watch_post(request, post_id=None, next=None, resource=None, rpc=False):
     post = _get_that_post(request, post_id)
     # ^ 'auto' fetching should only be done from XMPP.
@@ -201,6 +265,9 @@ def r_watch_post(request, post_id=None, next=None, resource=None, rpc=False):
           "Watch added.", postid=post.id)
 
 
+## Base stuff.
+
+@anonymous_login_required
 def thread(request, thread_id):
 
     thr = get_object_or_404(Thread, pk=thread_id)
@@ -217,15 +284,30 @@ def thread(request, thread_id):
 
     # this must come after the post so new messages show up
 
-    ## Revisions of root node become a serious special case.
-    ## Not sure about right way, so this is more of a hack-in:
-    # Get original tree root (really, better point to it in the Thread object!)
-    top_post_0 = Post.objects.filter(thread=thread_id, depth=1)[0]
-    # Get latest version of top post (to display it).
-    top_post = Post.objects.get(thread=thread_id, depth=1, revision=None)
-    # Get all replies.
-    post_list = Post.get_children(top_post_0)  # Paginated by this list.
-    
+    top_post = Post.objects.filter(thread=thread_id, depth=1)[0]
+    # Get list of all replies.
+    post_list = Post.get_children(top_post)  # Paginated by this list.
+
+    ## sorting by last answer.
+    if request.GET.get('sl', None) == '1':
+        ### v1: unoptimal:
+        #for post in post_list:
+        #    post.last_answer_date = Post.get_tree(post).order_by("-date")[0].date
+        #post_list = sorted(post_list, key=lambda p: p.last_answer_date, reverse=True)
+        ### v2: SQLed.
+        ## Not sure what 'ESCAPE' is meant to do here. Grabbed from
+        ## treebeard queries:
+        ##  cls.objects.filter(path__startswith=parent.path,
+        ##  depth__gte=parent.depth)
+        ## !! somewhat SQLite-specific (concat is '||')
+        post_list = post_list.extra(select={
+          "lastanswer": """SELECT date FROM snapboard_post AS child
+            WHERE (child.path LIKE (snapboard_post.path || '%%') AND
+              child.depth >= snapboard_post.depth)
+            ORDER BY date DESC LIMIT 1 """
+        }).order_by("-lastanswer")
+
+
     # Additional note: annotating watched posts in the tree can be done, for
     # example, by using 
     # WatchList.objects.filter(post__in=pl, user=request.user),
@@ -245,19 +327,25 @@ def thread(request, thread_id):
     #  "snapboard_post"."id" AND "snapboard_watchlist"."user_id" =
     #  "snapboard_post"."user_id"'}).get(pk=132).wlc
 
+    try:  # totally optional
+        forum_name = Site.objects.get_current().name
+    except Exception:  # whatever.
+        forum_name = ""
+
     render_dict.update({
-            'top_post': top_post,
-            'post_list': post_list,
-            'postform': postform,
-            'thr': thr,
-            })
+      'top_post': top_post,
+      'post_list': post_list,
+      'postform': postform,
+      'thr': thr,
+      'forum_name': forum_name,
+    })
     
     return render_to_response('snapboard/thread',
-            render_dict,
-            context_instance=RequestContext(request, processors=extra_processors))
-thread = anonymous_login_required(thread)
+      render_dict,
+      context_instance=RequestContext(request, processors=extra_processors))
 
 
+@anonymous_login_required
 def post_reply(request, parent_id, thread_id=None, rpc=False):
     # thread_id paremeter was considered unnecessary here.
     # Although, '#thread_id/post_id_in_thread' might be preferrable to using
@@ -273,155 +361,113 @@ def post_reply(request, parent_id, thread_id=None, rpc=False):
             raise PermissionError, "You are not allowed to post in this thread"
         postform = PostForm(request.POST)
         if postform.is_valid():
-            postobj = parent_post.add_child(thread = thr,
-                    user = request.user,
-                    text = postform.cleaned_data['post'],
-                    )
-            postobj.save() # this needs to happen before many-to-many private is assigned
-
-            if len(postform.cleaned_data['private']) > 0:
-                _log.debug('thread(): new post private = %s' % postform.cleaned_data['private'])
-                postobj.private = postform.cleaned_data['private']
-                postobj.is_private = True
-                postobj.save()
+            postobj = parent_post.add_child(
+              thread=thr,
+              user=request.user,
+              text=postform.cleaned_data['text'],
+            )
+            postobj.save()
             postobj.notify()
             return success_or_reverse_redirect('snapboard_locate_post',
               args=(postobj.id,), req=request, msg="Posted successfully.")
     else:
         context = {'postform': PostForm(), 
-         "parent_post": parent_post}
+          "parent_post": parent_post}
         if rpc:  # get form, not page.
-            return {"html":
-             render_to_string('snapboard/include/addpost.html',
-              context,
-              context_instance=RequestContext(request,
-               processors=extra_processors))
-             }
+            return {
+              "html": render_to_string('snapboard/include/addpost.html',
+                context, context_instance=RequestContext(request,
+                  processors=extra_processors))
+            }
         else:
             # ...non-JS reply form.
             return render_to_response('snapboard/post_reply',
-             context,
-             context_instance=RequestContext(request,
-              processors=extra_processors))
-post_reply = anonymous_login_required(post_reply)
+              context, context_instance=RequestContext(request,
+                processors=extra_processors))
 
 
-#def rpc_geteditform(request, post_id, rpc=True):
-#    post = Post.objects.select_related(depth=2).get(pk=post_id)
+@anonymous_login_required  # ! Anonymous post revisions! yay!
 def edit_post(request, original, rpc=False):
-    '''
-    Edit an existing post.
-    '''
-    # revision=None covers for a serious bug that allows one post to be
-    # edited twice, thus creating serious problems in the database (two
-    # 'latest' posts).
-    orig_post = get_object_or_404(Post, pk=int(original), revision=None)
+    """ Edit an existing post.  """
+    orig_post = get_object_or_404(Post, pk=int(original))
         
     if orig_post.user != request.user \
      or not orig_post.thread.category.can_post(request.user) \
      or not orig_post.thread.category.can_read(request.user):
-        # ? Anonymous post editing? o-O
-        # ! Might be not in sync with interface in thread!
+        # Might be not in sync with the interface in thread.
         raise PermissionError, "You are not allowed to edit that."
 
     if request.POST and not rpc:
-        postform = PostForm(request.POST)
+        # For editing: we modify the post in-place and save the previous
+        # version into the separate model.
+        post_rev = Post_revisions.make_from_post(orig_post)
+        # ^^ a copy; not saved if not valid. vv might modify orig_post.
+        # post_rev should get is 'previous' linking to the same
+        #  object in Post_revisions
+        postform = PostForm(request.POST, instance=orig_post)
         if postform.is_valid():
-            # create the post
-            postdata = {
-                    "user": request.user,
-                    "thread": orig_post.thread,
-                    "text": postform.cleaned_data['post'],
-                    "previous": orig_post,
-            }
-
-            ## Hax: v1.
-            ## Move the previous revision to the special place in the tree.
-            #post = Post(**postdata)
-            # place it into the original post place
-            #post.path, post.depth, post.numchild = orig_post.path,
-            #  orig_post.depth, orig_post.numchild
-            # and move the original into the special place.
-            #newpath = '0' * Post.steplen + orig_post.path
-            #target = Post.objects.filter(path=newpath)[:1]
-            #if target:  # some post is already there - prev. rev., probably.
-            #    pass  # NIY.
-            #else:  # nothing there.
-            #    orig_post.path = newpath
-
-            parent = orig_post.get_parent()
-            if parent:
-                post = parent.add_child(**postdata)
-            else:
-                post = Post.add_root(**postdata)
-            post.save()  # so that jointed objects are accessible.
-            post.private = orig_post.private.all()
-            post.is_private = orig_post.is_private
-            post.save()
-
-            orig_post.revision = post
+            post_rev.save()
+            orig_post = postform.save(commit=False)
+            orig_post.previous = post_rev
             orig_post.save()
+        # else:  # ! XXX: errors? What errors?
 
-            div_id_num = post.id
-        else:
-            div_id_num = orig_post.id
+        div_id_num = orig_post.id
 
         next = request.GET.get('next')
         if next:  # shouldn't happen with XMPP.
-            return HttpResponseRedirect(next.split('#')[0] + '#snap_post' + str(div_id_num))
+            print "next"
+            return HttpResponseRedirect(next)
+            #next.split('#')[0] + \
+            #  '#snap_post' + str(orig_post.id))
         else:
+            print "succredir"
             return success_or_reverse_redirect('snapboard_locate_post',
               args=(orig_post.id,), req=request, msg="Message updated.")
     else:  # get a form for editing.
         context = {'post': orig_post}
         if rpc:
             return {"html":
-             render_to_string('snapboard/include/editpost.html',
-              context,
-              context_instance=RequestContext(request,
-               processors=extra_processors))
+              render_to_string('snapboard/include/editpost.html',
+                context, context_instance=RequestContext(
+                  request, processors=extra_processors))
             }
         else:
             return render_to_response('snapboard/edit_post',
-             context,
-             context_instance=RequestContext(request,
-              processors=extra_processors))
-edit_post = anonymous_login_required(edit_post)  # ! Anonymous post revisions! yay!
+              context, context_instance=RequestContext(
+                request, processors=extra_processors))
 
 
-def show_revisions(request, post_id):
-    '''
-    See all revisions of a specific post (for non-JS browsing).
-    '''
+def show_revisions(request, post_id, rpc=False):
+    """ Get all revisions of a specific post.  """
     orig_post = get_object_or_404(Post, pk=int(post_id))
 
-    # revision => newer
-    # previous => older
     post = orig_post
     posts = [post]
-    while post.previous:
+    while post.previous:  # ! XXX: make tons of SQL queries.
+        # (could probably make a single queryset of this; but not so
+        # important)
         post = post.previous
         posts.append(post)
-    post = orig_post
-    posts = posts[::-1]  # reverse the array.
-    while post.revision:
-        post = post.revision
-        posts.append(post)
-    
-    return render_to_response('snapboard/show_revisions',
-            {'posts': posts,
-             'last_post': posts[-1],
-             'thread': posts[-1].thread,
-            },
-            context_instance=RequestContext(request, processors=extra_processors))
+    posts = posts[::-1]  # up->down -- old->new
+
+    if rpc:  # return JSONed data of all revisions.
+        data = [{
+          'text': post.text,
+          'date': post.date,  # ! XXX: might not be saved. Check.
+        } for post in posts]
+        return data
+    else:
+        return render_to_response('snapboard/show_revisions',
+          {'posts': posts, 'last_post': orig_post,
+            'thread': orig_post.thread},
+          context_instance=RequestContext(request,
+            processors=extra_processors))
 
 
-##
-# Should new discussions be allowed to be private?  Leaning toward no.
+@anonymous_login_required
 def new_thread(request, cat_id):
-    '''
-    Start a new discussion.
-    '''
+    """ Start a new discussion.  """
     category = get_object_or_404(Category, pk=cat_id)
     if not category.can_create_thread(request.user):
         raise PermissionError, "You cannost post in this category"
@@ -455,14 +501,12 @@ def new_thread(request, cat_id):
             'form': threadform,
             },
             context_instance=RequestContext(request, processors=extra_processors))
-new_thread = anonymous_login_required(new_thread)
 
 
+@login_required
 def watchlist(request):
-    '''
-    This page shows the posts that have been marked as 'watched'
-    by the user.
-    '''
+    """ This page shows the posts that have been marked as "watched" by the
+    user.  """
     post_list = filter(lambda p: p.thread.category.can_view(request.user),
       [w.post for w in WatchList.objects.select_related(depth=3).filter(user=request.user)])
     # Pagination? Looks nice to allow in-url parameter like "?ppp=100".
@@ -470,18 +514,9 @@ def watchlist(request):
     return render_to_response('snapboard/watchlist',
             {'posts': post_list},
             context_instance=RequestContext(request, processors=extra_processors))
-watchlist = login_required(watchlist)
 
-def private_index(request):
-    thread_list = [thr for thr in Thread.view_manager.get_private(request.user) if thr.category.can_read(request.user)]
 
-    render_dict = {'title': _("Discussions with private messages to you"), 'threads': thread_list}
-
-    return render_to_response('snapboard/thread_index',
-            render_dict,
-            context_instance=RequestContext(request, processors=extra_processors))
-private_index = login_required(private_index)
-
+@anonymous_login_required
 def category_thread_index(request, cat_id):
     cat = get_object_or_404(Category, pk=cat_id)
     if not cat.can_read(request.user):
@@ -491,7 +526,7 @@ def category_thread_index(request, cat_id):
     return render_to_response('snapboard/thread_index_categoryless',
             render_dict,
             context_instance=RequestContext(request, processors=extra_processors))
-category_thread_index = anonymous_login_required(category_thread_index)
+
 
 def thread_index(request, num_limit=None, num_start=None):
     if request.user.is_authenticated():
@@ -511,54 +546,55 @@ def thread_index(request, num_limit=None, num_start=None):
             render_dict,
             context_instance=RequestContext(request, processors=extra_processors))
 
+
 def locate_post(request, post_id):
-    '''
-    Redirects to a post, given its ID.
-    '''
+    """ Redirects to a post, given its ID.  """
     post = get_object_or_404(Post, pk=post_id)
     if not post.thread.category.can_read(request.user):
         raise PermissionError, "You cannot see it"
-    if post.is_private and not (post.user==request.user or post.private.filter(pk=request.user.id).count()):
-        raise PermissionError, "What?"
     # Count the number of visible posts before the one we are looking for, 
     # as well as the total
     #total = post.thread.count_posts(request.user)
 
-    # ...everything is visible, threads paginated by first-leve answers.
+    # ...everything is visible, threads paginated by first-level answers.
     # Looks funny, meh.
-    root=post.get_root()
+    root = post.get_root()
+    # amount of paginated objects:
     total = root.get_children_count()
-    answer = post.get_ancestors()[1] if post.depth > 2 else post
-    preceding_count = (i for i,x in enumerate(answer.get_siblings()) if x == answer).next()+1
-    
-    # Later TODO: correct for possible thread rollups - add ?unfold=threadnum or smth.
-    
-    #preceding_count = post.thread.count_posts(request.user, before=post.date)
-    # Check the user's settings to locate the post in the various pages
+
     settings = request.user.get_user_settings()
     ppp = settings.ppp
-    if total < ppp:
+    if total < ppp:  # nowhere tp look for.
         page = 1
-    elif settings.reverse_posts:
-        page = (total - preceding_count - 1) // ppp + 1
     else:
-        page = preceding_count // ppp + 1
+        # object amongst paginated we're looking for.
+        answer = post.get_ancestors()[1] if post.depth > 2 else post
+        # ...what; anyway, find the index number of the target object.
+        # (not very nicely done, yes)
+        # not sure about '+1' either.
+        preceding_count = (i for i, x in enumerate(answer.get_siblings())
+          if x == answer).next() + 1
+        
+        if settings.reverse_posts:
+            page = (total - preceding_count - 1) // ppp + 1
+        else:
+            page = preceding_count // ppp + 1
     return HttpResponseRedirect('%s?page=%i#snap_post%i' % (reverse('snapboard_thread', args=(post.thread.id,)), page, post.id))
 
-def category_index(request):
-    return render_to_response('snapboard/category_index',
-            {
-            'cat_list': [c for c in Category.objects.all() if c.can_view(request.user)],
-            },
-            context_instance=RequestContext(request, processors=extra_processors))
 
+def category_index(request):
+    return render_to_response('snapboard/category_index', {
+      'cat_list': [c for c in Category.objects.all() if c.can_view(request.user)],
+      },
+      context_instance=RequestContext(request, processors=extra_processors))
+
+
+@login_required
 def edit_settings(request):
-    '''
-    Allow user to edit his/her profile. Requires login.
+    """ Allow user to edit own profile.  Requires login.
 
     There are 4 buttons on this page: choose avatar, delete avatar, upload
-    avatar, change settings.
-    '''
+    avatar, change settings.  """
     userdata, userdatacreated = UserSettings.objects.get_or_create(user=request.user)
     avatar, avatars = _get_avatars(request.user)
     if avatar:
@@ -566,7 +602,7 @@ def edit_settings(request):
     else:
         kwargs = {}
     settings_form, primary_avatar_form, upload_avatar_form = None, None, None
-    # ! Actually, the avatars code was mostly copied from avatar/views.py
+    # ! XXX: Actually, the avatars code was mostly copied from avatar/views.py
     # ! Which is problematic if avatar module is updated
     # ! but blends in much better.
     if request.method == 'POST':
@@ -628,8 +664,9 @@ def edit_settings(request):
              'primary_avatar_form': primary_avatar_form,
              'avatar': avatar,  'avatars': avatars, },
             context_instance=RequestContext(request, processors=extra_processors))
-edit_settings = login_required(edit_settings)
 
+
+@login_required
 def manage_group(request, group_id):
     group = get_object_or_404(Group, pk=group_id)
     if not group.has_admin(request.user):
@@ -647,8 +684,9 @@ def manage_group(request, group_id):
             'snapboard/manage_group',
             render_dict,
             context_instance=RequestContext(request, processors=extra_processors))
-manage_group = login_required(manage_group)
 
+
+@login_required
 def invite_user_to_group(request, group_id):
     group = get_object_or_404(Group, pk=group_id)
     if not group.has_admin(request.user):
@@ -674,8 +712,9 @@ def invite_user_to_group(request, group_id):
     return render_to_response('snapboard/invite_user',
             {'form': form, 'group': group},
             context_instance=RequestContext(request, processors=extra_processors))
-invite_user_to_group = login_required(invite_user_to_group)
 
+
+@login_required
 def remove_user_from_group(request, group_id):
     group = get_object_or_404(Group, pk=group_id)
     if not group.has_admin(request.user):
@@ -702,13 +741,13 @@ def remove_user_from_group(request, group_id):
     else:
         raise Http404, "Ain't here!"  # ?
     return HttpResponse('ok')
-remove_user_from_group = login_required(remove_user_from_group)
 
+
+@login_required
 def grant_group_admin_rights(request, group_id):
-    '''
-    Although the Group model allows non-members to be admins, this view won't 
-    let it.
-    '''
+    """ """
+    """ Although the Group model allows non-members to be admins, this view
+    won"t let it.  """
     group = get_object_or_404(Group, pk=group_id)
     if not group.has_admin(request.user):
         raise PermissionError, "What?"
@@ -728,8 +767,9 @@ def grant_group_admin_rights(request, group_id):
     else:
         raise Http404, "Ain't here!"
     return HttpResponse('ok')
-grant_group_admin_rights = login_required(grant_group_admin_rights)
 
+
+@login_required
 def discard_invitation(request, invitation_id):
     if not request.method == 'POST':
         raise Http404, "Ain't here!"
@@ -743,8 +783,9 @@ def discard_invitation(request, invitation_id):
     else:
         request.user.message_set.create(message=_('The invitation was discarded.'))
     return HttpResponse('ok')
-discard_invitation = login_required(discard_invitation)
 
+
+@login_required
 def answer_invitation(request, invitation_id):
     invitation = get_object_or_404(Invitation, pk=invitation_id, sent_to=request.user) # requires testing!
     form = None
@@ -770,13 +811,17 @@ def answer_invitation(request, invitation_id):
     return render_to_response('snapboard/invitation',
             {'form': form, 'invitation': invitation},
             context_instance=RequestContext(request, processors=extra_processors))
-answer_invitation = login_required(answer_invitation)
 
 
+## More XMPP stuff.
+# ! XXX: Should be in xmppface.views, too.
+
+@login_required
 def xmppresourcify(request, resource=None, post_id=None):
+    _log.debug("resourcify: user: %r" % request.user)
     post = _get_that_post(request, post_id)
     if not resource:
-        resource="#%d-%d"%(post.id, post.thread.id)
+        resource="#%d-%d" % (post.id, post.thread.id)
     wl, created = WatchList.objects.get_or_create(user=request.user, post=post)
     wl.xmppresource = resource  # Just replace it.
     wl.save()
@@ -786,11 +831,8 @@ def xmppresourcify(request, resource=None, post_id=None):
 
 
 def xmpp_get_help(request, subject=None):
-    '''
-    Returns help message to the user, possibly on the specific subject.
-
-    Can theoretically be used in the web view as well.
-    '''
+    """ Returns help message to the user, possibly on the specific subject.
+    Can theoretically be used in the web view as well.  """
     subject = subject or "main"
     try:
         return render_to_response('snapboard/xmpp_help/%s'%subject, 
@@ -800,38 +842,43 @@ def xmpp_get_help(request, subject=None):
     except TemplateDoesNotExist:
         raise Http404, "No such help subject"
 
-def xmpp_register_cmd(request, nickname=None, password=None):
-    '''
-    Provides all necessart registration-related functionality for XMPP.
 
-    XMPP-only view.
-    '''
-    if nickname is None:  # Allow registration w/o specifying nickname.
-        nickname = request.srcjid
-    # We're going to register one anyway.
-    ruser, created = User.objects.get_or_create(username=nickname)
-    rusersettings, c = UserSettings.objects.get_or_create(user=ruser)
-    if created:  # Okay, registered one.
-        rusersettings.jid = request.srcjid
-        if password is not None:
-            ruser.set_password(password)
-        ruser.save()
-        rusersettings.save()
-        return XmppResponse(_("Registration successful."))
+@login_required
+def xmpp_web_login_cmd(request):
+    """ Lets XMPP users log in into the web without using any password. 
+    Uses the 'loginurl' django app.  """
+    import loginurl.utils
+    current_site = Site.objects.get_current()
+    key = loginurl.utils.create(request.user)
+    url = u"http://%s%s" % (
+      unicode(current_site.domain),
+      reverse('loginurl_login', kwargs={'key': key.key}),
+    )
+    # * note that this reverse() requires quite a hack as of loginurl 0.1.3
+    return XmppResponse('Login url: <a href="%s">%s</a> .' % (url, url))
+
+
+@login_required
+def xmpp_web_changepw(request, password=''):
+    """ Change (or set) user's password for web login.  Can be empry
+    (effectively disabling logging in with pasword).  """
+    # JID is supposedly trusted and can *just* change it.
+    request.user.set_password(password)
+    if password:
+        return XmppResponse("Password changed.")
     else:
-        # Note: check_password can be True if passord is None
-        if (password is not None) and ruser.check_password(password):
-            if request.user.is_authenticated():
-                # ? What to do here, really?
-                return XmppResponse(_("You are already registered"))
-            else:
-                rusersettings.jid = request.srcjid  # replace its JID
-                rusersettings.save()
-                return XmppResponse(_("JID setting updated successfully."))
-        else:
-            raise PermissionError, "Authentication to existing user failed"
-    # Optional: change state to 'password input' if no password
-    # !! Possible problem if password (or, esp., both) contain spaces.
+        return XmppResponse("Password disabled.") 
+
+
+@login_required
+def xmpp_unregister_cmd(request):
+    """ Disassociate (log off?) JID from the user.  """
+    # ! XXX: Should check if password is empty?
+    request.user.sb_usersettings.jid = None
+    return XmppResponse("Goodbye, %r." % request.user.username) 
+
+
+## ...
 
 # RPC information with previous functions.
 RPC_OBJECT_MAP = {
@@ -849,18 +896,17 @@ RPC_ACTION_MAP = {
         "quote": rpc_quote,
         "geteditform": edit_post,
         "getreplyform": post_reply,
+        "getrevisions": show_revisions,
         }
 # Temporary list of RPC functions coverted to advanced action handers.
-RPC_AACTIONS = ["watch", "geteditform", "getreplyform"]
+RPC_AACTIONS = ["watch", "geteditform", "getreplyform", "getrevisions"]
 
 
 def _brand_view(func):
-    '''
-    Mark a view as belonging to SNAPboard.
+    """ Mark a view as belonging to SNAPboard.
 
-    Allows the UserBanMiddleware to limit the ban to SNAPboard in larger 
-    projects.
-    '''
+    Allows the UserBanMiddleware to limit the ban to SNAPboard in larger
+    projects.  """
     setattr(func, '_snapboard', True)
 
 _brand_view(rpc)
@@ -868,7 +914,6 @@ _brand_view(thread)
 _brand_view(edit_post)
 _brand_view(new_thread)
 _brand_view(watchlist)
-_brand_view(private_index)
 _brand_view(category_thread_index)
 _brand_view(thread_index)
 _brand_view(locate_post)

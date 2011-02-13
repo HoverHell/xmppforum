@@ -9,7 +9,6 @@ class PostAdmin(admin.ModelAdmin):
     list_filter = ('censor', 'freespeech', 'date')
     search_fields = ('text', 'user')
     raw_id_fields = ('thread',)
-    filter_horizontal = ('private',)
 
 
 class AbuseReportAdmin(admin.ModelAdmin):

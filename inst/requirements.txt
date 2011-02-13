@@ -1,7 +1,3 @@
-django-mailer
-django-notification
-django-pagination
 django-registration
 django-treebeard
--e git+https://github.com/ericflo/django-avatar.git#egg=django-avatar
 django

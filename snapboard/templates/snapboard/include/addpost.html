@@ -38,26 +38,8 @@
                 <button onclick="return do_insert('&#x263b;');">☻</button>
             {% endifequal %}{% endifequal %}
         </div>
-        <p>{{ postform.post }} {{ postform.post.errors }}</p>
-        <p id="autocomplete_p">
-            <!-- span style="float:right;"><b>I need more space!</b></span -->
-            <a href="#add_post_div" onclick="toggle('autocomplete_input', 'block'); toggle('autocomplete_p', 'inline');">{% trans "set private recipients (optional)" %}</a>
-        </p>
-        <div id="autocomplete_input" style="display:none">
-            <p>{{ postform.private }}</p>
-            <div id="autocomplete_div"></div>
-            <script type="text/javascript"><!--
-                dataSource = new YAHOO.widget.DS_XHR("{% url snapboard_rpc_user_lookup %}", ["ResultSet.Result","name","id"]);
-                autoComp = new YAHOO.widget.AutoComplete("id_private","autocomplete_div",dataSource);
-                autoComp.delimChar = ","; 
-                autoComp.typeAhead = true;
-                autoComp.highlightClassName = "highlight";
-                // -->
-            </script>
-        </div>
-        {% if postform.private.errors %}
-        {{ postform.private.errors }}
-        {% endif %}
+        {{ postform.as_p }}
+        <p> {{ postform.errors }}</p>
 
         <p>
         <input type="submit" value="{% trans "Post" %}" />
