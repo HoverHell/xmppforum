@@ -1,11 +1,13 @@
-""" A jaboard XMPP face server as a standalone server via s2s.  """
+""" A jaboard XMPP face server as a standalone server via s2s - base code. 
+"""
+# pylint: disable-msg=W0703
+# :W0703: *Catch "Exception"*
 
 from twisted.application import service, strports
 from twisted.internet import protocol
 from twisted.words.xish import domish  # For creating messages to send.
 from wokkel import component, server, xmppim
 import sys
-
 
 # Try to use django to get best available json library (for decoding IPC
 # data).
@@ -18,30 +20,9 @@ import traceback  # Debug on exceptions.
 
 from multiprocessing import Process, Queue
 from Queue import Empty
-from thread import start_new_thread
-import signal  # Sig handlers.
+from thread import start_new_thread  # used only in reload_workers
+#import signal  # Sig handlers.
 import time  # Old processes killing timeout.
-
-CFG = {
-  'DOMAIN': 'bot.example.org',
-  'LOG_TRAFFIC': True,
-  'NWORKERS': 2,
-  'S2S_PORT': 'tcp:5269:interface=0.0.0.0',
-  'SECRET': 'secret',
-  'SOCKET_ADDRESS': 'xmppoutqueue',
-}
-
-import settings  # XXX: not nice non-overridable way.
-
-
-def cfg_override(cfg, settings_module):
-    """ Grab whatever was overriden in settings. """
-    for key, val in cfg.iteritems():
-        cfg[key] = getattr(settings_module, key, val)
-    return cfg
-
-CFG = cfg_override(CFG, settings)
-g_workerlist, g_inquque = None, None
 
 
 def worker(w_inqueue):
@@ -56,7 +37,7 @@ def worker(w_inqueue):
     import settings
     setup_environ(settings)
 
-    from xmppface import xmppface
+    from . import xmppface
     try:
         while True:
             print "%s: waiting for stuff to process." % curproc
@@ -111,68 +92,45 @@ def finishworkersgracefully(workerlist, inqueue):
         del(workprc)
 
 
-# pylint: disable-msg=W0613
-# :W0613: *Unused argument %r*
-# pylint: disable-msg=W0703
-# :W0703: *Catch "Exception"*
-def sighuphandler(signum, frame):
+def reload_workers(CFG, workerlist, inqueue):
     """ Live reloading of workers without stopping the XMPP part. Might be
     unnecessary after all. """
-    # Shouldn't be executed in child processes, btw.
-    global g_inqueue, g_workerlist  # pylint: disable-msg=W0603
-    # :W0603: *Using the global statement*
-    import xmppworker
+    # Should not be executed in child processes.
+    from . import xmppface
     try:
-        reload(xmppworker)
+        reload(xmppface)
     except Exception:
         server.log.err(" -------------- E: Reload FAILED.")
         traceback.print_exc()
         return
-    inqueueold, workerlistold = g_inqueue, g_workerlist
-    g_workerlist, g_inqueue = createworkerpool(xmppworker.worker,
+    inqueueold, workerlistold = inqueue, workerlist
+    workerlist, inqueue = createworkerpool(xmppworker.worker,
       CFG['NWORKERS'])
     while not inqueueold.empty():
         # put possible remaining requests into the new queue
         try:
             old_task = inqueueold.get_nowait()
-            g_inqueue.put_nowait(old_task)
+            inqueue.put_nowait(old_task)
         except Empty:
             break
     start_new_thread(finishworkersgracefully, (workerlistold, inqueueold))
-#signal.signal(signal.SIGHUP, sighuphandler)
-
-
-def sigqhandler(signum, frame):
-    """ Kill gracefully on quit-signals."""
-    sys.stderr.write(" XX: sigtermed. ")
-    try:
-        finishworkersgracefully(g_workerlist, g_inqueue)
-    except Exception, e:
-        traceback.print_exc()
-
-
-#signal.signal(signal.SIGTERM, sigqhandler)
-#signal.signal(signal.SIGINT, sigqhandler)
+    return workerlist, inqueue
 
 
 # pylint: disable-msg=C0103
 # *Invalid name "%s" (should match %s)*  - twisted legacy.
-# pylint: disable-msg=W0201
-# *Attribute %r defined outside __init__*
 class AvailabilityPresenceX(xmppim.AvailabilityPresence):
     """ Slightly extended/fixed class that saves <x> element from the
     presence stanze.  """
     childParsers = {
-      ## Those shoulb be 'accumulated' from AvailabilityPresence:
-      #(None, 'show'): '_childParser_show',
-      #(None, 'status'): '_childParser_status',
-      #(None, 'priority'): '_childParser_priority',
+      ## Other parsers should be 'accumulated' from AvailabilityPresence.
       ('vcard-temp:x:update', 'x'): '_childParser_photo',
     }
+    
+    photo = None
 
     def _childParser_photo(self, element):
         """ Adds the 'photo' data if such element exists. """
-        self.photo = None
         for child in element.elements():  # usually only one.
             if child.name == 'photo':
                 if child.children:
@@ -191,14 +149,15 @@ class PresenceHandler(xmppim.PresenceProtocol):
     confirms unsubscription requests and responds to presence probes.
 
     Note that this handler does not remember any contacts, so it will not
-    send presence when starting.
-    """
+    send presence when starting.  """
 
-    def __init__(self):
-        """ Some data to store. """
-        xmppim.PresenceProtocol.__init__(self)
+    def __init__(self, inqueue, *ar, **kwar):
+        """ @param inqueue: a multiprocessing.queue for relaying new data
+        into.  """
+        xmppim.PresenceProtocol.__init__(self, *ar, **kwar)
         self.statustext = u"Greetings"
         self.subscribedto = {}
+        self.inqueue = inqueue
         # semi-hack to support vCard processing.:
         self.presenceTypeParserMap['available'] = AvailabilityPresenceX
         # ? Ask django-xmppface to ask self to send presences?
@@ -206,13 +165,13 @@ class PresenceHandler(xmppim.PresenceProtocol):
     def subscribedReceived(self, presence):
         """ Subscription approval confirmation was received. """
         server.log.msg(" ------- D: A: subscribedReceived.")
-        g_inqueue.put_nowait({'auth': 'subscribed',
+        self.inqueue.put_nowait({'auth': 'subscribed',
            'src': presence.sender.full(), 'dst': presence.recipient.full()})
 
     def unsubscribedReceived(self, presence):
         """ Unsubscription confirmation was received. """
         server.log.msg(" ------- D: A: unsubscribedReceived.")
-        g_inqueue.put_nowait({'auth': 'unsubscribed',
+        self.inqueue.put_nowait({'auth': 'unsubscribed',
            'src': presence.sender.full(), 'dst': presence.recipient.full()})
 
     def subscribeReceived(self, presence):
@@ -229,7 +188,7 @@ class PresenceHandler(xmppim.PresenceProtocol):
         server.log.msg(" ------- D: A: Requesting mutual subscription... ")
         self.subscribe(recipient=presence.sender,
                        sender=presence.recipient)
-        g_inqueue.put_nowait({'auth': 'subscribe',
+        self.inqueue.put_nowait({'auth': 'subscribe',
            'src': presence.sender.full(), 'dst': presence.recipient.full()})
 
     def unsubscribeReceived(self, presence):
@@ -238,7 +197,7 @@ class PresenceHandler(xmppim.PresenceProtocol):
         server.log.msg(" ------- D: A: unsubscribeReceived.")
         self.unsubscribed(recipient=presence.sender,
                           sender=presence.recipient)
-        g_inqueue.put_nowait({'auth': 'unsubscribe',
+        self.inqueue.put_nowait({'auth': 'unsubscribe',
            'src': presence.sender.full(), 'dst': presence.recipient.full()})
 
     def availableReceived(self, presence):
@@ -246,14 +205,14 @@ class PresenceHandler(xmppim.PresenceProtocol):
         server.log.msg(" ------- D: A: availableReceived. show: %r" % (
           presence.show,))
         show = presence.show or "online"
-        g_inqueue.put_nowait({'stat': show,
+        self.inqueue.put_nowait({'stat': show,
            'photo': getattr(presence, 'photo', None),
            'src': presence.sender.full(), 'dst': presence.recipient.full()})
 
     def unavailableReceived(self, presence):
         """ Unavailable presence was received. """
         server.log.msg(" ------- D: A: unavailableReceived.")
-        g_inqueue.put_nowait({'stat': 'unavail',
+        self.inqueue.put_nowait({'stat': 'unavail',
            'src': presence.sender.full(), 'dst': presence.recipient.full()})
 
     def probeReceived(self, presence):
@@ -267,6 +226,13 @@ class PresenceHandler(xmppim.PresenceProtocol):
 
 class MessageHandler(xmppim.MessageProtocol):
     """ Message XMPP subprotocol - relay handler. """
+
+    def __init__(self, inqueue, *ar, **kwar):
+        """ @param inqueue: a multiprocessing.queue for relaying new data
+        into.  """
+        # ? XXX: Make some base class with this __init__? Possible?
+        xmppim.MessageProtocol.__init__(self, *ar, **kwar)
+        self.inqueue = inqueue
 
     def onMessage(self, message):
         """ A message stanza was received. """
@@ -292,7 +258,7 @@ class MessageHandler(xmppim.MessageProtocol):
                 server.log.msg(" ------- !! D: message of type %r." % msgtype)
 
             # Dump all the interesting parts of data to the processing.
-            g_inqueue.put_nowait(
+            self.inqueue.put_nowait(
               {'src': message.getAttribute('from'),
                'dst': message.getAttribute('to'),
                'body': message.body.children[0],
@@ -319,6 +285,12 @@ VCARD_RESPONSE = "/iq[@type='result']/vCard[@xmlns='vcard-temp']"
 class VCardHandler(XMPPHandler):
     """ Subprotocol handler that processes received vCard iq responses. """
 
+    def __init__(self, inqueue, *ar, **kwar):
+        """ @param inqueue: a multiprocessing.queue for relaying new data
+        into.  """
+        XMPPHandler.__init__(self, *ar, **kwar)
+        self.inqueue = inqueue
+
     def connectionInitialized(self):
         """ Called when the XML stream has been initialized.
         Sets up an observer for incoming stuff. """
@@ -343,62 +315,67 @@ class VCardHandler(XMPPHandler):
         server.log.msg(" ... %r" % iq.children)
         el_vcard = iq.firstChildElement()
         if el_vcard:
-            g_inqueue.put_nowait(
+            self.inqueue.put_nowait(
               {'src': iq.getAttribute('from'),
                'dst': iq.getAttribute('to'),
                'vcard': _jparse(el_vcard)})
 
 
+def ProcessData(l_msgHandler, dataline):
+    """ Called from OutqueueHandler.dataReceived for an actual combined data
+    ready for processing (which is determined by newlines in the stream,
+    actually).  """
+    try:
+        x = simplejson.loads(dataline)
+        server.log.msg(" ------- D: Got JSON line of length %d:" % (
+          len(dataline)))
+        # server.log.msg(" --    %r        --\n  " % x)
+        if 'class' in x:
+            response = domish.Element((None, x['class']))
+            # Values are supposed to be always present here:
+            response['to'] = x['dst']
+            response['from'] = x['src']
+            for extranode in ('type', 'xml:lang'):
+                if extranode in x:
+                    response[extranode] = x[extranode]
+            if 'content' in x:
+                # We're provided with raw content already.
+                # It is expected to be valid XML.
+                # (if not - remote server will probably drop the s2s
+                # connection)
+                ## ? Process it with BeautifulSoup? :)
+                response.addRawXml(x['content'])
+            if x['class'] == 'message':
+                # Create and send a response.
+                response['type'] = response.getAttribute('type') \
+                  or 'chat'
+            # Everything else should be in place already for most types.
+            # XXX: This throws some weird errors but works.
+            l_msgHandler.send(response)
+        else:  # not 'class'
+            pass  # Nothing else implemented yet.
+    except ValueError:
+        server.log.err(" -------------- E: Failed processing: "
+         "%r" % dataline)
+
+
 class OutqueueHandler(protocol.Protocol):
     """ Relay for sending messages through the outqueue. """
-
-    def __init__(self):
-        pass
-
-    def connectionMade(self):
-        server.log.msg(" D: OutqueueHandler: connection received.\n")
 
     datatemp = ""  # for holding partially reveived data
     dataend = "\n"  # End character for splitting datastream.
 
-    # pylint: disable-msg=R0201
-    # *Method could be a function* - avoiding indent-hell here.
-    def ProcessData(self, dataline):
-        """ Called from dataReceived for an actual combined data ready for
-        processing (which is determined by newlines in the stream,
-        actually).  """
-        try:
-            x = simplejson.loads(dataline)
-            server.log.msg(" ------- D: Got JSON line of length %d:" % (
-              len(dataline)))
-            # server.log.msg(" --    %r        --\n  " % x)
-            if 'class' in x:
-                response = domish.Element((None, x['class']))
-                # Values are supposed to be always present here:
-                response['to'] = x['dst']
-                response['from'] = x['src']
-                for extranode in ('type', 'xml:lang'):
-                    if extranode in x:
-                        response[extranode] = x[extranode]
-                if 'content' in x:
-                    # We're provided with raw content already.
-                    # It is expected to be valid XML.
-                    # (if not - remote server will probably drop the s2s
-                    # connection)
-                    ## ? Process it with BeautifulSoup? :)
-                    response.addRawXml(x['content'])
-                if x['class'] == 'message':
-                    # Create and send a response.
-                    response['type'] = response.getAttribute('type') \
-                      or 'chat'
-                # Everything else should be in place already for most types.
-                # XXX: This throws some weird errors but works.
-                msgHandler.send(response)
-            else:  # not 'class'
-                pass  # Nothing else implemented yet.
-        except ValueError:
-            server.log.err(" -------------- E: Failed processing: "
-             "%r" % dataline)
+    def __init__(self, l_msgHandler):
+        # protocol.Protocol.__init__(self)
+        self.msgHandler = l_msgHandler
+    
+    def __call__(self):
+        """ Hack-method that returns self, for passing an
+        already-instantiated class to twisted.internet.protocol.Factory.  """
+        return self
+
+    def connectionMade(self):
+        server.log.msg(" D: OutqueueHandler: connection received.\n")
 
     def dataReceived(self, data):
         # Process received data for messages to send.
@@ -408,53 +385,75 @@ class OutqueueHandler(protocol.Protocol):
             # Unlike splitlines(), this returns an empty string at the
             # end if data ends with newline.
             datas = data.split(self.dataend)
-            self.ProcessData(self.datatemp + datas[0])
+            ProcessData(self.msgHandler, self.datatemp + datas[0])
             for datachunk in datas[1:-1]:
                 # suddenly, more complete messages?
-                self.ProcessData(datachunk)
+                ProcessData(self.msgHandler, datachunk)
             # Data after the last newline, usually empty.
             self.datatemp = datas[-1]
         else:  # partial data.
             self.datatemp += data
 
 
-# Start workers
-g_workerlist, g_inqueue = createworkerpool(worker, CFG['NWORKERS'])
+def start_workers(cfg):
+    """ Creates a default multiprocessing pool of workers. """
+    return createworkerpool(worker, cfg['NWORKERS'])
 
-# Set up the Twisted application
-application = service.Application("django-xmppface s2s server")
+def setup_twisted_app(cfg, workerlist=None, inqueue=None):
+    """ Sets up and returns the Twisted service application with all the
+    necessary objects for programmable XMPP server working between s2s,
+    workers and JSON socket.
+    
+    Worker pool is started automatically if not supplied.  """
 
-# outqueue.
-outFactory = protocol.Factory()
-outFactory.protocol = OutqueueHandler
-outService = strports.service('unix:%s:mode=770' %
-  CFG['SOCKET_ADDRESS'], outFactory)
-outService.setServiceParent(application)
+    if workerlist is None and inqueue is None:
+        # * if only one is None then die sometime later, maybe.
+        workerlist, inqueue = start_workers(cfg)
 
-router = component.Router()
+    application = service.Application("django-xmppface s2s server")
+    
+    ## ? XXX: This... How?
+    #signal.signal(signal.SIGHUP, lambda signum, frame: reload_workers(cfg))
+    #signal.signal(signal.SIGTERM, lambda signum, frame: quit_workers())
+    #signal.signal(signal.SIGINT, lambda signum, frame: quit_workers())
 
-serverService = server.ServerService(router, domain=CFG['DOMAIN'],
-  secret=CFG['SECRET'])
-serverService.logTraffic = CFG['LOG_TRAFFIC']
+    router = component.Router()
 
-s2sFactory = server.XMPPS2SServerFactory(serverService)
-s2sFactory.logTraffic = CFG['LOG_TRAFFIC']
-s2sService = strports.service(CFG['S2S_PORT'], s2sFactory)
-s2sService.setServiceParent(application)
+    serverService = server.ServerService(router, domain=cfg['DOMAIN'],
+      secret=cfg['SECRET'])
+    serverService.logTraffic = cfg['LOG_TRAFFIC']
 
-internalRouterComponent = component.InternalComponent(router,
-  CFG['DOMAIN'])
-internalRouterComponent.logTraffic = CFG['LOG_TRAFFIC']
-internalRouterComponent.setServiceParent(application)
+    s2sFactory = server.XMPPS2SServerFactory(serverService)
+    s2sFactory.logTraffic = cfg['LOG_TRAFFIC']
+    s2sService = strports.service(cfg['S2S_PORT'], s2sFactory)
+    s2sService.setServiceParent(application)
 
-presenceHandler = PresenceHandler()
-presenceHandler.setHandlerParent(internalRouterComponent)
+    internalRouterComponent = component.InternalComponent(router,
+      cfg['DOMAIN'])
+    internalRouterComponent.logTraffic = cfg['LOG_TRAFFIC']
+    internalRouterComponent.setServiceParent(application)
 
-vcardHandler = VCardHandler()
-vcardHandler.setHandlerParent(internalRouterComponent)
+    presenceHandler = PresenceHandler(inqueue)
+    presenceHandler.setHandlerParent(internalRouterComponent)
 
-msgHandler = MessageHandler()
-msgHandler.setHandlerParent(internalRouterComponent)
+    vcardHandler = VCardHandler(inqueue)
+    vcardHandler.setHandlerParent(internalRouterComponent)
+
+    msgHandler = MessageHandler(inqueue)
+    msgHandler.setHandlerParent(internalRouterComponent)
+
+    # outqueue.
+    outqueueHandler = OutqueueHandler(msgHandler)
+    # OutqueueHandler is hacked so it will just return self when called 'for
+    # instantiation' there.
+    outFactory = protocol.Factory()
+    outFactory.protocol = outqueueHandler  # an instance, not class.
+    # into here somehow
+    outService = strports.service('unix:%s:mode=770' %
+      cfg['SOCKET_ADDRESS'], outFactory)
+    outService.setServiceParent(application)
+
+    return application
 
 # Note: possible problem:
 # http://stackoverflow.com/questions/1470850/

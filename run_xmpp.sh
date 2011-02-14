@@ -1,3 +1,4 @@
 #!/bin/sh
-exec ENV/bin/python /usr/bin/twistd -y xmppface/jaboardxmpp.tac -n \
-  --pidfile var/jaboardxmpp.pid
+# Start the XMPP server wia twistd.
+exec ENV/bin/python /usr/bin/twistd -y xmppface/xmppserver.tac -n \
+  --pidfile var/xmppserver.pid

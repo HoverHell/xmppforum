@@ -14,37 +14,43 @@ def test_setup(**kwargs):
 
     if not settings.DEBUG:
         return
-    
-    if not kwargs.get('interactive', True):
-        return
 
     if Thread.objects.all().count() > 0:
         # return if there seem to already be threads in the database.
         return
     
-    # ask for permission to create the test
+    populate = False
+    if getattr(settings, 'M_AUTO_SAMPLEDATA', False):
+        populate = "yes"
+    
     msg = """
     You've installed SNAPboard with DEBUG=True, do you want to populate
     the board with random users/threads/posts to test-drive the application?
     (yes/no):
-    """
-    populate = raw_input(msg).strip()
-    while not (populate == "yes" or populate == "no"):
-        populate = raw_input("\nPlease type 'yes' or 'no': ").strip()
-    if populate == "no":
+    """  # indent is printed.
+
+    if not populate and kwargs.get('interactive', True):
+        # ask for permission to create the test
+        populate = raw_input(msg).strip()
+        while not (populate == "yes" or populate == "no"):
+            populate = raw_input("\nPlease type 'yes' or 'no': ").strip()
+    
+    if populate == "no" or populate == False:
         return
 
-    # create 10 random users
-
+    # create some random users
     users = ('john', 'sally', 'susan', 'amanda', 'bob', 'tully', 'fran')
     for u in users:
         user = User.objects.get_or_create(username=u)
         # user.is_staff = True
 
-    cats = ('Random Topics',
-            'Bad Ideas',
-            'Looking Around Dubious Stuff',
-            'Unscientific Pondering. the')
+    cats = (
+      'Random Topics',
+      'Bad Ideas',
+      'Looking Around Dubious Stuff',
+      'Unscientific Pondering. the',
+    )
+
     for c in cats:
         cat = Category.objects.get_or_create(label=c)
 
@@ -96,4 +102,3 @@ def test_setup(**kwargs):
         make_random_post_tree(None, n, thread, ratio=[0.1, 0.5, 0.98][i])
 
 signals.post_syncdb.connect(test_setup, sender=snapboard_app) 
-# vim: ai ts=4 sts=4 et sw=4
