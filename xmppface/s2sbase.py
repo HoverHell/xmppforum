@@ -24,7 +24,7 @@ from thread import start_new_thread  # used only in reload_workers
 #import signal  # Sig handlers.
 import time  # Old processes killing timeout.
 
-
+# ! XXX: can use django.utils.autoreload in here.
 def worker(w_inqueue):
     """ multiprocessing worker that grabs tasks (requests) from queue and
     gives them to the xmppface layer. """
