@@ -1,10 +1,39 @@
-div.snapboard table.post_table {
+/*
+ta = post_table
+sp = snap_post
+fp = flat_post
+pp = post_top_padding
+cr = thread_crutch
+tt = thread_turn
+tc = turn_container
+pb = post_basic
+pc = post_censored
+pr = post_reported
+fc = flat_color
+rm = rpc_message
+ph = post_header
+fh = flat_header
+uw = userpic_wrap
+mr = post_menuright
+po = popup
+mc = message_color
+ti = timesince
+dt = datetime
+ts = timestamp
+ps = post_summary
+pv = post_view
+pt = post_text
+ml = post_menuleft
+tp = snap_top_post
+*/
+
+div.snapboard table.ta {
 float:left;
 clear:left;
 width:100%;
 }
 
-div.snapboard div.thread_turn {
+div.snapboard div.tt {
 margin:0 0 0 2px;
 width:6px;
 height:25px;
@@ -13,22 +42,27 @@ border-left:2px solid;
 padding:0;
 }
 
-div.snapboard td.thread_crutch {
+div.snapboard td.cr {
 height:100%;
 width:10px;
 background-color:#FFFFFF;
 vertical-align:top;
 }
 
-div.snapboard td.post_top_padding {
+div.snapboard td.tc {
+vertical-align:top;
+width:1px;
+}
+
+div.snapboard td.pp {
 height:7px;
 }
 
-div.snapboard td.snap_post {
+div.snapboard td.sp {
 background: transparent url(../../media/img/thread_line.gif) repeat-y scroll 2px 0;
 }
 
-div.snapboard td.snap_post div.post_basic {
+div.snapboard td.sp div.pb {
 border: 1px solid #D0D0D0;
 background-color:#F9F9F9;
 padding:0 0 3px 0;
@@ -37,122 +71,133 @@ width:100%;
 max-width:700px;
 }
 
-div.snapboard td.snap_post div.post_reported {
+div.snapboard td.sp div.pr {
 border: 1px solid #D050D0;
 }
 
-div.snapboard td.snap_post div.flat_color {
+div.snapboard td.sp div.fc {
 /*border-left: 4px solid #DCDCDC;*/
 /*background-color:#F0F0FF;*/
 border-color:#ECECEC;
 }
 
-div.snapboard td.snap_post div.flat_header {
+div.snapboard td.sp div.fh {
 background-color:#ECECEC;
 }
-div.snapboard div.userpic_wrap img {
+
+div.snapboard div.uw img {
 display: block;
 float:left;
 }
 
-div.snapboard div.post_view {
+div.snapboard img.up {
+width:50px;
+height:50px;
+display: block;
+float:left;
+}
+
+div.snapboard div.pv {
 display:block;
 clear:both;
 padding: 0 5px 0 5px;
 }
 
+div.snapboard .mc {
+color:#c00;
+}
 
-div.snapboard div.post_text {
+div.snapboard div.pt {
 display:block;
 }
 
-div.snapboard .post_text p {
+div.snapboard .pt p {
 margin-bottom:10px;
 margin-top:10px;
 }
 
-div.snapboard .post_text h1,
-div.snapboard .post_text h2,
-div.snapboard .post_text h3,
-div.snapboard .post_text strong {
+div.snapboard .pt h1,
+div.snapboard .pt h2,
+div.snapboard .pt h3,
+div.snapboard .pt strong {
 font-weight:700;
 }
 
 
-div.snapboard div.snap_top_post div.snap_post {
+div.snapboard div.tp div.sp {
 padding:0 0 0 10px;
 background: none;
 position:static;
 }
 
-div.snapboard .post_text h1 {
+div.snapboard .pt h1 {
 font-size:130%;
 }
 
-div.snapboard .post_text h2 {
+div.snapboard .pt h2 {
 font-size:120%;
 }
 
-div.snapboard .post_text h3 {
+div.snapboard .pt h3 {
 font-size:110%;
 }
 
-div.snapboard table.post_text {
+div.snapboard table.pt {
 border:1px solid #ccc;
 }
 
-div.snapboard ol.post_text,
-div.snapboard ul.post_text {
+div.snapboard ol.pt,
+div.snapboard ul.pt {
 margin-left:2em;
 margin-right:2em;
 }
 
-div.snapboard .post_text ol {
+div.snapboard .pt ol {
 list-style-type:decimal;
 }
 
-div.snapboard .post_text ul {
+div.snapboard .pt ul {
 list-style-type:square;
 }
 
-div.snapboard .post_text blockquote,
-div.snapboard .post_text pre {
+div.snapboard .pt blockquote,
+div.snapboard .pt pre {
 background:#EEE none repeat scroll 0;
 margin-left:1em;
 padding-left:0.5em;
 }
 
-div.snapboard .post_text pre {
+div.snapboard .pt pre {
 border-left:1px solid #363;
 }
 
-div.snapboard .post_text code {
+div.snapboard .pt code {
 font-family:courier;
 }
 
-div.snapboard span.post_menuright {
+div.snapboard span.mr {
 
 }
 
-div.snapboard span.post_menuleft {
+div.snapboard span.ml {
 font-size:77%;
 padding-left:10%;
 }
 
-div.snapboard span.post_summary {
+div.snapboard span.ps {
 color:#B0BFAC;
 }
 
-div.snapboard div.snap_top_post div.post_reported {
+div.snapboard div.tp div.pr {
 border: none;
 background-color:transparent;
 }
 
-div.snapboard div.post_censored {
+div.snapboard div.pc {
 border:2px solid red;
 }
 
-div.snapboard div.post_header {
+div.snapboard div.ph {
 background-color: #D0D0D0;
 float:left;
 clear:both;
@@ -160,7 +205,7 @@ width:100%;
 padding-bottom:1px;
 }
 
-div.snapboard div.snap_top_post div.post_header {
+div.snapboard div.tp div.ph {
 background-color: transparent;
 padding:0;
 }
@@ -192,12 +237,12 @@ div.snapboard #snap_markdown_guide table {
 width:100%;
 }
 
-div.snapboard .post_text em,
-div.snapboard .post_text i,
+div.snapboard .y em,
+div.snapboard .y i,
 div.snapboard #snap_markdown_guide em {
 font-style:italic;
 }
 
-div.snapboard .post_text .quoteheader {
+div.snapboard .pt .quoteheader {
 margin-left: 1em;
 }

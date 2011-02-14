@@ -579,7 +579,7 @@ def locate_post(request, post_id):
             page = (total - preceding_count - 1) // ppp + 1
         else:
             page = preceding_count // ppp + 1
-    return HttpResponseRedirect('%s?page=%i#snap_post%i' % (reverse('snapboard_thread', args=(post.thread.id,)), page, post.id))
+    return HttpResponseRedirect('%s?page=%i#sp%i' % (reverse('snapboard_thread', args=(post.thread.id,)), page, post.id))
 
 
 def category_index(request):
