@@ -1,4 +1,11 @@
 
+Might be useful: for server-side collapsing of posts, collapsed-tree leaf
+ posts can be shortened into summary using
+ ': {{ post.text|post_summary:"30"|safe }}'
+ in the span if="sps{{ post.id }}".
+ * In JS-collapsing should reimplement that simple post_summary in JS!
+
+
 ? Auto-creating of XMPP users should probably be handled over login_required
  (since it gets the 'request' object), with options like "show registering
  offer", "warn about registration and offer to set the name" and

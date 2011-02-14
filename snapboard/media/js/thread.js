@@ -1,18 +1,33 @@
+/*
+stp = snap_top_post
+sp = snap_post
+prf = post_rpc_feedback
+c = censor
+a = abuse
+w = watch
+sps = snap_post_sum
+spv = snap_post_view
+spt = snap_post_text
+prl = post_revision_links
+spe = snap_post_edit
+spr = snap_post_reply
+*/
+//t_p = toggle_post
+function t_p(id) {
+    toggle('sps'+id, 'inline');
+    toggle('spv'+id, 'block'); }
 
-function toggle_post(id) {
-    toggle('snap_post_sum'+id, 'inline');
-    toggle('snap_post_view'+id, 'block'); }
-
-function toggle_edit(id) {
-    //toggle('post_text'+id, 'block');
-    toggle('snap_post_text'+id, 'block');
-    exttoggle('snap_post_edit'+id, 
+//t_e = toggle_edit
+function t_e(id) {
+    //toggle('pt'+id, 'block');
+    toggle('spt'+id, 'block');
+    exttoggle('spe'+id, 
      'block',
      'action=geteditform&oid='+id);
     return false; }
-
-function toggle_reply(id) {
-    exttoggle('snap_post_reply'+id, 'block',
+//t_r = toggle_reply
+function t_r(id) {
+    exttoggle('spr'+id, 'block',
      'action=getreplyform&oid='+id);
     return false; }
 
@@ -87,8 +102,8 @@ function preview(form_id) {
 function revision(orig_id, show_id) {
     urlq = SNAPBOARD_URLS.rpc_postrev + '?orig=' + orig_id + '&show=' + show_id;
 
-    div_text = document.getElementById('snap_post_text' + orig_id)
-    div_links = document.getElementById('post_revision_links' + orig_id)
+    div_text = document.getElementById('spt' + orig_id)
+    div_links = document.getElementById('prl' + orig_id)
 
     var handleSuccess = function(o) {
         if(o.responseText !== undefined) {
@@ -137,21 +152,21 @@ function revision(orig_id, show_id) {
 
 
 // --- yahoo connection stuff ---
-function toggle_variable(action, oclass, oid, msgdivid) {
+function toggle_variable(action, oname, oclass, oid, msgdivid) {
     // This function sends an RPC request to the server to toggle a
     // variable (usually a boolean).  The server response with text
     // to replace the button clicked and a status message.
 
     // TODO: oid should be renamed as oid
     var postData = 'action=' + action + '&oclass=' + oclass + '&oid=' + oid;
-    var div = document.getElementById(action + oid);
+    var div = document.getElementById(oname + oid);
     var msgdiv = document.getElementById(msgdivid);
 
     var handleSuccess = function(o) {
         if(o.responseText !== undefined) {
             res = eval('(' + o.responseText + ')');
             div.innerHTML = res['link'];
-            msgdiv.innerHTML = '<p class="rpc_message">' + res['msg'] + '</p>';
+            msgdiv.innerHTML = '<p class="rm">' + res['msg'] + '</p>';
         }
     };
 
@@ -180,14 +195,17 @@ function toggle_variable(action, oclass, oid, msgdivid) {
 }
 
 // thread level functions
-function set_csticky(id) { toggle_variable('csticky', 'thread', id, 'thread_rpc_feedback'); }
-function set_gsticky(id) { toggle_variable('gsticky', 'thread', id, 'thread_rpc_feedback'); }
-function set_close(id) { toggle_variable('close', 'thread', id, 'thread_rpc_feedback'); }
+function set_csticky(id) { toggle_variable('csticky', 'csticky', 'thread', id, 'thread_rpc_feedback'); }
+function set_gsticky(id) { toggle_variable('gsticky', 'gsticky', 'thread', id, 'thread_rpc_feedback'); }
+function set_close(id) { toggle_variable('close', 'close', 'thread', id, 'thread_rpc_feedback'); }
 
 // post level function
-function set_watch(id) { toggle_variable('watch', 'post', id, ('post_rpc_feedback' + id)); }
-function set_censor(id) { toggle_variable('censor', 'post', id, ('post_rpc_feedback' + id));}
-function set_abuse(id) { toggle_variable('abuse', 'post', id, ('post_rpc_feedback' + id));}
+//s_w = set_watch
+//s_c = set_censor
+//s_a = set_abuse
+function s_w(id) { toggle_variable('watch', 'w' , 'post', id, ('prf' + id)); }
+function s_c(id) { toggle_variable('censor', 'c', 'post', id, ('prf' + id));}
+function s_a(id) { toggle_variable('abuse', 'a', 'post', id, ('prf' + id));}
 
 // get the source text of a message to quote it
 function get_post_to_quote(id, cb) {
@@ -228,11 +246,11 @@ Date.prototype.toTimeSinceString = function(nLimit, sBetween, sLastBetween){
     if(!sLastBetween){ sLastBetween = gettext(" and "); }
     if(!Date.prototype.toTimeSinceString._collStructs){
     	Date.prototype.toTimeSinceString._collStructs = new Array(
-    		{seconds: 60 * 60 * 24 * 365, name: gettext("year"), plural: gettext("years")},
-    		{seconds: 60 * 60 * 24 * 30, name: gettext("month"), plural: gettext("months")},
-    		{seconds: 60 * 60 * 24 * 7, name: gettext("week"), plural: gettext("weeks")},
-    		{seconds: 60 * 60 * 24, name: gettext("day"), plural: gettext("days")},
-    		{seconds: 60 * 60, name: gettext("hour"), plural: gettext("hours")},
+    		{seconds: 31536000, name: gettext("year"), plural: gettext("years")},
+    		{seconds: 2592000, name: gettext("month"), plural: gettext("months")},
+    		{seconds: 604800, name: gettext("week"), plural: gettext("weeks")},
+    		{seconds: 86400, name: gettext("day"), plural: gettext("days")},
+    		{seconds: 3600, name: gettext("hour"), plural: gettext("hours")},
     		{seconds: 60, name: gettext("minute"), plural: gettext("minutes")}
     	);
     }
@@ -268,10 +286,10 @@ Date.prototype.toTimeSinceString = function(nLimit, sBetween, sLastBetween){
 
 
 function procAllTimeSince() {
-    elst = YAHOO.util.Dom.getElementsByClassName('datetime', 'span');
+    elst = YAHOO.util.Dom.getElementsByClassName('dt', 'span');
     for(var i=0; i < elst.length; i++){
         el = elst[i];
-        timestamp_el = YAHOO.util.Dom.getElementsByClassName('timestamp', 'span', el)[0];
+        timestamp_el = YAHOO.util.Dom.getElementsByClassName('ts', 'span', el)[0];
     	timestamp = new Number(timestamp_el.innerHTML);
         dateobj = new Date();
         dateobj.setTime(timestamp);
@@ -342,7 +360,7 @@ function do_insert(tag) {
 
 function insert_img(url, name, title) {
     if (!url) {
-        url = prompt(gettext('What is the URL of the image?'), 'http://');
+        url = prompt(gettext('What is the URL of the image?'), '');
         if (!url) {
             return false;
         }
@@ -365,7 +383,7 @@ function insert_img(url, name, title) {
 
 function insert_link(url, name, title) {
     if (!url) {
-        url = prompt(gettext('What is the URL of the link?'), 'http://');
+        url = prompt(gettext('What is the URL of the link?'), '');
         if (!url) {
             return false;
         }
@@ -387,7 +405,7 @@ function insert_link(url, name, title) {
 }
 
 function find_textarea (el) { return true; }// el.tagName.toLowerCase() == 'textarea'; }
-function find_author (el) { return el.className == 'popup' && el.title == 'Author'; }
+function find_author (el) { return el.className == 'po' && el.title == 'Author'; }
 
 //function do_quote(anchor) {
 //    if (!anchor) {
@@ -415,5 +433,3 @@ function do_quote(id) {
     get_post_to_quote(id, callback);
     return true;
 }
-
-// vim: ai ts=4 sts=4 et sw=4
