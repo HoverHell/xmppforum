@@ -135,9 +135,19 @@
       <td colspan="2" class="post_top_padding"></td>
       </tr>
       <tr>
-      {% ifnotequal post.depth 2 %}
-        <td class="thread_turn">{% if not post.next_sibling %}<table class="thread_crutch"></table>{% endif %}</td>
-      {% endifnotequal %}
+      {% if not post.next_sibling %}
+        <td class="thread_crutch">
+          {% ifnotequal post.depth 2 %}
+            <div class="thread_turn"></div>
+          {% endifnotequal %}
+        </td>
+      {% else %}
+        <td style="vertical-align:top;width:1px;">
+          {% ifnotequal post.depth 2 %}
+            <div class="thread_turn"></div>
+          {% endifnotequal %}
+        </td>
+      {% endif %}
       <td id="snap_post{{ post.id }}" class="snap_post">
     {% endif %}
       {% if post.censor %}
