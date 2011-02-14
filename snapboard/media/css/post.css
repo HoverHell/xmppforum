@@ -64,7 +64,7 @@ background: transparent url(../../media/img/thread_line.gif) repeat-y scroll 2px
 
 div.snapboard td.sp div.pb {
 border: 1px solid #D0D0D0;
-/* border-bottom: 1px solid #E9E9E9; */
+border-bottom: 1px solid #E9E9E9;
 background-color:#F9F9F9;
 padding:0 0 3px 0;
 margin:0;
@@ -79,7 +79,10 @@ border: 1px solid #D050D0;
 div.snapboard td.sp div.fc {
 /*border-left: 4px solid #DCDCDC;*/
 /*background-color:#F0F0FF;*/
-border-color:#ECECEC;
+
+/*border-color:#ECECEC;*/ /* only top&bottom: */
+border-top: 1px solid #E9E9E9;
+border-bottom: 1px solid #E9E9E9;
 }
 
 div.snapboard td.sp div.fh {

@@ -121,12 +121,12 @@
       <td id="sp{{ post.id }}" class="sp">
     {% endif %}
       {% if post.censor %}
-      <div class="pb pc{% if post.is_flat %} l{% endif %}">
+      <div class="pb pc{% if post.is_flat %} fc{% endif %}">
       {% else %}
         {% ifnotequal post.abuse 0 %}
-        <div class="pb pr{% if post.is_flat %} l{% endif %}">
+        <div class="pb pr{% if post.is_flat %} fc{% endif %}">
         {% else %}
-        <div class="pb">
+        <div class="pb {% if post.is_flat %} fc{% endif %}">
         {% endifnotequal %}
       {% endif %}
       {% if post.censor and not user.is_staff %}
