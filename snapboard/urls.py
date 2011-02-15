@@ -34,6 +34,8 @@ urlpatterns = patterns('',
     # RPCale views.
     (r'^r_watch_post/(?P<post_id>\d+)/$',
          r_watch_post, {}, 'snapboard_watch_post'),
+    (r'^r_removethread/(?P<thread_id>\d+)/$',
+         r_removethread, {}, 'snapboard_remove_thread'),
     (r'^threads/$', thread_index, {}, 'snapboard_thread_index'),
     (r'^threads/id/(?P<thread_id>\d+)/$', thread, {}, 'snapboard_thread'),
     (r'^threads/category/(?P<cat_id>\d+)/$',
