@@ -25,11 +25,16 @@ cmdpatterns = patterns('',
       xmpp_web_login_cmd, {}, 'snapboard_xmpp_login_cmd'),
     (r'^(?i)password( (?P<password>.+))?$',
       xmpp_web_changepw, {}, 'snapboard_xmpp_changepw'),
-    (r'^[#!](?P<thread_id>\d+)$',  thread, {}, 'snapboard_thread'),
-    (r'^[#!]( (?P<num_limit>\d+)?( (?P<num_start>\d+)?)?)?$',
-      thread_index, {}, 'snapboard_thread_index'),  # spaces!
+    (r'^[#!](?P<thread_id>\d+)$', thread, {}, 'snapboard_thread'),
+
+    (r'^[#!]c$', category_index, {}, 'snapboard_category_index'),
+    (r'^!delthread (?P<thread_id>\d+)$$',
+      r_removethread, {}, 'snapboard_remove_thread'),
+
     (r'^[#!]c(?P<cat_id>\d+)$',
       category_thread_index, {}, 'category_thread_index'),
+    (r'^[#!]( (?P<num_limit>\d+)?( (?P<num_start>\d+)?)?)?$',
+      thread_index, {}, 'snapboard_thread_index'),  # spaces!
     (r'^[#!]c(?P<cat_id>\d+) (?P<POST_subject>.+?)\n(?P<POST_post>.(.*\n?)+)',
       new_thread, {}, 'snapboard_new_thread'),
     (r'^[#!](?P<thread_id>\d*)/(?P<parent_id>\d+) (?P<POST_post>(.*\n?)+)',

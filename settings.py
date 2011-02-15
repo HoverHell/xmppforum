@@ -121,6 +121,10 @@ AVATAR_DEFAULT_SIZE = 50
 ## Note that if user doesn't exist it will be created with syncdb.
 ANONYMOUS_NAME = "Anonymous"
 
+## A special category for removed (hidden, censored) threads.
+# (disabling not yet possible)
+CAT_REMTHREADS_NAME = "Removed Threads"
+
 # Local time zone for this installation. All choices can be found here:
 # http://www.postgresql.org/docs/8.1/static/datetime-keywords.html#DATETIME-TIMEZONE-SET-TABLE
 ## And pleeease, use UTC unless it's certainly and totally local forum.  --HH

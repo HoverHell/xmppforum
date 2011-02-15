@@ -7,8 +7,11 @@ is provided in the django (see CACHE_BACKEND setting and django.core.cache).
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 
+from django.contrib.auth.models import User
+
 __all__ = [
     'XMPPContact',
+    'UserJID'
     ]
 
 class XMPPContact(models.Model):
@@ -47,4 +50,15 @@ class XMPPContact(models.Model):
         verbose_name_plural = _('xmpp contacts')
         unique_together = ("remote", "local")
 
+
+class UserJID(models.Model):
+    """ User setting that allows used to define an XMPP JID which would be
+    associated with the user (and will have full access to that user).  """
+
+    user = models.OneToOneField(User, unique=True,
+      verbose_name=_("User"), related_name='userjid')
+    jid = models.EmailField(
+      unique = True, blank = True, null = True,
+      help_text = _('Jabber ID (that gets full access to the account)'),
+      verbose_name=_('jid'))
 

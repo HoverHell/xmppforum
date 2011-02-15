@@ -6,6 +6,8 @@ import os
 from django.db.models import signals 
 from django.conf import settings
 
+# XXX: Can make this a separate simple app which depends only on
+# django.contrib.auth
 from snapboard import models as snapboard_app
 
 def add_anonymous(**kwargs):
@@ -16,8 +18,8 @@ def add_anonymous(**kwargs):
         if User.objects.filter(username=ANONYMOUS_NAME):
             # It exists already.
             return
-        print("Creating anonymous user named \"%s\":" % ANONYMOUS_NAME)
+        print "Creating anonymous user named \"%s\":" % ANONYMOUS_NAME
         anonuser = User.objects.create_user(ANONYMOUS_NAME, "", None)
-        print("  ...done.")
-        
+        print "  ...done."
+
 signals.post_syncdb.connect(add_anonymous, sender=snapboard_app) 

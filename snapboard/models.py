@@ -111,10 +111,8 @@ SNAP_MEDIA_PREFIX = getattr(settings, 'SNAP_MEDIA_PREFIX',
         getattr(settings, 'MEDIA_URL', '') + '/snapboard')
 SNAP_POST_FILTER = getattr(settings, 'SNAP_POST_FILTER', 'markdown').lower()
 
-NOBODY = 0
-ALL = 1
-USERS = 2
-CUSTOM = 3
+
+(NOBODY, ALL, USERS, CUSTOM) = range(4)
 
 PERM_CHOICES = (
     (NOBODY, _('Nobody')),
@@ -645,7 +643,7 @@ class UserSettings(models.Model):
     #skip_xmpp_body = models.BooleanField(
     #        default = False,
     #        help_text = _('Do not send non-XHTML body '\
-    #        '(fallback/unformatted). Do not set this with previous '\
+    #        '(fallback/unformatted). Do not set this with the previous '\
     #        'setting together'),
     #        verbose_name = _("disable non-xhtml body"))
     disable_xmpp_images = models.BooleanField(

@@ -81,9 +81,9 @@ class XmppRequest(object):
         # Populating extra fields:
         self.META = {'REMOTE_ADDR': srcjid}
         self.POST, self.GET = {}, {}
-        # Stuff ftom HttpRequest:
-        #self.GET, self.POST, self.COOKIES, self.META, self.FILES = None, \
-        #  None, None, {}, {}, {}, {}, {}
+        # Compatibility-convenuence stuff:
+        self.path = None
+        #self.COOKIES, self.FILES = None, {}
 
     def is_ajax(self):
         """ HttpRequest-compatible function. Returns False. """
@@ -399,7 +399,7 @@ def success_or_reverse_redirect(*args, **kwargs):
     # Remove reverse()-irrelevant parts of kwargs:
     req = kwargs.pop("req")  # Should always be present, actually.
     msg = kwargs.pop("msg", "Success.")
-    if isinstance(req, XmppRequest):
+    if isinstance(req, XmppRequest):  # ! TODO: request.is_xmpp()?
         return XmppResponse(msg)
     else:  # HTTP / redirect to reverse of view.
         return HttpResponseRedirect(reverse(*args, **kwargs))

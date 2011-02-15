@@ -44,6 +44,8 @@ _log = logging.getLogger('snapboard.views')
 
 
 ANONYMOUS_NAME = getattr(settings, 'ANONYMOUS_NAME', 'Anonymous')
+CAT_REMTHREADS_NAME = getattr(settings, 'CAT_REMTHREADS_NAME',
+  'Removed Threads')
 
 if ANONYMOUS_NAME:
     ANONYMOUS_USER = User.objects.get(username=ANONYMOUS_NAME)
@@ -167,6 +169,19 @@ login_required = get_login_required_wrapper(xmpp_autoregister_user)
 
 
 ## RPC/similar stuff:
+# Okay, how this bicycle works:
+# The idea is to make the same stuff process
+# r) JavaScript/AJAX/RPC requests.
+#   Should return some JSON or HTTP error.
+# w) non-js web requests.
+#   Usually return back (to the original post, for example).
+#   ? Could use message-sets or write to the same place as RPC, maybe. But
+#    not very important.
+# x) XMPP requests.
+#   Return some success (or error) message.
+# .
+# * Right now legacy javascript-only suff is used as well.
+
 
 def rpc(request):
     """ Delegates simple rpc requests.  """
@@ -220,23 +235,32 @@ def rpc(request):
      mimetype='application/javascript')
 
 
-def r_getreturn(request, rpc, next, rpcdata, successtext, postid=None):
+def r_getreturn(request, rpc=False, next=None, rpcdata={}, successtext=None, postid=None):
     """ Common function for RPCable views to easily return some appropriate
     data (rpcdata or next-redirect).  """
     if rpc:  # explicit request to return RPC-usable data
-        # Can do conversion in rpc(), though.
+        # do conversion in rpc().
         return rpcdata
     else:
+        # ! XXX: Untested.
+        if successtext is None and 'msg' in rpcdata:
+            successtext = rpcdata['msg']
+        if request.is_xmpp():  # simplify it here.
+            return XmppResponse(successtext)
+        # ! TODO: Add a django-mesasge if HTTP?
         next = next or request.GET.get('next')
         if next:  # know where should return to.
             return HttpResponseRedirect(next)
         else:  # explicitly return 
             if postid:  # we have a post to return to.
+                # msg isn't going to be used, though.
                 return success_or_reverse_redirect('snapboard_locate_post',
                   args=(postid,), req=request, msg=successtext)
-            # Might supply some more data if we need to return somewhere
-            # else?
-            return HttpResponseServerError("RPC return: unknown return.")  # Nothing else to do here.
+            else:
+                # Might supply some more data if we need to return somewhere
+                # else?
+                return HttpResponseServerError(
+                  "RPC return: unknown return.")  # Nothing else to do here.
 
 
 @login_required
@@ -247,7 +271,7 @@ def r_watch_post(request, post_id=None, next=None, resource=None, rpc=False):
     if not thr.category.can_read(request.user):
         raise PermissionError, "You are not allowed to do that"
     try:
-        # ! This doesn't look very good.
+        # ! FIXME: This doesn't look very good.
         # ? Check if user's already subscribed to that branch? (post__in get_ancestors)
         # (if not - can use get_or_create here)
         wl = WatchList.objects.get(user=request.user, post=post)
@@ -263,6 +287,41 @@ def r_watch_post(request, post_id=None, next=None, resource=None, rpc=False):
         return r_getreturn(request, rpc, next, {'link':_('dont watch'),
           'msg':_('This thread has been added to your favorites.')},
           "Watch added.", postid=post.id)
+
+@login_required
+def r_abusereport(request, post_id=None, next=None, resource=None, rpc=False):
+    """ Report some inappropriate post for the admins to consider censoring. 
+    """
+    thr = post.thread
+    if not thr.category.can_read(request.user):
+        raise PermissionError, "You are not allowed to do that"
+    abuse = AbuseReport.objects.get_or_create(
+      submitter = request.user,
+      post = kwargs['post'],
+      )
+    return r_getreturn(request, rpc, next, {
+       'link': '',
+       'msg': _('The moderators have been notified of possible abuse')},
+      "Abuse report filed.", postid=post.id)
+
+@login_required
+def r_removethread(request, thread_id):
+    """ Move away (remove, hide, delete, censor) some thread.  """
+    if not request.user.is_staff:
+        raise PermissionError, "You should be an admin to do that."
+
+    remcat_qs = Category.objects.filter(label=CAT_REMTHREADS_NAME)[:1]
+    if not remcat_qs:
+        raise HttpResponseServerError("Not configured to do that")
+    remcat = remcat_qs[0]
+
+    thr = get_object_or_404(Thread, pk=thread_id)
+    thr.category = remcat
+    thr.save()
+
+    # Not RPCed, but still can use that:
+    return r_getreturn(request, successtext="Thread moved away.",
+      next=request.path)
 
 
 ## Base stuff.
@@ -317,17 +376,7 @@ def thread(request, thread_id):
     # This, of course, requires that post lists are retreived here in view,
     # rather than in the template.
     
-    # Another broken things is abusereport.
-    # Probably it can be fixed by adding reportcount like this:
-    # Post.objects. ... .annotate(abuse=Count('sb_abusereport_set')).filter(...)
-    # It is be possible to fetch watch status for post in a similar way
-    # (custom SQL and no parent-watch status, though)
-    # Post.objects.extra(select={"wlc": 'SELECT COUNT(*) FROM
-    #  "snapboard_watchlist" WHERE "snapboard_watchlist"."post_id" =
-    #  "snapboard_post"."id" AND "snapboard_watchlist"."user_id" =
-    #  "snapboard_post"."user_id"'}).get(pk=132).wlc
-
-    try:  # totally optional
+    try:  # (totally optional)
         forum_name = Site.objects.get_current().name
     except Exception:  # whatever.
         forum_name = ""
@@ -386,7 +435,7 @@ def post_reply(request, parent_id, thread_id=None, rpc=False):
                 processors=extra_processors))
 
 
-@anonymous_login_required  # ! Anonymous post revisions! yay!
+@login_required
 def edit_post(request, original, rpc=False):
     """ Edit an existing post.  """
     orig_post = get_object_or_404(Post, pk=int(original))
@@ -416,12 +465,10 @@ def edit_post(request, original, rpc=False):
 
         next = request.GET.get('next')
         if next:  # shouldn't happen with XMPP.
-            print "next"
             return HttpResponseRedirect(next)
             #next.split('#')[0] + \
             #  '#snap_post' + str(orig_post.id))
         else:
-            print "succredir"
             return success_or_reverse_redirect('snapboard_locate_post',
               args=(orig_post.id,), req=request, msg="Message updated.")
     else:  # get a form for editing.
@@ -891,7 +938,7 @@ RPC_ACTION_MAP = {
         "gsticky": rpc_gsticky,
         "csticky": rpc_csticky,
         "close": rpc_close,
-        "abuse": rpc_abuse,
+        "abuse": r_abusereport,
         "watch": r_watch_post,
         "quote": rpc_quote,
         "geteditform": edit_post,
@@ -899,7 +946,7 @@ RPC_ACTION_MAP = {
         "getrevisions": show_revisions,
         }
 # Temporary list of RPC functions coverted to advanced action handers.
-RPC_AACTIONS = ["watch", "geteditform", "getreplyform", "getrevisions"]
+RPC_AACTIONS = ["watch", "abuse", "geteditform", "getreplyform", "getrevisions"]
 
 
 def _brand_view(func):

@@ -64,35 +64,6 @@ def rpc_close(request, **kwargs):
     else:
         return {'link':_('close thread'), 'msg':_('This discussion is now OPEN.')}
 
-
-def rpc_watch(request, **kwargs):
-    thr = kwargs['thread']
-    if not thr.category.can_read(request.user):
-        raise PermissionError
-    try:
-        # it exists, stop watching it
-        wl = WatchList.objects.get(user=request.user, thread=thr)
-        wl.delete()
-        return {'link':_('watch'),
-                'msg':_('This thread has been removed from your favorites.')}
-    except WatchList.DoesNotExist:
-        # create it
-        wl = WatchList(user=request.user, thread=thr)
-        wl.save()
-        return {'link':_('dont watch'),
-                'msg':_('This thread has been added to your favorites.')}
-
-
-def rpc_abuse(request, **kwargs):
-    # TODO: test this
-    abuse = AbuseReport.objects.get_or_create(
-            submitter = request.user,
-            post = kwargs['post'],
-            )
-    return {'link': '',
-            'msg':_('The moderators have been notified of possible abuse')}
-
-
 def rpc_censor(request, **kwargs):
     if not request.user.is_staff:
         raise PermissionDenied

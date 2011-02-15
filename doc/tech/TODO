@@ -14,6 +14,11 @@
   * almost done: !! Make it a separate module/app! 
 
 -- snapbase:
+  * Fix abusereport admin: it should point to Post editing but points to the
+   abusereport editing instead.
+  * Decide on sortlatest post sorting in the thread.
+    ? If it is good enough — store latest_answer in the db (updating it the
+     same way as numchildren) and sort by it (descending) everywhere?
   * fix / implement post revisions. Problem is:
    http://stackoverflow.com/questions/4870802/
     * in process.
