@@ -28,8 +28,18 @@ cmdpatterns = patterns('',
     (r'^[#!](?P<thread_id>\d+)$', thread, {}, 'snapboard_thread'),
 
     (r'^[#!]c$', category_index, {}, 'snapboard_category_index'),
-    (r'^!delthread (?P<thread_id>\d+)$$',
+    (r'^!delthread (?P<thread_id>\d+)$',
       r_removethread, {}, 'snapboard_remove_thread'),
+    # Togglers.
+    (r'^!gsticky (?P<oid>\d+)(?: (?P<state>1|0))?$',
+      r_set_gsticky, {}, 'snapboard_set_gsticky'),
+    (r'^!csticky (?P<oid>\d+)(?: (?P<state>1|0))?$',
+      r_set_csticky, {}, 'snapboard_set_csticky'),
+    (r'^!close (?P<oid>\d+)(?: (?P<state>1|0))?$',
+      r_set_close, {}, 'snapboard_set_close'),
+    (r'^!censor [!#](?P<oid>\d+)(?: (?P<state>1|0))?$',
+      r_set_censor, {}, 'snapboard_set_censor'),  # post id with '#'.
+
 
     (r'^[#!]c(?P<cat_id>\d+)$',
       category_thread_index, {}, 'category_thread_index'),

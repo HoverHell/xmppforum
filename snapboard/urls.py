@@ -31,11 +31,23 @@ urlpatterns = patterns('',
          edit_post, {}, 'snapboard_edit_post'),
     (r'^show_revisions/(?P<post_id>\d+)/$',
          show_revisions, {}, 'snapboard_show_revisions'),
-    # RPCale views.
+
+    ## RPCable views.
     (r'^r_watch_post/(?P<post_id>\d+)/$',
-         r_watch_post, {}, 'snapboard_watch_post'),
+      r_watch_post, {}, 'snapboard_watch_post'),
     (r'^r_removethread/(?P<thread_id>\d+)/$',
-         r_removethread, {}, 'snapboard_remove_thread'),
+      r_removethread, {}, 'snapboard_remove_thread'),
+    # ... togglers.
+    # ? XXX: auto-generate from list?
+    (r'^r_set_gsticky/(?P<oid>\d+)/(?: (?P<state>1|0))?$',
+      r_set_gsticky, {}, 'snapboard_set_gsticky'),
+    (r'^r_set_csticky/(?P<oid>\d+)/(?: (?P<state>1|0))?$',
+      r_set_csticky, {}, 'snapboard_set_csticky'),
+    (r'^r_set_close/(?P<oid>\d+)/(?: (?P<state>1|0))?$',
+      r_set_close, {}, 'snapboard_set_close'),
+    (r'^r_set_censor/(?P<oid>\d+)/(?: (?P<state>1|0))?$',
+      r_set_censor, {}, 'snapboard_set_censor'),
+
     (r'^threads/$', thread_index, {}, 'snapboard_thread_index'),
     (r'^threads/id/(?P<thread_id>\d+)/$', thread, {}, 'snapboard_thread'),
     (r'^threads/category/(?P<cat_id>\d+)/$',

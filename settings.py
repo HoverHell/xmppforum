@@ -110,7 +110,7 @@ SNAP_POST_FILTER = 'bbcode'
 ACCOUNT_ACTIVATION_DAYS = 5
 
 ## Avatars
-AVATAR_DEFAULT_URL = MEDIA_URL + "img/default_avatar.gif"
+AVATAR_DEFAULT_URL = "img/default_avatar.gif"
 AVATAR_GRAVATAR_BACKUP = False
 AVATAR_GRAVATAR_DEFAULT = "identicon"
 # AVATAR_STORAGE_DIR = SNAP_MEDIA_PREFIX+"/avatars"

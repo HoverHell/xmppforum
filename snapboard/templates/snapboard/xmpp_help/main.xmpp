@@ -17,4 +17,5 @@ You can use '!' instead of '#'.</p>
 <strong>HELP subject</strong> (h) — help on subject
 </p><p><br/>
 <em>Available subjects:</em><br/>
-<strong>register</strong> - registration command and notes.</p>
+<strong>register</strong> - registration command and notes.<br/>
+<strong>admin</strong> - administrative commands.</p>

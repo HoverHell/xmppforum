@@ -168,6 +168,23 @@ def xmpp_autoregister_user(request, function, *args, **kwargs):
 login_required = get_login_required_wrapper(xmpp_autoregister_user)
 
 
+## Helper wrapper, used instead of
+## django.contrib.admin.views.decorators.staff_member_required for using it
+## with XMPP and RPC requests.
+# ! XXX: Should be moved to somewhere else?
+def staff_required(view_func):
+    """ Decorator for views that checks that the user is logged in and is a
+    staff member, returning PermissionError otherwise.  """
+    def _checklogin(request, *args, **kwargs):
+        if request.user.is_active and request.user.is_staff:
+            # The user is valid. Continue to the admin page.
+            return view_func(request, *args, **kwargs)
+        # Only users with staves are allowed to do that!
+        raise PermissionError, "You should be an admin to do that."
+    from functools import wraps
+    return wraps(view_func)(_checklogin)
+
+
 ## RPC/similar stuff:
 # Okay, how this bicycle works:
 # The idea is to make the same stuff process
@@ -184,10 +201,12 @@ login_required = get_login_required_wrapper(xmpp_autoregister_user)
 
 
 def rpc(request):
-    """ Delegates simple rpc requests.  """
+    """ Delegates simple rpc requests (which usually come over HTTP form
+    javascripts.  """
     if not request.POST:
         return HttpResponseServerError("RPC data is absent")
-    
+
+    ## User might be Anonymous but still should be authenticated.    
     if not request.user.is_authenticated():
         return HttpResponseServerError("RPC request by unauthenticated user")
 
@@ -214,7 +233,7 @@ def rpc(request):
         # Note: django's exception handling in here.
         # Dict is expected for rpc=True call.
         response_dict.update(rpc_func(request, oid, rpc=True))
-    else:  # Otherwise...
+    else:  # Otherwise... (XXX: This 'else'd part should be removed later)
         try:
             # oclass_str will be used as a keyword in a function call, so it must
             # be a string, not a unicode object (changed since Django went
@@ -242,7 +261,6 @@ def r_getreturn(request, rpc=False, next=None, rpcdata={}, successtext=None, pos
         # do conversion in rpc().
         return rpcdata
     else:
-        # ! XXX: Untested.
         if successtext is None and 'msg' in rpcdata:
             successtext = rpcdata['msg']
         if request.is_xmpp():  # simplify it here.
@@ -264,32 +282,37 @@ def r_getreturn(request, rpc=False, next=None, rpcdata={}, successtext=None, pos
 
 
 @login_required
-def r_watch_post(request, post_id=None, next=None, resource=None, rpc=False):
+def r_watch_post(request, post_id=None, resource=None, rpc=False):
     post = _get_that_post(request, post_id)
     # ^ 'auto' fetching should only be done from XMPP.
     thr = post.thread
     if not thr.category.can_read(request.user):
         raise PermissionError, "You are not allowed to do that"
     try:
-        # ! FIXME: This doesn't look very good.
-        # ? Check if user's already subscribed to that branch? (post__in get_ancestors)
-        # (if not - can use get_or_create here)
+        ## ! XXX: This doesn't look very good.
+        ## ? Check if user's already subscribed to that branch? (post__in get_ancestors)
+        ## Problem is, user might want to unsubscribe from whatever
+        # subscription caused the last notification. But then, such action
+        # would be better explicit (or with confirmation).
+        ## Another possibility is to create UnwatchList which allows to
+        # ignore notifications from specific branches of a subscribed
+        # subtree.
         wl = WatchList.objects.get(user=request.user, post=post)
         # it exists, stop watching it
         wl.delete()
-        return r_getreturn(request, rpc, next, {'link':_('watch'),
+        return r_getreturn(request, rpc, {'link':_('watch'),
           'msg':_('This thread has been removed from your favorites.')},
           "Watch removed.", postid=post.id)
     except WatchList.DoesNotExist:
         # create it
         wl = WatchList(user=request.user, post=post, xmppresource=resource)
         wl.save()
-        return r_getreturn(request, rpc, next, {'link':_('dont watch'),
+        return r_getreturn(request, rpc, {'link':_('dont watch'),
           'msg':_('This thread has been added to your favorites.')},
           "Watch added.", postid=post.id)
 
 @login_required
-def r_abusereport(request, post_id=None, next=None, resource=None, rpc=False):
+def r_abusereport(request, post_id=None, resource=None, rpc=False):
     """ Report some inappropriate post for the admins to consider censoring. 
     """
     thr = post.thread
@@ -299,17 +322,15 @@ def r_abusereport(request, post_id=None, next=None, resource=None, rpc=False):
       submitter = request.user,
       post = kwargs['post'],
       )
-    return r_getreturn(request, rpc, next, {
+    return r_getreturn(request, rpc, {
        'link': '',
        'msg': _('The moderators have been notified of possible abuse')},
       "Abuse report filed.", postid=post.id)
 
-@login_required
+
+@staff_required
 def r_removethread(request, thread_id):
     """ Move away (remove, hide, delete, censor) some thread.  """
-    if not request.user.is_staff:
-        raise PermissionError, "You should be an admin to do that."
-
     remcat_qs = Category.objects.filter(label=CAT_REMTHREADS_NAME)[:1]
     if not remcat_qs:
         raise HttpResponseServerError("Not configured to do that")
@@ -320,8 +341,77 @@ def r_removethread(request, thread_id):
     thr.save()
 
     # Not RPCed, but still can use that:
-    return r_getreturn(request, successtext="Thread moved away.",
-      next=request.path)
+    return r_getreturn(request, successtext="Thread moved away.")
+
+
+## ? XXX: move somewhere else?
+def _get_for_state(state, source, default=None):
+    """ Small helper function for getting some data from @param source
+    depending on state.  """
+    try:
+        if isinstance(source, tuple):
+            return source[0] if state else source[1]
+        if callable(source):
+            return source(state)
+        return default
+    except Exception, e:
+        # ! XXX: Logging?
+        return None
+    
+
+def rpc_gettoggler(objclass, field, wrap_with=staff_required,
+  rpcreturn=None, xmppreturn=None):
+    """ A generator function which creates a view for toggling some field
+    over http/rpc/xmpp.  Uses staff_required by default.
+    
+    rpcreturn is function of state that returns data to be JSONed to the RPC
+    client.  """
+    def _toggle_that(request, oid=None, rpc=False, state=None):
+        obj = get_object_or_404(objclass, pk=oid)
+        if state is not None:
+            state = bool(state)  # set to the specified state.
+        else:
+            state = not (getattr(obj, field, True))  # toggle it.
+        setattr(obj, field, state)  # do it, actually.
+        obj.save()
+        # ... and compute the ultimate return.
+        rpcdata = _get_for_state(state, rpcreturn, default={})
+        xmppdata = _get_for_state(state, xmppreturn)
+        postid = obj.id if objclass == Post else None
+        return r_getreturn(request, rpc, rpcdata=rpcdata,
+          successtext=xmppdata, postid=postid)
+    return wrap_with(_toggle_that)  # staff required by default.
+
+
+# Over HTTP/RPC/XMPP we get an 'id' argument (passed to the view),
+# and an implicit (object, field) pair (which is set in the function).
+r_set_gsticky = rpc_gettoggler(Thread, 'gsticky', rpcreturn=(
+    {'link':_('unset gsticky'),
+     'msg':_('This thread is now globally sticky.')},
+    {'link':_('set gsticky'),
+     'msg':_('Removed thread from global sticky list')}
+    )
+  )
+
+r_set_csticky = rpc_gettoggler(Thread, 'csticky', rpcreturn=(
+    {'link':_('unset csticky'),
+     'msg':_('This thread is sticky in its category.')},
+    {'link':_('set csticky'),
+     'msg':_('Removed thread from category sticky list')}
+    )
+  )
+
+r_set_close = rpc_gettoggler(Thread, 'closed', rpcreturn=(
+    {'link':_('open thread'), 'msg':_('This discussion is now CLOSED.')},
+    {'link':_('close thread'), 'msg':_('This discussion is now OPEN.')}
+    )
+  )
+
+r_set_censor = rpc_gettoggler(Post, 'censor', rpcreturn=(
+    {'link':_('uncensor'), 'msg':_('This post is censored!')},
+    {'link':_('censor'), 'msg':_('This post is no longer censored.')}
+    )
+  )
 
 
 ## Base stuff.
@@ -463,6 +553,7 @@ def edit_post(request, original, rpc=False):
 
         div_id_num = orig_post.id
 
+        # TODO: can use r_getreturn here, likely.
         next = request.GET.get('next')
         if next:  # shouldn't happen with XMPP.
             return HttpResponseRedirect(next)
@@ -934,45 +1025,21 @@ RPC_OBJECT_MAP = {
         }
 
 RPC_ACTION_MAP = {
-        "censor": rpc_censor,
-        "gsticky": rpc_gsticky,
-        "csticky": rpc_csticky,
-        "close": rpc_close,
+        "gsticky": r_set_gsticky,
+        "csticky": r_set_csticky,
+        "close": r_set_close,
+        "censor": r_set_censor,
+        "removethread": r_removethread,
+
         "abuse": r_abusereport,
         "watch": r_watch_post,
-        "quote": rpc_quote,
         "geteditform": edit_post,
         "getreplyform": post_reply,
         "getrevisions": show_revisions,
+
+        "quote": rpc_quote,
         }
 # Temporary list of RPC functions coverted to advanced action handers.
-RPC_AACTIONS = ["watch", "abuse", "geteditform", "getreplyform", "getrevisions"]
+RPC_AACTIONS = ["gsticky", "csticky", "close", "censor", "removethread",
+  "abuse", "watch", "geteditform", "getreplyform", "getrevisions", ]
 
-
-def _brand_view(func):
-    """ Mark a view as belonging to SNAPboard.
-
-    Allows the UserBanMiddleware to limit the ban to SNAPboard in larger
-    projects.  """
-    setattr(func, '_snapboard', True)
-
-_brand_view(rpc)
-_brand_view(thread)
-_brand_view(edit_post)
-_brand_view(new_thread)
-_brand_view(watchlist)
-_brand_view(category_thread_index)
-_brand_view(thread_index)
-_brand_view(locate_post)
-_brand_view(category_index)
-_brand_view(edit_settings)
-_brand_view(manage_group)
-_brand_view(invite_user_to_group)
-_brand_view(remove_user_from_group)
-_brand_view(grant_group_admin_rights)
-_brand_view(discard_invitation)
-_brand_view(answer_invitation)
-_brand_view(xmpp_get_help)
-_brand_view(xmpp_register_cmd)
-
-# vim: ai ts=4 sts=4 et sw=4
