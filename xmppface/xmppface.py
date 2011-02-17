@@ -13,10 +13,10 @@ import traceback  # Debug...
 
 
 from .xmppbase import (XmppRequest, XmppIq, XmppResponse, 
-  send_xmpp_message, _get_user_qs)
+  send_xmpp_message)
 # Dumping of extra info into there:
 from .models import XMPPContact
-from .util import RegexCmdResolver
+from .util import RegexCmdResolver, _get_user_qs
 
 from django.core.cache import cache
 
@@ -62,6 +62,7 @@ def makecontact(local, remote):
     return contact
 
 
+# ! FIXME: Move those two to some special view handlers.
 def check_photo_update(local, remote_b, photo):
     """ See if we don't use the advertised contact's photo (avatar) and
     request it if necessary. """

@@ -22,49 +22,22 @@ _log = logging.getLogger('xmppbase')
 
 # for XmppReq/Resp...
 from django.contrib.auth.models import AnonymousUser
-
 # for login_required wrapper
-from django.contrib.auth.decorators import login_required as login_required_orig
-
+from django.contrib.auth.decorators import login_required as \
+  login_required_orig
 # For success_or_reverse_redirect
 from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect
-
-
-import re  # Stripping XHTML images.
-
-# For serialization of XmppResponse
-# django uses best json available
+# For stripping XHTML images.
+import re
+# For serialization of XmppResponse.  Django uses best json available.
 from django.utils import simplejson
 
+from .util import _get_user_or_anon
 
 # Monkey-patch HttpRequest so it gets is_xmpp() as well.
 import django.http
 django.http.HttpRequest.is_xmpp = lambda self: False
-
-
-def _get_user_qs(jid):
-    """ Attempts to find a User with the specified JID. Returns filter
-    QuerySet. """
-    from django.contrib.auth.models import User
-    try:
-        # ! XXX: This depends on snapboard-specific UserSettings model.
-        # ? Add User ForeignKey to XmppContact?
-        return User.objects.filter(sb_usersettings__jid__exact=jid)
-    except Exception:  # FieldError?
-        _log.error("_get_user_qs: Could not search for a User by JID!")
-        _log.debug(traceback.format_exc())
-        return None
-
-
-def _get_user_or_anon(jid):
-    """ Returns a user with the specified JID or AnonymousUser if there's no
-    such (registered) user.  """
-    user_qs = _get_user_qs(jid)[:1]
-    if user_qs:
-        return user_qs[0]
-    from django.contrib.auth.models import AnonymousUser
-    return AnonymousUser()
 
 
 # Can pretty much derive it from django.http.HttpRequest
@@ -115,7 +88,8 @@ class XmppResponse(dict):
             self.setxhtml(html)
             # ! Don't usually allow to set both body and html.
         elif body is not None:
-            self['body'] = body.rstrip()  # ! Is rstrip certainly not problematic?
+            # ! Is rstrip certainly not problematic?
+            self['body'] = body.rstrip()
         else:
             self['body'] = '(something went wrong?)'
         # ! Source address to use has to be in XMPP server's domain, at
@@ -132,6 +106,8 @@ class XmppResponse(dict):
 
     def setuser(self, user=None):
         self.user = user or AnonymousUser()
+        # ! XXX: inappropriate dependency?
+        # ! TODO: make a whole xmppface.UserSettings model then?
         self.usersettings = self.user.get_user_settings()
 
     def setxhtml(self, html):
@@ -150,8 +126,9 @@ class XmppResponse(dict):
         # Remove formatting. Also, it should be XML-compatible.
         # ! Probably should replace <a> tags with some link representation.
         # ! Or even always add actual link to the tag.
+        # ! See above on rstrip.
         self['body'] = django.utils.encoding.force_unicode(
-          django.utils.html.strip_tags(self.imgfix(html))).rstrip()  # ! See above on rstrip.
+          django.utils.html.strip_tags(self.imgfix(html))).rstrip()
           
     def imgfix(self, htmlsource):
         """
@@ -171,7 +148,7 @@ class XmppResponse(dict):
             repr_params = ["alt", "title"] # Generic interesting params.
             srcmatch = img_src_re.search(imgstr)
             if srcmatch:
-                result='[image: '+srcmatch.groups()[1]
+                result = '[img: ' + srcmatch.groups()[1]
                 for param in repr_params:
                     parammatch = re.search(img_param_re%param, imgstr)
                     if parammatch:
@@ -181,15 +158,13 @@ class XmppResponse(dict):
                 return result
             else:  # No src? Not a proper image (or a closing tag)
                 return ''
-        #return img_tag_re.sub(lambda x: img_repr(x.groups()[0]), htmlsource);
+        #return img_tag_re.sub(lambda x: img_repr(x.groups()[0]), htmlsource)
         # !! More simple version - for now.
-        return img_tag_re.sub(u"[img]", htmlsource);
+        return img_tag_re.sub(u"[img]", htmlsource)
         #  Yeah, couldn't figure out how to do all that with one regexp.
 
     def __str__(self):
-        """
-        Serializes itself into string.
-        """
+        """ Serializes itself into string.  """
         # For optimization, some XML serialization happens here.
         # Parse self, hah.
         selfrepr = {}
@@ -201,7 +176,7 @@ class XmppResponse(dict):
                   "xmlns='http://www.w3.org/1999/xhtml'>" + value + \
                   "</body></html>"
             elif key in ('body', 'subject'):
-                content = "<%s>%s</%s>"%(key, value, key) + content
+                content = "<%s>%s</%s>" % (key, value, key) + content
             else:
                 selfrepr[key] = value  # Handle everything else over there.
         selfrepr['content'] = content
@@ -219,17 +194,14 @@ class XmppIq(dict):
      prodid="-//HandGen//NONSGML vGen v1.0//EN"/></iq>
     """
     def __init__(self, iqtype='get', **kwargs):
-        """
-        Should (usually) get 'src', 'dst', 'content', possibly 'id' in kwargs.
-        """
+        """ Should (usually) get 'src', 'dst', 'content', possibly 'id' in
+        kwargs.  """
         self['class'] = 'iq'
         self['type'] = iqtype
         self.update(kwargs)  # src, dst, id, content, ...
 
     def __str__(self):
-        """
-        Serializes itself into string.
-        """
+        """ Serializes itself into string.  """
         return simplejson.dumps(self)
 
 
@@ -239,28 +211,25 @@ class XmppPresence(dict):
     """
     """
     Example:
-<presence from="hoverhell1@jabber.ru/hheee" xml:lang="en" to="hell@hell.orts.ru/hheee">
+<presence from="hoverhell1@jabber.ru/hheee" xml:lang="en"
+ to="hell@hell.orts.ru/hheee">
 <show>chat</show><status>FFC? FFS!</status><priority>0</priority></presence>
     """
     def __init__(self, **kwargs):
-        """
-        Should (usually) get 'src', 'dst',
-         and 'status', 'priority', 'show' (or 'content') in kwargs.
-        """
+        """ Should (usually) get 'src', 'dst',
+         and 'status', 'priority', 'show' (or 'content') in kwargs.  """
         self['class'] = 'presence'
         self.update(kwargs)
 
     def __str__(self):
-        """
-        Serializes itself into string.
-        """
+        """ Serializes itself into string.  """
         selfrepr = {}
         content = ''
         for key, value in self.iteritems():
-          if key in ('show', 'status', 'priority'):
-              content = "<%s>%s</%s>"%(key, value, key) + content
-          else:
-            selfrepr[key] = value
+            if key in ('show', 'status', 'priority'):
+                content = "<%s>%s</%s>" % (key, value, key) + content
+            else:
+                selfrepr[key] = value
         selfrepr['content'] = content
         return simplejson.dumps(selfrepr)
 
@@ -289,7 +258,7 @@ def connkeeper():
     while True:
         try:
             xmppoutqueue.connect(XMPPOUTQUEUEADDR)
-        except:
+        except Exception, whatever:
             if pause < pause_max:
                 _log.warn("could not connect to the xmppoutqueue! Waiting "
                  "for %s seconds." % pause)
@@ -317,6 +286,8 @@ def send_xmpp_message(msg):
     Common function to send a XMPP message through running XMPP connection
     provider. Should generally be called with XmppResponse argument with all
     necessary fields set.
+    
+    Starts a connkeeper thread if necessary.
     """
     global xmppoutqueue
     global unsent
@@ -349,11 +320,13 @@ def render_to_response(*args, **kwargs):
     # Also, may args[0] not possibly contain template name?
     try:
         request = kwargs['context_instance']['request']
-        IsXmpp = isinstance(request, XmppRequest)  # ! TODO: request.is_xmpp()?
-    except:  # Something is not right, but it's probably not XMPP anyway.
+        isxmpp = request.is_xmpp()
+    except Exception:
+        # Something is not right, but it's probably not XMPP anyway.
         request = None
-        IsXmpp = False
-    if IsXmpp:  # Return some XmppResponse with rendered template.
+        isxmpp = False
+    if isxmpp:  # Return some XmppResponse with rendered template.
+        # ! Wouldn't it be better to 's/(\.html)?$/.xmpp/' here?
         args = (args[0] + '.xmpp',) + args[1:]  # Fix template name.
         return XmppResponse(
           django.template.loader.render_to_string(*args, **kwargs), 

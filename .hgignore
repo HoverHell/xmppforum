@@ -3,4 +3,6 @@ syntax: glob
 *.pyc
 *~
 *.db
+*.orig
 ENV
+snapboard/media/avatars

@@ -76,7 +76,7 @@ urlpatterns = patterns('',
          answer_invitation, {}, 'snapboard_answer_invitation'),
 
     ## RPC
-    (r'^rpc/action/$', rpc, {}, 'snapboard_rpc_action'),
+    (r'^rpc/action/$', rpc_dispatch, {}, 'snapboard_rpc_action'),
     (r'^rpc/preview/$', rpc_preview, {}, 'snapboard_rpc_preview'),
     (r'^rpc/user_lookup/$', rpc_lookup,
         {

@@ -116,11 +116,6 @@ AVATAR_GRAVATAR_DEFAULT = "identicon"
 # AVATAR_STORAGE_DIR = SNAP_MEDIA_PREFIX+"/avatars"
 AVATAR_DEFAULT_SIZE = 50
 
-## Anonymous! Configurable common option.
-# Set it to *empty* (or None or False) to disable this.
-## Note that if user doesn't exist it will be created with syncdb.
-ANONYMOUS_NAME = "Anonymous"
-
 ## A special category for removed (hidden, censored) threads.
 # (disabling not yet possible)
 CAT_REMTHREADS_NAME = "Removed Threads"
@@ -185,8 +180,11 @@ INSTALLED_APPS = (
     'defaultsite',
     'treebeard',
     'xmppface',
+    'anon',
     'snapboard',
 )
+
+from anon.settings import *
 
 AUTHENTICATION_BACKENDS = (
     'django.contrib.auth.backends.ModelBackend',

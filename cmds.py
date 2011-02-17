@@ -7,5 +7,6 @@ from django.conf.urls.defaults import patterns
 from xmppface.util import RegexCmdResolver
 
 cmdpatterns = patterns('',
-  RegexCmdResolver('', 'snapboard.cmds'),
+  RegexCmdResolver('', 'xmppface.cmds'),  # The default useful stuff.
+  RegexCmdResolver('', 'snapboard.cmds'),  # App-specific stuff.
 )

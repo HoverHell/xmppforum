@@ -1,0 +1,9 @@
+<p><em>Admin commands:</em> <br/>
+<strong>!delthread 33</strong> — delete (move away) thread 33.<br/>
+<strong>!gsticky 23</strong> — toggle global sticky setting on the thread 23.<br/>
+<strong>!gsticky 23 1</strong> — explicitly set global sticky on the thread 23.<br/>
+<strong>!gsticky 23 0</strong> — explicitly remove global sticky on the thread 23.<br/>
+<em>Same forms are also available for next commands:</em><br/>
+<strong>!csticky ...</strong> — set category sticky.<br/>
+<strong>!close ...</strong> — close thread.<br/>
+<strong>!censor #1422</strong> — censor (hide) post 1422.</p>
