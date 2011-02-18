@@ -31,14 +31,11 @@ import xmppface.xmppbase
 from xmppface.xmppbase import (XmppRequest, XmppResponse, render_to_response,
  success_or_reverse_redirect, login_required, get_login_required_wrapper)
 from xmppface.xmppstuff import send_notifications
+from xmppface import forms as xfforms
 
 from anon.decorators import anonymous_login_required
 
 # Avatar form in UserSettings
-from avatar.models import Avatar, avatar_file_path
-from avatar.forms import PrimaryAvatarForm, UploadAvatarForm
-import avatar.views
-from avatar.views import _get_avatars, _notification_updated
 
 
 from snapboard.forms import *
@@ -662,21 +659,32 @@ def edit_settings(request):
     avatar, change settings.  """
     userdata, userdatacreated = \
       UserSettings.objects.get_or_create(user=request.user)
-    uavatar, avatars = _get_avatars(request.user)
+    xfuserdata, xfuserdatacreated = \
+      xfforms.UserSettings.objects.get_or_create(user=request.user)
+    # ! XXX: Actually, the avatars code was mostly copied from avatar/views.py
+    #  Which is problematic if avatar module is updated
+    #  but blends in much better.
+    from avatar.models import Avatar, avatar_file_path
+    from avatar.forms import PrimaryAvatarForm, UploadAvatarForm
+    import avatar.views
+    uavatar, avatars = avatar.views._get_avatars(request.user)
     if uavatar:
         kwargs = {'initial': {'choice': uavatar.id}}
     else:
         kwargs = {}
-    settings_form, primary_avatar_form, upload_avatar_form = None, None, None
-    # ! XXX: Actually, the avatars code was mostly copied from avatar/views.py
-    # ! Which is problematic if avatar module is updated
-    # ! but blends in much better.
+    settings_form, xfsettings_form, primary_avatar_form, \
+      upload_avatar_form = None, None, None, None
     if request.method == 'POST':
         if 'updatesettings' in request.POST:  # Settings were edited.
             settings_form = UserSettingsForm(request.POST,
               instance=userdata, user=request.user)
+            xfsettings_form = xfforms.UserSettingsForm(request.POST,
+              instance=xfuserdata, user=request.user)
             if settings_form.is_valid():
                 settings_form.save(commit=True)
+            # ! I don't see very much of a problem if only one is valid.
+            if xfsettings_form.is_valid():
+                xfsettings_form.save(commit=True)
         elif 'avatar' in request.FILES:  # New avatar upload submitted.
             return avatar.views.add(request, next_override=request.path)
         elif 'choice' in request.POST:
@@ -692,7 +700,7 @@ def edit_settings(request):
                     # ! Maybe should check if it's the same avatar.
                     savatar.primary = True
                     savatar.save()
-                    _notification_updated(request, savatar)
+                    avatar.views._notification_updated(request, savatar)
                     request.user.message_set.create(
                       message=_("Successfully updated your avatar."))
                     # No need for redirect here, seemingly.
@@ -704,15 +712,19 @@ def edit_settings(request):
                             if unicode(av.id) != id:
                                 av.primary = True
                                 av.save()
-                                _notification_updated(request, av)
+                                avatar.views._notification_updated(
+                                  request, av)
                                 break
                     savatar.delete()
                     request.user.message_set.create(
                       message=_("Deletion successful."))
                     return HttpResponseRedirect(request.path)  # (reload)
-    # ! Create what was not created
+    # ! Create what was not created; cannot create all of them always
+    #  because most of them will fail validation then.
     settings_form = settings_form or UserSettingsForm(None,
       instance=userdata, user=request.user)
+    xfsettings_form = xfsettings_form or xfforms.UserSettingsForm(None,
+      isntance=xfuserdata, user=request.user)
     upload_avatar_form = upload_avatar_form or UploadAvatarForm(None,
       user=request.user)
     primary_avatar_form = primary_avatar_form or PrimaryAvatarForm(None,
@@ -720,6 +732,7 @@ def edit_settings(request):
     return render_to_response(
       'snapboard/edit_settings',
       {'settings_form': settings_form,
+       'xfsettings_form': xfsettings_form,
        'upload_avatar_form': upload_avatar_form,
        'primary_avatar_form': primary_avatar_form,
        'avatar': avatar,  'avatars': avatars, },

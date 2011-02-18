@@ -10,7 +10,7 @@ from django.utils.translation import ugettext as _
 
 from .xmppbase import (XmppResponse, login_required,
   get_login_required_wrapper)
-from .util import _set_user_jid
+from .util import set_user_jid
 
 ## XMPP registration/autoregistration stuff.
 # ! XXX: Might need a global get_login_required_wrapper(xmpp_unreg_view)
@@ -24,7 +24,7 @@ def xmpp_register_cmd(request, nickname=None, password=None):
     # We're going to register one anyway.
     ruser, created = User.objects.get_or_create(username=nickname)
     if created:  # Okay, registered one.
-        _set_user_jid(ruser, request.srcjid)
+        set_user_jid(ruser, request.srcjid)
         if password is not None:
             ruser.set_password(password)
         ruser.save()
@@ -40,7 +40,7 @@ def xmpp_register_cmd(request, nickname=None, password=None):
                 #  different user from own JID.
                 return XmppResponse(_("You are already registered"))
             else:  # 'authenticate into' an existing webuser.
-                _set_user_jid(ruser, request.srcjid)
+                set_user_jid(ruser, request.srcjid)
                 return XmppResponse(_("JID setting updated successfully."))
         else:
             raise PermissionDenied, "Authentication to an existing user failed."
@@ -75,7 +75,7 @@ def xmpp_unregister_cmd(request):
         # logging in into another user from XMPP.
         return XmppResponse("You have no password set. Unregister would "
           "render the login inaccessible. Will not do that.")
-    request.user.sb_usersettings.jid = None
+    set_user_jid(user, None)
     return XmppResponse("Goodbye, %r." % request.user.username) 
 
 

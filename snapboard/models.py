@@ -632,24 +632,6 @@ class UserSettings(models.Model):
             choices = ((5, '5'), (10, '10'), (20, '20'), (50, '50')),
             default = 20,
             help_text = _('Threads per page'), verbose_name=_('threads per page'))
-    jid = models.EmailField(
-            unique = True, blank = True, null = True,
-            help_text = _('Jabber ID (that gets full access to your account)'),
-            verbose_name=_('jid'))
-    disable_xmpp_xhtml = models.BooleanField(
-            default = False,
-            help_text = _('Do not send XHTML subpart (formatted message)'),
-            verbose_name = _("disable xhtml formatting"))
-    #skip_xmpp_body = models.BooleanField(
-    #        default = False,
-    #        help_text = _('Do not send non-XHTML body '\
-    #        '(fallback/unformatted). Do not set this with the previous '\
-    #        'setting together'),
-    #        verbose_name = _("disable non-xhtml body"))
-    disable_xmpp_images = models.BooleanField(
-            default = True,  # Not much clients support them properly
-            help_text = _("Do not send XHTML img tags."),
-            verbose_name = _("disable xhtml images"))
 #    notify_email = models.BooleanField(default=False, blank=True,
 #            help_text = "Email notifications for watched discussions.", verbose_name=_('notify'))
     reverse_posts = models.BooleanField(
@@ -672,7 +654,8 @@ class UserSettings(models.Model):
 # class (and AnonymouseUser too) in the python-instance-wide import.
 User.really_anonymous = False
 AnonymousUser.really_anonymous = False
-DEFAULT_USER_SETTINGS  = UserSettings()
+
+DEFAULT_USER_SETTINGS = UserSettings()
 def get_user_settings(user):
     if not user.is_authenticated():
         return DEFAULT_USER_SETTINGS
@@ -682,6 +665,7 @@ def get_user_settings(user):
         return DEFAULT_USER_SETTINGS
 User.get_user_settings = get_user_settings
 AnonymousUser.get_user_settings = get_user_settings
+
    
 class UserBan(models.Model):
     '''

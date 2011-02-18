@@ -33,7 +33,7 @@ import re
 # For serialization of XmppResponse.  Django uses best json available.
 from django.utils import simplejson
 
-from .util import _get_user_or_anon
+from .util import get_user_or_anon, get_user_xfsettings
 
 # Monkey-patch HttpRequest so it gets is_xmpp() as well.
 import django.http
@@ -50,7 +50,7 @@ class XmppRequest(object):
 
     def __init__(self, srcjid):
         self.srcjid = srcjid
-        self.user = _get_user_or_anon(srcjid)
+        self.user = get_user_or_anon(srcjid)
         # Populating extra fields:
         self.META = {'REMOTE_ADDR': srcjid}
         self.POST, self.GET = {}, {}
@@ -108,7 +108,7 @@ class XmppResponse(dict):
         self.user = user or AnonymousUser()
         # ! XXX: inappropriate dependency?
         # ! TODO: make a whole xmppface.UserSettings model then?
-        self.usersettings = self.user.get_user_settings()
+        self.usersettings = get_user_xfsettings(user)
 
     def setxhtml(self, html):
         # Usersettings are considered here
@@ -340,7 +340,7 @@ def xmpp_loginreq_handler(request, function, *args, **kwargs):
     """ Default action (view) for an unregistered JID who tries to do
     something which is login_required. """
     return XmppResponse("Please register to do this.")
-    
+
 
 def get_login_required_wrapper(xmpp_unreg_view=xmpp_loginreq_handler):
     def login_required_towrap(function=None):

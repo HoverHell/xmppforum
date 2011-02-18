@@ -24,7 +24,7 @@ class ThreadAdmin(admin.ModelAdmin):
 
 class UserSettingsAdmin(admin.ModelAdmin):
     model = UserSettings
-    list_display = ('user', 'jid', 'ppp', 'tpp', 'disable_xmpp_xhtml')
+    list_display = ('user', 'ppp', 'tpp')
 
 
 class UserBanAdmin(admin.ModelAdmin):

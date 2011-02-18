@@ -20,6 +20,7 @@ from notification.models import Notice, NoticeType, Site, get_language,\
 import django  
 from django.core.urlresolvers import reverse
 from .xmppbase import XmppResponse, XmppPresence, send_xmpp_message
+from .util import get_user_jid
 
 #from models import XMPPContact
 
@@ -55,24 +56,20 @@ def send_notifications(users, label, extra_context=None, on_site=True,
     # Probably can do ucontacts = ... filter(remote__in=userjids)
 
     for user in users:
-        
-        jid = None
-        try:  # If user has got jid at all.
-            jid = user.sb_usersettings.jid
-        except:
-            pass
 
+        jid = get_user_jid(user)  # None if no JID set.
         # If user has authenticated some bot.
         ucontacts = models.XMPPContact.objects.filter(remote=jid, auth_to=True)
         # Also, we don't care about user's status now.
-        
+
         if not (jid and ucontacts):
             # Not jid/contact available. Leave him to e-mail notification.
             if user.email:
                 remaining_users.append(user)
             else:
-                logging.debug("no way to contact %r." % user)
-            # Or to none/on-site.
+                logging.debug("No way to contact %r." % user)
+                # ! XXX: Add user messageset?
+                # Or to on-site.
             # ! Will on-site notifications work with that?
             continue  # ! What if it's not XMPP-related notification at all?
         

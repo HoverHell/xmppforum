@@ -11,7 +11,7 @@ from django.contrib.auth.models import User
 
 __all__ = [
     'XMPPContact',
-    'UserJID'
+    'UserSettings'
     ]
 
 class XMPPContact(models.Model):
@@ -51,14 +51,33 @@ class XMPPContact(models.Model):
         unique_together = ("remote", "local")
 
 
-class UserJID(models.Model):
-    """ User setting that allows used to define an XMPP JID which would be
-    associated with the user (and will have full access to that user).  """
+class UserSettings(models.Model):
+    """ xmppface-specific user settings editable by user; which means user
+    can define an XMPP JID which would be associated with the user (and will
+    have full access to that user).  """
 
     user = models.OneToOneField(User, unique=True,
-      verbose_name=_("User"), related_name='userjid')
+      verbose_name=_("User"), related_name='xf_usersettings')
     jid = models.EmailField(
       unique = True, blank = True, null = True,
       help_text = _('Jabber ID (that gets full access to the account)'),
       verbose_name=_('jid'))
+    disable_xmpp_xhtml = models.BooleanField(
+      default = False,
+      help_text = _('Do not send XHTML subpart (formatted message)'),
+      verbose_name = _("disable xhtml formatting"))
+    #skip_xmpp_body = models.BooleanField(
+    #  default = False,
+    #  help_text = _('Do not send non-XHTML body '\
+    #  '(fallback/unformatted). Do not set this with the previous '\
+    #  'setting together'),
+    #  verbose_name = _("disable non-xhtml body"))
+    disable_xmpp_images = models.BooleanField(
+      default = True,  # Not much clients support them properly
+      help_text = _("Do not send XHTML img tags."),
+      verbose_name = _("disable xhtml images"))
+
+    def __unicode__(self):
+        return _('%s\'s xmppface preferences') % self.user
+
 

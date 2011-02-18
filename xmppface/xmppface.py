@@ -16,7 +16,7 @@ from .xmppbase import (XmppRequest, XmppIq, XmppResponse,
   send_xmpp_message)
 # Dumping of extra info into there:
 from .models import XMPPContact
-from .util import RegexCmdResolver, _get_user_qs
+from .util import RegexCmdResolver, get_user_qs
 
 from django.core.cache import cache
 
@@ -74,7 +74,7 @@ def check_photo_update(local, remote_b, photo):
         return  # No need to update.
     # Could probably get that by moving it all into view. Although this is a
     # controversial architectural decision.
-    if not _get_user_qs(remote_b).exists():  # not registered.
+    if not get_user_qs(remote_b).exists():  # not registered.
         return
     # Send XMPP iq request for vcard.
     # XEP-0054, XEP-0153.
@@ -112,7 +112,7 @@ def update_vcard(local, remote_b, vcard):
     except ImportError:
         _log.debug("... could not import Avatar model!")
         return  # nothing to do then.
-    user_qs = _get_user_qs(remote_b)[:1]
+    user_qs = get
     if not user_qs:
         _log.debug(" ... vCard for an unregistered JID!")
         return
@@ -232,11 +232,11 @@ def processcmd(indata):
         except django.core.exceptions.PermissionDenied, exc:
             response = XmppResponse(_("Access Denied.") + " %s" % exc)
         except Exception, exc:
-            response = XmppResponse(_("Sorry, something went wrong!\n" \
-              "Don't worry, admins weren't notified!"))
             _log.error("\n --------------- Exception %r when calling "
                 "callback: " % exc)
             _log.debug(traceback.format_exc())
+            response = XmppResponse(_("Sorry, something went wrong!\n" \
+              "Don't worry, admins weren't notified!"))
         # Not final. Also, toResponse(), part 1.
     except django.http.Http404, exc:  # Http404 from resolver.
         response = XmppResponse(_("No such command. Try 'HELP', maybe?"))
