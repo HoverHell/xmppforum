@@ -19,7 +19,10 @@ cmdpatterns = patterns('',
       {'template': 'snapboard/whoami.xmpp'}),
 
     (r'^[#!](?P<thread_id>\d+)$', thread, {}, 'snapboard_thread'),
+    (r'^[#!](?P<thread_id>\d+)l(?: (?P<num_posts>\d+))?$',
+      thread_latest, {}, 'snapboard_thread_latest'),
     (r'^[#!]c$', category_index, {}, 'snapboard_category_index'),
+
     (r'^!delthread (?P<thread_id>\d+)$',
       r_removethread, {}, 'snapboard_remove_thread'),
     # Togglers.

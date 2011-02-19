@@ -29,9 +29,10 @@ from notification import models as notification
 # XmppFace
 import xmppface.xmppbase
 from xmppface.xmppbase import (XmppRequest, XmppResponse, render_to_response,
- success_or_reverse_redirect, login_required, get_login_required_wrapper)
+ success_or_reverse_redirect)
 from xmppface.xmppstuff import send_notifications
 from xmppface import forms as xfforms
+from xmppface.views import login_required
 
 from anon.decorators import anonymous_login_required
 
@@ -102,7 +103,6 @@ def user_settings_context(request):
 
 extra_processors = [user_settings_context]
 
-from xmppface.views import login_required
 
 
 
@@ -237,6 +237,7 @@ def r_watch_post(request, post_id=None, resource=None, rpc=False):
           'msg':_('This thread has been added to your favorites.')},
           "Watch added.", postid=post.id)
 
+#@userbannable
 @login_required
 def r_abusereport(request, post_id=None, rpc=False):
     """ Report some inappropriate post for the admins to consider censoring. 
@@ -343,6 +344,7 @@ r_set_censor = rpc_gettoggler(Post, 'censor', rpcreturn=(
 
 ## Base stuff.
 
+#@userbannable
 @anonymous_login_required
 def thread(request, thread_id):
 
@@ -352,8 +354,6 @@ def thread(request, thread_id):
         raise PermissionError, "You are not allowed to read this thread"
 
     render_dict = {}
-
-    postform = PostForm()
 
     #if request.user.is_authenticated():
     #    render_dict.update({"watched":
@@ -408,6 +408,41 @@ def thread(request, thread_id):
       context_instance=RequestContext(request, processors=extra_processors))
 
 
+def thread_latest(request, thread_id, num_posts=10):
+    """ Show last (newest) posts in the specified thread.  """
+    thr = get_object_or_404(Thread, pk=thread_id)
+    if not thr.category.can_read(request.user):
+        raise PermissionError, "You are not allowed to read this thread"
+
+    post_list = Post.objects.filter(thread=thread_id).order_by("-odate"
+      ).select_related(depth=2)
+    # ! XXX: sqlite-specific concat.
+    basesub = """SELECT %s FROM snapboard_post AS xparent WHERE
+      snapboard_post.path LIKE xparent.path || '%%%%' AND xparent.depth =
+      (snapboard_post.depth - 1) """
+    ### v1: make lots of queries.
+    #for post in post_list:
+    #    post.parent = post.get_parent()
+    ### v2: make one subquery for each extra field, inconveniently.
+    #post_list.extra(select={"parent_text": basesub % "text",
+    #  "parent_user": basesub % "user_id", })
+    ### v3: make two queries and reconstruct stuff.
+    post_list = post_list.extra(select={"parent_id": basesub % "id"})
+    post_list = post_list[:num_posts]  # take a slice, finally.
+    parents = [post.parent_id for post in post_list]
+    parent_list = Post.objects.filter(
+      id__in=parents).select_related(depth=2)
+    parent_dict = dict([(post.id, post) for post in parent_list])
+    for post in post_list:
+        post.parent = parent_dict.get(post.parent_id, None)
+    post_list = post_list[::-1]  # from older to newer.
+
+    return render_to_response('snapboard/thread_latest',
+      {'post_list': post_list, 'thr': thr, },
+      context_instance=RequestContext(request, processors=extra_processors))
+
+
+#@userbannable
 @anonymous_login_required
 def post_reply(request, parent_id, thread_id=None, rpc=False):
     # thread_id paremeter was considered unnecessary here.
@@ -450,6 +485,7 @@ def post_reply(request, parent_id, thread_id=None, rpc=False):
                 processors=extra_processors))
 
 
+#@userbannable
 @login_required
 def edit_post(request, original, rpc=False):
     """ Edit an existing post.  """
@@ -522,6 +558,7 @@ def show_revisions(request, post_id, rpc=False):
             processors=extra_processors))
 
 
+#@userbannable
 @anonymous_login_required
 def new_thread(request, cat_id):
     """ Start a new discussion.  """

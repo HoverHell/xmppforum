@@ -1,4 +1,6 @@
-{% load i18n plaintexttags %}
+
+{% load i18n %}
+{% load plaintexttags %}
 {% load extras %}
 {% load avatar_tags %}
 

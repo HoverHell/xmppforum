@@ -5,6 +5,8 @@ You can use '!' instead of '#'.</p>
 <strong>#</strong> — show last 20 threads <br/>
 <strong># &lt;N&gt; &lt;M&gt;</strong> — show N threads starting with M <br/>
 <strong>#123</strong> — show thread 123 <br/>
+<strong>#123l</strong> — show latest posts in thread 123 <br/>
+<strong>#123l 100</strong> — show 100 latest posts in thread 123 <br/>
 <strong>#c3</strong> — show threads in category 3 <br/>
 <strong>#c2 Subj</strong> — create new thread in category 2 with subject "Subj" and remaining message as content (newline required!) <br/>
 <strong>r #9876 specresource</strong> — send notifications about specific watch (subscription) from specified XMPP resource of the bot. <br/>
