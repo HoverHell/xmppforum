@@ -5,58 +5,36 @@
 
 <div id="stp" class="tp">
   <div id="sp{{ top_post.id }}" class="sp">
-    {% if top_post.censor %}
-      <div class="pc">
-    {% else %}
-      {% ifnotequal top_post.abuse 0 %}
-        <div class="pr">
-      {% endifnotequal %}
-    {% endif %}
       <div id="prf{{ top_post.id }}" class="rm"></div>
       <div class="ph">
         <img src="{% avatar_url top_post.user %}" class="up" />
         <span class="mr">
           {% if user.is_authenticated  %}
-            <span class="po">
-              <a href="{% url snapboard_post_reply top_post.id %}" onclick="return show_reply_form('{{ top_post.id }}');">{% trans "reply" %}</a>
-            </span>
+            <a href="{% url snapboard_post_reply top_post.id %}" onclick="return show_reply_form('{{ top_post.id }}');">{% trans "reply" %} </a>
           {% endif %}
-          {% ifequal top_post.user_id user.id %}
-            <span class="po">
-              <a href="{% url snapboard_edit_post top_post.id %}?next={{ request.get_full_path|urlencode }}" onclick="return t_e('{{ top_post.id }}')">{% trans "edit post" %}</a>
-            </span>
+          {% ifequal top_post.user_id user.id  %}
+            <a href="{% url snapboard_edit_post top_post.id %}?next={{ request.get_full_path|urlencode }}" onclick="return t_e('{{ top_post.id }}')">{% trans "edit post" %} </a>
           {% endifequal %}
           {% if user.is_staff %}
-            <span class="po">
-              <a id="c{{ top_post.id }}" href="#sp{{ top_post.id }}" onclick="s_c('{{ top_post.id }}');">{{ top_post.censor|yesno:_("uncensor,censor") }}</a>
-            </span>
+              <a id="c{{ top_post.id }}" href="#sp{{ top_post.id }}" onclick="s_c('{{ top_post.id }}');">{{ top_post.censor|yesno:_("uncensor,censor") }} </a>
           {% endif %}
           {% if user.is_authenticated and not top_post.freespeech %}
-            <span class="po">
-              <a id="a{{ top_post.id }}" href="#sp{{ top_post.id }}" onclick="s_a('{{ top_post.id }}');">{% trans "report abuse" %}</a>
-            </span>
+              <a id="a{{ top_post.id }}" href="#sp{{ top_post.id }}" onclick="s_a('{{ top_post.id }}');">{% trans "report abuse" %} </a>
           {% endif %}
         </span>
-        <b>
-          <a href="#sp{{ top_post.id }}" onclick="t_p('{{ top_post.id }}');">
-            <span class="po">{{ top_post.user }}</span>
-          </a>
-        </b>
+        <span class="un">{{ top_post.user }} </span>
         {% if top_post.private.all %}{% trans "to" %} {% for rec in top_post.private.all %}{{ rec }}{% if not forloop.last %},{% endif %}{% endfor %}{% endif %}
         <span class="ti">
           <span class="dt">{{ top_post.date|date:"r T" }}<span class="ts">{{ top_post.date|timestamp }}</span>
           </span>
         </span>
-        <span class="ps" style="display:none" id="sps{{ top_post.id }}">: {{ top_post.text|post_summary:"30"|safe }}</span>
       </div>
-      <div id="spv{{ top_post.id }}">
+      <div id="spv{{ top_post.id }}" class="pv">
         <div class="pt" id="spt{{ top_post.id }}">{{ top_post.text|striptags|render_post|safe }}</div>
         {% if top_post.previous %}
           <span id="prl{{ top_post.id }}" class="ml">
-            <a href="#spv{{ top_post.id }}" onclick="revision('{{ top_post.id }}','{{ top_post.previous.id }}');">{% trans "previous" %}</a>
-            <a href="{% url snapboard_show_revisions top_post.id %}">
-              <b class="mc">{% trans "This message has been revised" %}</b>
-            </a>
+            <a href="#spv{{ top_post.id }}" onclick="rev('{{ top_post.id }}','{{ top_post.previous.id }}');">{% trans "previous" %}</a>
+            <a class="ms" href="{% url snapboard_show_revisions top_post.id %}">{% trans "This message has been revised" %}</a>
           </span> 
         {% endif %}
         {% ifequal top_post.user_id user.id %}
@@ -74,13 +52,6 @@
           </div>
         {% endifequal %}
       </div>
-    {% if top_post.censor %}
-      </div>
-    {% else %}
-      {% ifnotequal top_post.abuse 0 %}
-        </div>
-      {% endifnotequal %}
-    {% endif %}
   </div>
 </div>
 
@@ -91,101 +62,59 @@
 
 {% for top_answer in post_list %}
   {% for post, post_info in top_answer.get_flathelper_list %}
-    {% if not post_info.open %}
-      </td>
-      </tr>
-      </table>
-    {% endif %}
-
-  <table class="ta">
+  {% if not post_info.open %}</td></tr></table>{% endif %}
+  <table id="sp{{ post.id }}" class="sp{% if not post.is_flat %}{% ifequal post.depth 2 %} rp{% else %} lm{% if post.next_sibling %} pn{% endif %}{% endifequal %}{% endif %}">
   <tr>
-    {% if post.is_flat %}
-      <td id="sp{{ post.id }}" class="sp fp">
+    {% if not post.is_flat %}{% ifnotequal post.depth 2 %}{% if not post.next_sibling %}
+    <td class="pp"></td></tr><tr>
+    <td class="bt"><div></div></td>
     {% else %}
-      <td colspan="2" class="pp"></td>
-      </tr>
-      <tr>
-      {% if not post.next_sibling %}
-        <td class="cr">
-          {% ifnotequal post.depth 2 %}
-            <div class="tt"></div>
-          {% endifnotequal %}
-        </td>
-      {% else %}
-        <td class="tc">
-          {% ifnotequal post.depth 2 %}
-            <div class="tt"></div>
-          {% endifnotequal %}
-        </td>
-      {% endif %}
-      <td id="sp{{ post.id }}" class="sp">
-    {% endif %}
-      {% if post.censor %}
-      <div class="pb pc{% if post.is_flat %} fc{% endif %}">
-      {% else %}
-        {% ifnotequal post.abuse 0 %}
-        <div class="pb pr{% if post.is_flat %} fc{% endif %}">
-        {% else %}
-        <div class="pb {% if post.is_flat %} fc{% endif %}">
-        {% endifnotequal %}
-      {% endif %}
+    <td class="ct"><div></div></td>
+    {% endif %}{% endifnotequal %}{% endif %}
+    <td>
       {% if post.censor and not user.is_staff %}
-        <br/>Censored post.<br/><br/>
+        <div id="spv{{ post.id }}" class="pv pc{% if post.is_flat %} f{% endif %}"><div id="spt{{ post.id }}" class="pt">Censored post #{{ post.id_form_a }}.</div></div>
       {% else %}
-        <div id="prf{{ post.id }}" class="rm"></div>
-        <div class="ph{% if post.is_flat %} fh{% endif %}">
+      <div class="ph{% if post.is_flat %} f{% endif %}">
           <img src="{% avatar_url post.user %}" class="up" />
-          <span class="mr">#{{ post.id_form_a }} | #{{ post.id_form_b }} | {% if user.is_authenticated %}{% ifequal post.user_id user.id %}<span class="po"><a href="{% url snapboard_edit_post post.id %}?next={{ request.get_full_path|urlencode }}%23sp{{ post.id }}" onclick="return t_e('{{ post.id }}')">{% trans "edit post" %}</a></span>{% endifequal %}<span class="po">
-                <a href="{% url snapboard_post_reply post.id %}" onclick="return t_r('{{ post.id }}');">{% trans "reply" %}</a>
-              </span>
-              {% if not user.really_anonymous %}
-                <span class="po">
-                  <a id="w{{ post.id }}" href="{% url snapboard_watch_post post.id %}?next={{ request.get_full_path|urlencode }}%23sp{{ post.id }}" onclick="s_w('{{ post.id }}'); return false;">{% trans "toggle watch" %}</a>
-                </span>
-              {% endif %}
+          <span class="mr">
+            <span class="pi">#{{ post.id_form_a }} | #{{ post.id_form_b }} | </span>
+            {% if user.is_authenticated %}
+              {% ifequal post.user_id user.id %}
+                <a href="{% url snapboard_edit_post post.id %}?next={{ request.get_full_path|urlencode }}%23sp{{ post.id }}" onclick="return t_e('{{ post.id }}')">{% trans "edit post" %} </a>
+              {% endifequal %}
+              <a href="{% url snapboard_post_reply post.id %}" onclick="return t_r('{{ post.id }}');">{% trans "reply" %} </a>
+              <a id="w{{ post.id }}" href="{% url snapboard_watch_post post.id %}?next={{ request.get_full_path|urlencode }}%23sp{{ post.id }}" onclick="s_w('{{ post.id }}'); return false;">{% trans "watch" %} </a>
             {% endif %}
             {% if user.is_staff %}
-              <span class="po">
-                <a id="c{{ post.id }}" href="#sp{{ post.id }}" onclick="s_c('{{ post.id }}');">{{ post.censor|yesno:_("uncensor,censor") }}</a>
-              </span>
+              <a id="c{{ post.id }}" href="#sp{{ post.id }}" onclick="s_c('{{ post.id }}');">{{ post.censor|yesno:_("uncensor,censor") }} </a>
             {% endif %}
             {% if user.is_authenticated and not post.freespeech %}
-              <span class="po">
-                <a id="a{{ post.id }}" href="#sp{{ post.id }}" onclick="s_a('{{ post.id }}');">{% trans "report abuse" %}</a>
-                </span>
+              <a id="a{{ post.id }}" href="#sp{{ post.id }}" onclick="s_a('{{ post.id }}');">{% trans "report abuse" %} </a>
             {% endif %}
           </span>
-          <b>
-            <a href="#sp{{ post.id }}" onclick="t_p('{{ post.id }}'); return false; r">
-              <span class="po">{{ post.user }}</span>
-            </a>
-          </b>
+            <a class="un" href="#sp{{ post.id }}" onclick="t_p('{{ post.id }}'); return false;">{{ post.user }} </a>
           <span class="ti">
             <span class="dt">{{ post.date|date:"r T" }}<span class="ts">{{ post.date|timestamp }}</span>
             </span>
           </span>
           <span class="ps" style="display:none" id="sps{{ post.id }}"></span>
         </div>
-        <div id="spv{{ post.id }}" class="pv">
-          <div class="pt" id="spt{{ post.id }}">{{ post.text|striptags|render_post|safe }}</div>
+        {% endif %}
+      {% if not post.is_flat %}{% ifnotequal post.depth 2 %}</td></tr><tr><td></td><td>{% endifnotequal %}{% endif %}
+      {% if post.censor and not user.is_staff %}{% else %}
+        <div id="spv{{ post.id }}" class="pv{% if post.censor %}{% if not user.is_staff %} pc{% else %} apc{% endif %}{% else %}{% ifnotequal post.abuse 0 %}{% if not user.is_staff %} pr{% else %} apr{% endif %}{% endifnotequal %}{% endif %}{% if post.is_flat %} f{% endif %}"><div id="prf{{ post.id }}" class="rm"></div>
+          <div style="display:block" class="pt" id="spt{{ post.id }}">{{ post.text|striptags|render_post|safe }}</div>
           {% if post.previous %}
             <span id="prl{{ post.id }}" class="ml">
-              <a href="#spv{{ post.id }}" onclick="revision('{{ post.id }}','{{ post.previous.id }}'); return false;">&#171; {% trans "previous" %}</a>
-              <a href="{% url snapboard_show_revisions post.id %}">
-                <b class="mc">{% trans "This message has been revised" %}</b>
-              </a>
+              <a href="#spv{{ post.id }}" onclick="rev('{{ post.id }}','{{ post.previous.id }}'); return false;">&#171; {% trans "previous" %}</a>
+              <a class="ms" href="{% url snapboard_show_revisions post.id %}">{% trans "This message has been revised" %}</a>
             </span>
           {% endif %}
           <div id="spe{{ post.id }}"></div>
+          <div id="spr{{ post.id }}" ></div>
         </div>
-        <div id="spr{{ post.id }}" ></div>
-      {% endif %} {# post.censor and not user.is_staff  else #}
-      </div>
-    {% for close in post_info.close %}
-        </td>
-        </tr>
-        </table>
-    {% endfor %} 
+      {% endif %}{# post.censor and not user.is_staff  else #}
+  {% for close in post_info.close %}</td></tr></table>{% endfor %} 
   {% endfor %}
-
 {% endfor %}

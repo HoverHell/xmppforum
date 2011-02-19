@@ -1,22 +1,18 @@
 /*
-ta = post_table
 sp = snap_post
 fp = flat_post
 pp = post_top_padding
 cr = thread_crutch
 tt = thread_turn
 tc = turn_container
-pb = post_basic
 pc = post_censored
 pr = post_reported
-fc = flat_color
 rm = rpc_message
 ph = post_header
-fh = flat_header
 uw = userpic_wrap
 mr = post_menuright
 po = popup
-mc = message_color
+ms = message_style
 ti = timesince
 dt = datetime
 ts = timestamp
@@ -25,73 +21,45 @@ pv = post_view
 pt = post_text
 ml = post_menuleft
 tp = snap_top_post
+pi = post_id
+un = user_name
+rp = root_post
+lm = left margin
+pn = post_next
+f = flat
 */
 
-div.snapboard table.ta {
+div.snapboard table.sp {
 float:left;
 clear:left;
 width:100%;
+border-collapse:separate;
 }
+div.snapboard table.rp {margin:8px 0 0 0;}
+div.snapboard table.lm {margin:0 0 0 2px;}
+div.snapboard table.pn {padding:8px 0 0 0;border-left:2px black solid;}
 
-div.snapboard div.tt {
-margin:0 0 0 2px;
-width:6px;
-height:25px;
-border-bottom:2px solid;
-border-left:2px solid;
-padding:0;
-}
+div.snapboard td.ct {width:8px}
+div.snapboard td.bt {width:8px;background:transparent url(../../media/img/thread_turn.gif) no-repeat scroll 0 50%;}
+div.snapboard td.bt div,div.snapboard td.ct div {height:2px;background-color:black;width:100%;}
+div.snapboard td.pp {width:8px;height:8px;border-left:2px black solid;}
 
-div.snapboard td.cr {
-height:100%;
-width:10px;
-background-color:#FFFFFF;
-vertical-align:top;
-}
+div.snapboard div.pv,div.snapboard div.ph {max-width:700px;}
 
-div.snapboard td.tc {
-vertical-align:top;
-width:1px;
-}
-
-div.snapboard td.pp {
-height:7px;
-}
-
-div.snapboard td.sp {
-background: transparent url(../../media/img/thread_line.gif) repeat-y scroll 2px 0;
-}
-
-div.snapboard td.sp div.pb {
-border: 1px solid #D0D0D0;
-border-bottom: 1px solid #E9E9E9;
-background-color:#F9F9F9;
-padding:0 0 3px 0;
-margin:0;
-width:100%;
-max-width:700px;
-}
-
-div.snapboard td.sp div.pr {
-border: 1px solid #D050D0;
-}
-
-div.snapboard td.sp div.fc {
-/*border-left: 4px solid #DCDCDC;*/
-/*background-color:#F0F0FF;*/
-
-/*border-color:#ECECEC;*/ /* only top&bottom: */
-border-top: 1px solid #E9E9E9;
-border-bottom: 1px solid #E9E9E9;
-}
-
-div.snapboard td.sp div.fh {
-background-color:#ECECEC;
-}
-
-div.snapboard div.uw img {
-display: block;
+div.snapboard div.ph {
+background-color: #D0D0D0;
 float:left;
+clear:both;
+width:100%;
+padding:1px;
+}
+div.snapboard div.tp div.ph {
+background-color: transparent;
+padding:0;
+border:none;
+}
+div.snapboard div.ph.f {
+background-color:#ECECEC;
 }
 
 div.snapboard img.up {
@@ -101,117 +69,59 @@ display: block;
 float:left;
 }
 
-div.snapboard div.pv {
+div.snapboard table.sp div.pv {
 display:block;
 clear:both;
-padding: 0 5px 0 5px;
+outline: 1px solid #D0D0D0;
+margin:0 0 0 1px;
+background-color:#F9F9F9;
+width:100%;
 }
-
-div.snapboard .mc {
-color:#c00;
+div.snapboard table.sp div.pv.f {
+outline-color:#ECECEC;
 }
-
-div.snapboard div.pt {
-display:block;
-}
-
-div.snapboard .pt p {
-margin-bottom:10px;
-margin-top:10px;
-}
-
-div.snapboard .pt h1,
-div.snapboard .pt h2,
-div.snapboard .pt h3,
-div.snapboard .pt strong {
-font-weight:700;
-}
-
-
-div.snapboard div.tp div.sp {
-padding:0 0 0 10px;
-background: none;
-position:static;
-}
-
-div.snapboard .pt h1 {
-font-size:130%;
-}
-
-div.snapboard .pt h2 {
-font-size:120%;
-}
-
-div.snapboard .pt h3 {
-font-size:110%;
-}
-
-div.snapboard table.pt {
-border:1px solid #ccc;
-}
-
-div.snapboard ol.pt,
-div.snapboard ul.pt {
-margin-left:2em;
-margin-right:2em;
-}
-
-div.snapboard .pt ol {
-list-style-type:decimal;
-}
-
-div.snapboard .pt ul {
-list-style-type:square;
-}
-
-div.snapboard .pt blockquote,
-div.snapboard .pt pre {
-background:#EEE none repeat scroll 0;
-margin-left:1em;
-padding-left:0.5em;
-}
-
-div.snapboard .pt pre {
-border-left:1px solid #363;
-}
-
-div.snapboard .pt code {
-font-family:courier;
-}
-
-div.snapboard span.mr {
-
-}
+div.snapboard table.sp div.pv.pr {}
+div.snapboard table.sp div.pv.apr {outline: 1px solid #D050D0;}
+div.snapboard table.sp div.pv.pc {}
+div.snapboard table.sp div.pv.apc {outline:2px solid red;}
 
 div.snapboard span.ml {
 font-size:77%;
 padding-left:10%;
 }
-
-div.snapboard span.ps {
-color:#B0BFAC;
+div.snapboard span.mr {}
+div.snapboard .ms {
+color:#c00;
+font-weight:bold;
+text-decoration:underline;
 }
 
-div.snapboard div.tp div.pr {
-border: none;
-background-color:transparent;
-}
+div.snapboard span.ps {color:#B0BFAC;}
 
-div.snapboard div.pc {
-border:2px solid red;
+div.snapboard div.pt {
+display:block;
+padding:2px 5px 3px 5px;
 }
+div.snapboard .pt p {margin:10px 0 10px 0;}
+div.snapboard .pt strong {font-weight:700;}
+div.snapboard .pt h1 {font-size:130%;font-weight:700;}
+div.snapboard .pt h2 {font-size:120%;font-weight:700;}
+div.snapboard .pt h3 {font-size:110%;font-weight:700;}
+div.snapboard .pt ol {list-style-type:decimal;}
+div.snapboard .pt ul {list-style-type:square;}
+div.snapboard .pt blockquote,div.snapboard .pt pre {
+background:#EEE none repeat scroll 0;
+margin-left:1em;
+padding-left:0.5em;}
+div.snapboard .pt pre {border-left:1px solid #363;}
+div.snapboard .pt code {font-family:courier;}
+div.snapboard .pt .quoteheader {margin-left: 1em;}
 
-div.snapboard div.ph {
-background-color: #D0D0D0;
-float:left;
-clear:both;
-width:100%;
-padding-bottom:1px;
-}
-
-div.snapboard div.tp div.ph {
-background-color: transparent;
-padding:0;
+div.snapboard table.pt {border:1px solid #ccc;}
+div.snapboard ol.pt,
+div.snapboard ul.pt {
+margin-left:2em;
+margin-right:2em;
 }
 
 div.snapboard #snap_markdown_guide p,
@@ -220,33 +130,15 @@ div.snapboard #snap_markdown_guide code,
 div.snapboard #snap_markdown_guide tr {
 border:none;
 color:#000;
-font-size:100%;
-}
-
-div.snapboard #snap_markdown_guide code {
-background-color:#eee;
-}
-
+font-size:100%;}
+div.snapboard #snap_markdown_guide code {background-color:#eee;}
 div.snapboard #snap_markdown_guide {
 background:#efe;
 border:1px solid #666;
-padding:1em;
-}
-
-div.snapboard #snap_markdown_guide p {
-margin-bottom:0.5em;
-}
-
-div.snapboard #snap_markdown_guide table {
-width:100%;
-}
-
+padding:1em;}
+div.snapboard #snap_markdown_guide p {margin-bottom:0.5em;}
+div.snapboard #snap_markdown_guide table {width:100%;}
 div.snapboard .y em,
 div.snapboard .y i,
-div.snapboard #snap_markdown_guide em {
-font-style:italic;
-}
+div.snapboard #snap_markdown_guide em {font-style:italic;}
 
-div.snapboard .pt .quoteheader {
-margin-left: 1em;
-}

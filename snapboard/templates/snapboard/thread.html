@@ -32,11 +32,7 @@
                 </span>
             {% endif %}
         </span>
-        <div class="topic-addr">
-            / <a href="{% url snapboard_category_index %}">{{ forum_name }}</a> /
-            <a href="{% url snapboard_category_thread_index thr.category.id %}">{{ thr.category }}</a> /
-            {{ thr.subject }}
-        </div>
+        <span class="topic-addr">/<a href="{% url snapboard_category_thread_index thr.category.id %}">{{ thr.category }}</a> / {{ thr.subject }}</span>
     </p>
 
 

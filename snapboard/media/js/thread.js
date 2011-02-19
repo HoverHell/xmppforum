@@ -19,7 +19,6 @@ function t_p(id) {
 
 //t_e = toggle_edit
 function t_e(id) {
-    //toggle('pt'+id, 'block');
     toggle('spt'+id, 'block');
     exttoggle('spe'+id, 
      'block',
@@ -98,8 +97,8 @@ function preview(form_id) {
     var request = YAHOO.util.Connect.asyncRequest('POST', urlq, callback, text);
 }
 
-
-function revision(orig_id, show_id) {
+//rev = revision
+function rev(orig_id, show_id) {
     urlq = SNAPBOARD_URLS.rpc_postrev + '?orig=' + orig_id + '&show=' + show_id;
 
     div_text = document.getElementById('spt' + orig_id)
@@ -114,14 +113,14 @@ function revision(orig_id, show_id) {
             links_html = '';
 
             if(res['prev_id'] !== '') {
-                links_html += '<a href="#post' + orig_id + '" onClick="revision(\'';
+                links_html += '<a href="#post' + orig_id + '" onClick="rev(\'';
                 //links_html += '<a href="#" onClick="revision(\'';
                 links_html += orig_id + '\',\'' + res['prev_id'];
                 links_html += '\');">&#171; ' + gettext('previous') + '</a>';
             }
-            links_html += ' <b style="color: #c00;">' + gettext('This message has been revised') + '</b> '
+            links_html += gettext('This message has been revised')
             if(res['rev_id'] !== '') {
-                links_html += '<a href="#post' + orig_id + '" onClick="revision(\'';
+                links_html += '<a href="#post' + orig_id + '" onClick="rev(\'';
                 //links_html += '<a href="#" onClick="revision(\'';
                 links_html += orig_id + '\',\'' + res['rev_id'];
                 links_html += '\');">' + gettext('next') + ' &#187;</a>';

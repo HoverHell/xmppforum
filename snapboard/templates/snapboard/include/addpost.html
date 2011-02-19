@@ -6,7 +6,6 @@
     {% ifequal SNAP_POST_FILTER "markdown" %}
         <span style="float:right;"><a href="#snap_markdown_guide" onclick="toggle('snap_markdown_guide', 'block');">{% trans "Pretty-print guide" %}</a></span>
     {% endifequal %}
-    <b>{% trans "Got something to say?" %}</b>
     </p>
     {% ifequal SNAP_POST_FILTER "markdown" %}
         {% include "snapboard/include/markdown_guide.html" %}
@@ -17,25 +16,20 @@
         <div id="toolbar" style="">
             {% ifequal SNAP_POST_FILTER "markdown" %}
                 <button onclick="return surround('**');"><b>{% trans "B" %}</b></button>
-                <button onclick="return surround('_');"><i>{% trans "I" %}</i></button>
+                <button onclick="return surround('_');"><i>{% trans "i" %}</i></button>
                 <button onclick="return do_prefix('> ');">{% trans "quote" %}</a></button>
                 <button onclick="return do_prefix('    ');">{% trans "code" %}</button>
                 <button onclick="return do_prefix('* ');">{% trans "list" %}</button>
                 <button onclick="return insert_img();">{% trans "img" %}</button>
                 <button onclick="return insert_link();"><u>{% trans "link" %}</u></button>
-                <button onclick="return do_insert('&#x263a;');">☺</button>
-                <!--<button onclick="return do_insert('&#x2639;');">☹</button> not in Arial wtf‽‽ --> 
-                <button onclick="return do_insert('&#x263b;');">☻</button>
             {% else %}{% ifequal SNAP_POST_FILTER "bbcode" %}
                 <button onclick="return surround('[b]','[/b]');"><b>{% trans "B" %}</b></button>
-                <button onclick="return surround('[i]','[/i]');"><i>{% trans "I" %}</i></button>
+                <button onclick="return surround('[i]','[/i]');"><i>{% trans "i" %}</i></button>
                 <button onclick="return surround('[quote]','[/quote]');">{% trans "quote" %}</a></button>
                 <button onclick="return surround('[code]','[/code]');">{% trans "code" %}</button>
                 <button onclick="return do_prefix('[*]');">{% trans "list" %}</button>
                 <button onclick="return insert_img();">{% trans "img" %}</button>
                 <button onclick="return insert_link();"><u>{% trans "link" %}</u></button>
-                <button onclick="return do_insert('&#x263a;');">☺</button>
-                <button onclick="return do_insert('&#x263b;');">☻</button>
             {% endifequal %}{% endifequal %}
         </div>
         {{ postform.as_p }}
