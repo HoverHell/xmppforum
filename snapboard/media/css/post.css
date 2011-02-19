@@ -2,9 +2,6 @@
 sp = snap_post
 fp = flat_post
 pp = post_top_padding
-cr = thread_crutch
-tt = thread_turn
-tc = turn_container
 pc = post_censored
 pr = post_reported
 rm = rpc_message
@@ -26,82 +23,79 @@ un = user_name
 rp = root_post
 lm = left margin
 pn = post_next
+tc = turn_container
+et = end_turn_container
 f = flat
+nf = non_flat
+tl = thread_line
 */
+
+div.snapboard div.pmenu {
+background-color:#DCDCDC;
+padding:0 0 2px 5px;}
 
 div.snapboard table.sp {
 float:left;
 clear:left;
 width:100%;
-border-collapse:separate;
-}
+border-collapse:separate;}
 div.snapboard table.rp {margin:8px 0 0 0;}
-div.snapboard table.lm {margin:0 0 0 2px;}
-div.snapboard table.pn {padding:8px 0 0 0;border-left:2px black solid;}
+div.snapboard table.lm {border-left:2px #fff solid;}
 
-div.snapboard td.ct {width:8px}
-div.snapboard td.bt {width:8px;background:transparent url(../../media/img/thread_turn.gif) no-repeat scroll 0 50%;}
-div.snapboard td.bt div,div.snapboard td.ct div {height:2px;background-color:black;width:100%;}
+div.snapboard td.et {width:6px;border-left:2px black solid;}
+div.snapboard td.tc {width:8px;background:transparent url(../../media/img/thread_turn.gif) no-repeat scroll 0 50%;}
+div.snapboard td.tc div,div.snapboard td.et div {height:2px;background-color:black;width:100%;}
 div.snapboard td.pp {width:8px;height:8px;border-left:2px black solid;}
-
-div.snapboard div.pv,div.snapboard div.ph {max-width:700px;}
+div.snapboard td.tl {border-left:2px black solid;}
 
 div.snapboard div.ph {
 background-color: #D0D0D0;
 float:left;
 clear:both;
 width:100%;
-padding:1px;
-}
+border:1px solid #D0D0D0;
+max-width:700px;}
 div.snapboard div.tp div.ph {
 background-color: transparent;
 padding:0;
-border:none;
-}
-div.snapboard div.ph.f {
-background-color:#ECECEC;
-}
+border:none;}
+div.snapboard div.ph.f {background-color:#ECECEC;border:1px solid #ECECEC;}
 
 div.snapboard img.up {
-width:50px;
-height:50px;
 display: block;
-float:left;
-}
+float:left;}
 
-div.snapboard table.sp div.pv {
+div.snapboard div.pv {
 display:block;
 clear:both;
-outline: 1px solid #D0D0D0;
-margin:0 0 0 1px;
+border-left:1px solid #D0D0D0;
+border-right:1px solid #D0D0D0;
+border-bottom:1px solid #D0D0D0;
 background-color:#F9F9F9;
 width:100%;
-}
-div.snapboard table.sp div.pv.f {
-outline-color:#ECECEC;
-}
-div.snapboard table.sp div.pv.pr {}
-div.snapboard table.sp div.pv.apr {outline: 1px solid #D050D0;}
-div.snapboard table.sp div.pv.pc {}
-div.snapboard table.sp div.pv.apc {outline:2px solid red;}
+max-width:700px;}
+div.snapboard div.pv.nf {border:1px solid #D0D0D0;}
+div.snapboard div.pv.f {border-color:#ECECEC;}
+div.snapboard div.pv.pr {}
+div.snapboard div.pv.apr {outline: 1px solid #D050D0;}
+div.snapboard div.pv.pc {}
+div.snapboard div.pv.apc {outline:2px solid red;}
+div.snapboard div.tp div.pv {outline:none;border:none;background-color:transparent;}
 
 div.snapboard span.ml {
 font-size:77%;
-padding-left:10%;
-}
+padding-left:10%;}
 div.snapboard span.mr {}
 div.snapboard .ms {
 color:#c00;
 font-weight:bold;
-text-decoration:underline;
-}
+text-decoration:underline;}
 
 div.snapboard span.ps {color:#B0BFAC;}
 
 div.snapboard div.pt {
 display:block;
-padding:2px 5px 3px 5px;
-}
+padding:2px 5px 3px 5px;}
 div.snapboard .pt p {margin:10px 0 10px 0;}
 div.snapboard .pt strong {font-weight:700;}
 div.snapboard .pt h1 {font-size:130%;font-weight:700;}
@@ -121,8 +115,7 @@ div.snapboard table.pt {border:1px solid #ccc;}
 div.snapboard ol.pt,
 div.snapboard ul.pt {
 margin-left:2em;
-margin-right:2em;
-}
+margin-right:2em;}
 
 div.snapboard #snap_markdown_guide p,
 div.snapboard #snap_markdown_guide table,

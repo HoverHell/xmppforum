@@ -1,13 +1,9 @@
 {% load i18n %}
+{% spaceless %}
 {% if not thr.closed %}{# and not page_next #}
     {% if user.is_authenticated %}
-    <!-- div style="border: 1px solid #ccc; padding: 5px; background: #efe" -->
-    <p>
     {% ifequal SNAP_POST_FILTER "markdown" %}
-        <span style="float:right;"><a href="#snap_markdown_guide" onclick="toggle('snap_markdown_guide', 'block');">{% trans "Pretty-print guide" %}</a></span>
-    {% endifequal %}
-    </p>
-    {% ifequal SNAP_POST_FILTER "markdown" %}
+        <p><span style="float:right;"><a href="#snap_markdown_guide" onclick="toggle('snap_markdown_guide', 'block');">{% trans "Pretty-print guide" %}</a></span></p>
         {% include "snapboard/include/markdown_guide.html" %}
     {% endifequal %}
     <form id="add_post_div" action="{% url snapboard_post_reply parent_post.id %}" method="POST">
@@ -33,12 +29,11 @@
             {% endifequal %}{% endifequal %}
         </div>
         {{ postform.as_p }}
-        <p> {{ postform.errors }}</p>
-
-        <p>
+        <p>{{ postform.errors }}</p>
+        <div class="form_controls">
         <input type="submit" value="{% trans "Post" %}" />
         <input type="button" value="{% trans "Preview" %}" onclick="preview('add_post_div')" />
-        </p>
+        </div>
     </form>
     <div style="border: 1px solid #ccc; display: none;">
         <p><b>{% trans "Post Preview:" %}</b></p>
@@ -54,7 +49,4 @@
 {% if thr.closed %}
     <p>{% trans "This discussion has been closed by the staff.  You can no longer add posts." %}</p>
 {% endif %}
-
-<!--
-vim: ai ts=4 sts=4 et sw=4
--->
+{% endspaceless %}
