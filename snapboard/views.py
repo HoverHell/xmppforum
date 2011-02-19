@@ -724,7 +724,7 @@ def edit_settings(request):
     settings_form = settings_form or UserSettingsForm(None,
       instance=userdata, user=request.user)
     xfsettings_form = xfsettings_form or xfforms.UserSettingsForm(None,
-      isntance=xfuserdata, user=request.user)
+      instance=xfuserdata, user=request.user)
     upload_avatar_form = upload_avatar_form or UploadAvatarForm(None,
       user=request.user)
     primary_avatar_form = primary_avatar_form or PrimaryAvatarForm(None,
