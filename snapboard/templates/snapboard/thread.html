@@ -1,11 +1,5 @@
 {% extends "snapboard/base_forum.html" %}
 {% load i18n pagination_tags %}
-
-{% block snap_extra_head %}
-    {{ block.super }}
-    <link type="text/css" rel="stylesheet" href="{{ SNAP_MEDIA_PREFIX }}/css/post.css" />
-{% endblock %}
-
 {% load extras %}
 
 {% block snapboard_main %}
@@ -34,7 +28,6 @@
         </span>
         <span class="topic-addr">/<a href="{% url snapboard_category_thread_index thr.category.id %}">{{ thr.category }}</a> / {{ thr.subject }}</span>
     </p>
-
 
     {% include "snapboard/include/show_posts.html" %}
 

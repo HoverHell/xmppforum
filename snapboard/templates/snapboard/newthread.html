@@ -14,9 +14,6 @@
                 <button onclick="return do_prefix('* ');">{% trans "list" %}</button>
                 <button onclick="return insert_img();">{% trans "img" %}</button>
                 <button onclick="return insert_link();"><u>{% trans "link" %}</u></button>
-                <button onclick="return do_insert('&#x263a;');">☺</button>
-                <!--<button onclick="return do_insert('&#x2639;');">☹</button> not in Arial wtf‽‽ --> 
-                <button onclick="return do_insert('&#x263b;');">☻</button>
             {% else %}{% ifequal SNAP_POST_FILTER "bbcode" %}
                 <button onclick="return surround('[b]','[/b]');"><b>{% trans "B" %}</b></button>
                 <button onclick="return surround('[i]','[/i]');"><i>{% trans "I" %}</i></button>
@@ -25,8 +22,6 @@
                 <button onclick="return do_prefix('[*]');">{% trans "list" %}</button>
                 <button onclick="return insert_img();">{% trans "img" %}</button>
                 <button onclick="return insert_link();"><u>{% trans "link" %}</u></button>
-                <button onclick="return do_insert('&#x263a;');">☺</button>
-                <button onclick="return do_insert('&#x263b;');">☻</button>
             {% endifequal %}{% endifequal %}
         </div>
         <table class="form">
@@ -40,6 +35,3 @@
     <p>{% trans "You must be signed in to start a new discussion." %}</p>
     {% endif %}
 {% endblock %}
-<!--
-vim: ai ts=4 sts=4 et sw=4 
--->
