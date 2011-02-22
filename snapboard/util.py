@@ -49,6 +49,10 @@ def _diff_texts(text1, text2):
             type, data = "  ", item[2:]
         elif item.startswith('- <'):
             type = None  # ignore removed tags.
+        elif item.startswith('? '):
+            # nothing to do with intra-line diff annotations.  They might be
+            # inside HTML tags after all.
+            type = None
         else:
             type, data = item[:2], item[2:]
         if type is not None:
