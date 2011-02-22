@@ -127,10 +127,6 @@ def rpc_dispatch(request):
     if not request.POST:
         return HttpResponseServerError("RPC data is absent")
 
-    ## User might be Anonymous but still should be authenticated.    
-    if not request.user.is_authenticated():
-        return HttpResponseServerError("RPC request by unauthenticated user")
-
     response_dict = {}
 
     try:
@@ -142,8 +138,8 @@ def rpc_dispatch(request):
     try:
         oid = int(request.POST['oid'])
     except KeyError:
-        return HttpResponseServerError("RPC handler: KeyError, missing oid.")
-    
+        return HttpResponseServerError("RPC: missing oid.")
+
     #if action == 'quote':
     #    try:
     #        return HttpResponse(simplejson.dumps(rpc_func(request,
@@ -157,6 +153,9 @@ def rpc_dispatch(request):
         # Dict is expected for rpc=True call.
         response_dict.update(rpc_func(request, oid, rpc=True))
     else:  # Otherwise... (XXX: This 'else'd part should be removed later)
+        # Only check that for old-style RPCs.
+        if not request.user.is_authenticated():
+            return HttpResponseServerError("RPC request by unauthenticated user")
         try:
             # oclass_str will be used as a keyword in a function call, so it
             # must be a string, not a unicode object (changed since Django
