@@ -62,13 +62,15 @@ def _diff_texts(text1, text2):
     return listv
 
 
+
+
 def _diff_posts(post1, post2):
     """ Returns a list with differences between two posts (pre-processing
     the text or using it cached in the post.  """
     def _get_text(post):
         text = getattr(post, 'text_diffprocessed', None)
         if text is None:
-            text = _processtext(post.text)
+            text = _diff_processtext(post.text)
             post.text_diffprocessed = text  # might be used once more.
         return text
-    return _diff_texts(_get_text(prev_post), _get_text(post))
+    return _diff_texts(_get_text(post1), _get_text(post2))
