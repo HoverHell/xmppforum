@@ -589,37 +589,11 @@ def show_revisions(request, post_id, rpc=False):
     posts = posts[::-1]  # up->down -- old->new
     
     ## Diff v2:
-    import re
-    from snapboard.templatetags.extras import render_filter
-    import difflib
-    def _processtext(text):
-        """ Prepares the supplied post text to be diff'ed.  """
-        texth = render_filter(text)  # -> html
-        textl = re.findall(r'<[^>]*?>|[^<]+', texth)  # -> tags&text
-        out = []
-        for item in textl: # -> tags & words.
-            if item.startswith("<"):
-                out.append(item)
-            else:
-                #out += item.split()  # Extra spaces?
-                out += re.findall(r'[ ]+|[^ ]+', item)
-        return out
+    from .util import _diff_posts
     prev_post = None
     for post in posts:
         if prev_post is not None:
-            listv = []
-            diffl = difflib.ndiff(_processtext(prev_post.text),
-              _processtext(post.text))
-            for item in diffl:
-                # to get HTML tags as plain non-changed from the newer
-                # version.
-                if item.startswith('+ <'):
-                    listv.append(("  ", item[2:]))
-                elif item.startswith('- <'):
-                    pass  # ignore removed tags.
-                else:
-                    listv.append((item[:2], item[2:]))
-            post.difflist = listv
+            post.difflist = _diff_posts(prev_post, post)
         prev_post = post
     
     if rpc:  # return JSONed data of all revisions.
