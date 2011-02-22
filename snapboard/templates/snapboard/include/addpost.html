@@ -13,18 +13,18 @@
             {% ifequal SNAP_POST_FILTER "markdown" %}
                 <button onclick="return surround('**');"><b>{% trans "B" %}</b></button>
                 <button onclick="return surround('_');"><i>{% trans "i" %}</i></button>
-                <button onclick="return do_prefix('> ');">{% trans "quote" %}</a></button>
-                <button onclick="return do_prefix('    ');">{% trans "code" %}</button>
-                <button onclick="return do_prefix('* ');">{% trans "list" %}</button>
-                <button onclick="return insert_img();">{% trans "img" %}</button>
+                <button onclick="return do_prefix('> ');"><span>{% trans "quote" %}</span></button>
+                <button onclick="return do_prefix('    ');"><span>{% trans "code" %}</span></button>
+                <button onclick="return do_prefix('* ');"><span>{% trans "list" %}</span></button>
+                <button onclick="return insert_img();"><span>{% trans "img" %}</span></button>
                 <button onclick="return insert_link();"><u>{% trans "link" %}</u></button>
             {% else %}{% ifequal SNAP_POST_FILTER "bbcode" %}
                 <button onclick="return surround('[b]','[/b]');"><b>{% trans "B" %}</b></button>
                 <button onclick="return surround('[i]','[/i]');"><i>{% trans "i" %}</i></button>
-                <button onclick="return surround('[quote]','[/quote]');">{% trans "quote" %}</a></button>
-                <button onclick="return surround('[code]','[/code]');">{% trans "code" %}</button>
-                <button onclick="return do_prefix('[*]');">{% trans "list" %}</button>
-                <button onclick="return insert_img();">{% trans "img" %}</button>
+                <button onclick="return surround('[quote]','[/quote]');"><span>{% trans "quote" %}</span></button>
+                <button onclick="return surround('[code]','[/code]');"><span>{% trans "code" %}</span></button>
+                <button onclick="return do_prefix('[*]');"><span>{% trans "list" %}</span></button>
+                <button onclick="return insert_img();"><span>{% trans "img" %}</span></button>
                 <button onclick="return insert_link();"><u>{% trans "link" %}</u></button>
             {% endifequal %}{% endifequal %}
         </div>

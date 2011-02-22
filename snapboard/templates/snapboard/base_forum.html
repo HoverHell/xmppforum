@@ -4,13 +4,8 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
     <title>{% block title %}XMPP Forum{% endblock %}</title>
-    <link type="text/css" rel="stylesheet" href="{{ SNAP_MEDIA_PREFIX }}/css/yui/reset-fonts-grids.css" />
-    <link type="text/css" rel="stylesheet" href="{{ SNAP_MEDIA_PREFIX }}/css/form.css" />    
     <link type="text/css" rel="stylesheet" href="{{ SNAP_MEDIA_PREFIX }}/css/snapboard.css" />    
-    <link type="text/css" rel="stylesheet" href="{{ SNAP_MEDIA_PREFIX }}/css/nav.css" />    
-
     <link rel="alternate" type="application/rss+xml" title="RSS" href="{% url snapboard_feeds "latest" %}" />
-
     {# this is required for some javascript rpc functions #}
     <script type="text/javascript">
         var SNAPBOARD_URLS = {

@@ -1,11 +1,5 @@
 {% extends "snapboard/base_forum.html" %}
 {% load i18n pagination_tags %}
-
-{% block snap_extra_head %}
-    {{ block.super }}
-    <link type="text/css" rel="stylesheet" href="{{ SNAP_MEDIA_PREFIX }}/css/post.css" />
-{% endblock %}
-
 {% load extras %}
 
 {% block snapboard_main %}
@@ -13,6 +7,3 @@
     	{% include "snapboard/include/editpost.html" %}
     </p>
 {% endblock %}
-<!--
-vim: ai ts=4 sts=4 et sw=4 
--->
