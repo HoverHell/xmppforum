@@ -55,6 +55,8 @@ urlpatterns = patterns('',
     (r'^threads/category/(?P<cat_id>\d+)/newtopic/$',
          new_thread, {}, 'snapboard_new_thread'),
     (r'^threads/post/(?P<post_id>\d+)/$',
+         thread_post, {}, 'snapboard_thread_post'),
+    (r'^threads/locate_post/(?P<post_id>\d+)/$',
          locate_post, {}, 'snapboard_locate_post'),
     (r'^settings/$', edit_settings, {}, 'snapboard_edit_settings'),
 

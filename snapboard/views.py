@@ -347,9 +347,48 @@ r_set_censor = rpc_gettoggler(Post, 'censor', rpcreturn=(
 #@userbannable
 @anonymous_login_required
 def thread(request, thread_id):
-
+    """ Render a particular thread starting from its root post.  """
     thr = get_object_or_404(Thread, pk=thread_id)
+    top_post = get_object_or_404(Post, thread=thread_id, depth=1)
+    return thread_post(request, top_post.id, subtopic=False)
 
+
+def _find_depth(qs, startdepth=1, approxnum=20):
+    """ Finds a target maximal depth that will result in minimal amount of
+    objects which is still more than approxnum.  """
+    # ! TODO: Cache.
+    _get_try = lambda depth: qs.filter(depth__lte=depth).count()
+    ## Step 1: find approximation level 1.
+    res = 5  # starting point.
+    last = "x"  # for checking if there's no deeper posts.
+    cur = _get_try(res)
+    while cur < approxnum and last != cur:
+        last = cur
+        res *= 2
+        cur = _get_try(res)
+    if last == cur:
+        return res  # there's less than approxnum anyway.
+    # Step 2: find approximation between last and cur (with binary search).
+    lo, hi = res // 2, res  # current and previous attempts.
+    while last != cur and lo < hi:
+        res_p, res = res, (lo + hi) // 2
+        last = cur
+        cur = _get_try(res)
+        if cur < approxnum:  # not enough, seek higher.
+            lo = res
+        else:  # too much, seek lower
+            hi = res
+    return res if cur > approxnum else res + 1
+
+
+@anonymous_login_required
+def thread_post(request, post_id, depth="v", subtopic=True):
+    """ Renders (part of) the thread starting from the specified post. 
+    Passes the `subtopic` parameter to the template, which annotates it with
+    "Showing a part of the thread" message. """ 
+    
+    top_post = get_object_or_404(Post, pk=post_id)
+    thr = top_post.thread
     if not thr.category.can_read(request.user):
         raise PermissionError, "You are not allowed to read this thread"
 
@@ -360,32 +399,36 @@ def thread(request, thread_id):
     #      WatchList.objects.filter(user=request.user,
     #        thread=thr).count() != 0})
 
-    top_post = Post.objects.filter(thread=thread_id, depth=1)[0]
-    # Get list of all replies.
-    post_list = Post.get_children(top_post)  # Paginated by this list.
+    if subtopic:
+        post_list = [top_post]
+        listdepth = top_post.depth
+        top_post = None
+    else:
+        # Get list of all replies.
+        post_list = Post.get_children(top_post)  # Paginated by this list.
+        listdepth = 2
 
-    ## sorting by last answer.
-    if request.GET.get('sl', None) == '1':
-        ### v1: unoptimal:
-        #for post in post_list:
-        #    post.last_answer_date = \
-        #      Post.get_tree(post).order_by("-date")[0].date
-        #post_list = sorted(post_list, key=lambda p: p.last_answer_date,
-        # reverse=True)
-        ### v2: SQLed.
-        ## Not sure what 'ESCAPE' is meant to do here. Grabbed from
-        ## treebeard queries:
-        ##  cls.objects.filter(path__startswith=parent.path,
-        ##  depth__gte=parent.depth)
-        ## !! XXX: somewhat SQLite-specific (concat is '||')
-        ##  XXX: Move into the model manager?
-        post_list = post_list.extra(select={
-          "lastanswer": """SELECT date FROM snapboard_post AS child
-            WHERE (child.path LIKE (snapboard_post.path || '%%') AND
-              child.depth >= snapboard_post.depth)
-            ORDER BY date DESC LIMIT 1 """
-        }).order_by("-lastanswer")
-
+        ## sorting by last answer.
+        if request.GET.get('sl', None) == '1':
+            ### v1: unoptimal:
+            #for post in post_list:
+            #    post.last_answer_date = \
+            #      Post.get_tree(post).order_by("-date")[0].date
+            #post_list = sorted(post_list, key=lambda p: p.last_answer_date,
+            # reverse=True)
+            ### v2: SQLed.
+            ## Not sure what 'ESCAPE' is meant to do here. Grabbed from
+            ## treebeard queries:
+            ##  cls.objects.filter(path__startswith=parent.path,
+            ##  depth__gte=parent.depth)
+            ## !! XXX: somewhat SQLite-specific (concat is '||')
+            ##  XXX: Move into the model manager?
+            post_list = post_list.extra(select={
+              "lastanswer": """SELECT date FROM snapboard_post AS child
+                WHERE (child.path LIKE (snapboard_post.path || '%%') AND
+                  child.depth >= snapboard_post.depth)
+                ORDER BY date DESC LIMIT 1 """
+            }).order_by("-lastanswer")
 
     # Additional note: annotating watched posts in the tree can be done, for
     # example, by using 
@@ -400,6 +443,8 @@ def thread(request, thread_id):
       'top_post': top_post,
       'post_list': post_list,
       'thr': thr,
+      'subtopic': subtopic,
+      'listdepth': listdepth,  # at which depth the post_list is.
     })
     
     return render_to_response('snapboard/thread',
