@@ -42,7 +42,6 @@ from anon.decorators import anonymous_login_required
 from snapboard.forms import *
 from snapboard.models import *
 from snapboard.models import AnonymousUser
-from snapboard.rpc import *
 from snapboard.util import *
 
 _log = logging.getLogger('snapboard.views')
@@ -118,7 +117,6 @@ extra_processors = [user_settings_context]
 # x) XMPP requests.
 #   Return some success (or error) message.
 # .
-# * Right now legacy javascript-only suff is used as well.
 
 
 def rpc_dispatch(request):
@@ -140,69 +138,11 @@ def rpc_dispatch(request):
     except KeyError:
         return HttpResponseServerError("RPC: missing oid.")
 
-    #if action == 'quote':
-    #    try:
-    #        return HttpResponse(simplejson.dumps(rpc_func(request,
-    #          oid=int(request.POST['oid']))))
-    #    except (KeyError, ValueError):
-    #        return HttpResponseServerError("RPC: Failed to find/process
-    #          the requested post.")
-
-    if action in RPC_AACTIONS:  # Just do it.
-        # Note: django's exception handling in here.
-        # Dict is expected for rpc=True call.
-        response_dict.update(rpc_func(request, oid, rpc=True))
-    else:  # Otherwise... (XXX: This 'else'd part should be removed later)
-        # Only check that for old-style RPCs.
-        if not request.user.is_authenticated():
-            return HttpResponseServerError("RPC request by unauthenticated user")
-        try:
-            # oclass_str will be used as a keyword in a function call, so it
-            # must be a string, not a unicode object (changed since Django
-            # went unicode).  Thanks to Peter Sheats for catching this.
-            oclass_str = str(request.POST['oclass'].lower())
-            oclass = RPC_OBJECT_MAP[oclass_str]
-        except KeyError:
-            return HttpResponseServerError("RPC: Unknown requested "
-              "object type.")
-
-        try:  # process...
-            forum_object = oclass.objects.get(pk=oid)
-        except oclass.DoesNotExist:
-            return HttpResponseServerError("RPC handler: no such object.")
-        # Note: django's exception handling in here.
-        response_dict.update(rpc_func(request, **{oclass_str: forum_object}))
-    # pack the (whichever) result.
+    # Note: django's exception handling is used.
+    # Dict is expected for rpc=True call of the view.
+    response_dict.update(rpc_func(request, oid, rpc=True))
     return HttpResponse(simplejson.dumps(response_dict),
-     mimetype='application/javascript')
-
-
-def r_getreturn(request, rpc=False, nextr=None, rpcdata={}, successtext=None,
-  postid=None):
-    """ Common function for RPCable views to easily return some appropriate
-    data (rpcdata or next-redirect).  """
-    if rpc:  # explicit request to return RPC-usable data
-        # do conversion in rpc().
-        return rpcdata
-    else:
-        if successtext is None and 'msg' in rpcdata:
-            successtext = rpcdata['msg']
-        if request.is_xmpp():  # simplify it here.
-            return XmppResponse(successtext)
-        # ! TODO: Add a django-mesasge if HTTP?
-        nextr = nextr or request.GET.get('next')
-        if nextr:  # know where should return to.
-            return HttpResponseRedirect(nextr)
-        else:  # explicitly return 
-            if postid:  # we have a post to return to.
-                # msg isn't going to be used, though.
-                return success_or_reverse_redirect('snapboard_locate_post',
-                  args=(postid,), req=request, msg=successtext)
-            else:
-                # Might supply some more data if we need to return somewhere
-                # else?
-                return HttpResponseServerError(
-                  "RPC return: unknown return.")  # Nothing else to do here.
+      mimetype='application/javascript')
 
 
 @login_required
@@ -588,7 +528,6 @@ def show_revisions(request, post_id, rpc=False):
     posts = posts[::-1]  # up->down -- old->new
     
     ## Diff v2:
-    from .util import _diff_posts
     prev_post = None
     for post in posts:
         if prev_post is not None:
@@ -1017,28 +956,16 @@ def xmpp_get_help(request, subject=None):
         raise Http404, "No such help subject"
 
 
-# RPC information with previous functions.
-RPC_OBJECT_MAP = {
-        "thread": Thread,
-        "post": Post,
-        }
-
 RPC_ACTION_MAP = {
-        "gsticky": r_set_gsticky,
-        "csticky": r_set_csticky,
-        "close": r_set_close,
-        "censor": r_set_censor,
-        "removethread": r_removethread,
-
-        "abuse": r_abusereport,
-        "watch": r_watch_post,
-        "geteditform": edit_post,
-        "getreplyform": post_reply,
-        "getrevisions": show_revisions,
-
-        "quote": rpc_quote,
-        }
-# Temporary list of RPC functions coverted to advanced action handers.
-RPC_AACTIONS = ["gsticky", "csticky", "close", "censor", "removethread",
-  "abuse", "watch", "geteditform", "getreplyform", "getrevisions", ]
+  "gsticky": r_set_gsticky,
+  "csticky": r_set_csticky,
+  "close": r_set_close,
+  "censor": r_set_censor,
+  "removethread": r_removethread,
+  "abuse": r_abusereport,
+  "watch": r_watch_post,
+  "geteditform": edit_post,
+  "getreplyform": post_reply,
+  "getrevisions": show_revisions,
+  }
 

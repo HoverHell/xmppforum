@@ -19,6 +19,35 @@ def staff_required(view_func):
     return wraps(view_func)(_checklogin)
 
 
+## Other RPC stuff.
+def r_getreturn(request, rpc=False, nextr=None, rpcdata={}, successtext=None,
+  postid=None):
+    """ Common function for RPCable views to easily return some appropriate
+    data (rpcdata or next-redirect).  """
+    if rpc:  # explicit request to return RPC-usable data
+        # do conversion in rpc().
+        return rpcdata
+    else:
+        if successtext is None and 'msg' in rpcdata:
+            successtext = rpcdata['msg']
+        if request.is_xmpp():  # simplify it here.
+            return XmppResponse(successtext)
+        # ! TODO: Add a django-mesasge if HTTP?
+        nextr = nextr or request.GET.get('next')
+        if nextr:  # know where should return to.
+            return HttpResponseRedirect(nextr)
+        else:  # explicitly return 
+            if postid:  # we have a post to return to.
+                # msg isn't going to be used, though.
+                return success_or_reverse_redirect('snapboard_locate_post',
+                  args=(postid,), req=request, msg=successtext)
+            else:
+                # Might supply some more data if we need to return somewhere
+                # else?
+                return HttpResponseServerError(
+                  "RPC return: unknown return.")  # Nothing else to do here.
+
+
 ## Diff stuff.
 import re
 import difflib
