@@ -1,6 +1,6 @@
 {% load i18n %}
 {% spaceless %}
-<form action="{% url snapboard_edit_post post.id %}" method="post">
+<form id="edit_post_div" action="{% url snapboard_edit_post post.id %}" method="post">
     <div class="form_message">{% trans "All revisions of this post are stored and publicly viewable." %}</div>
     {{ post.get_edit_form.as_p }}
     <div class="form_controls"><input type="submit" value="{% trans "Update" %}" /></div>
