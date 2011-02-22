@@ -19,16 +19,9 @@ def rpc_preview(request):
 
 
 def rpc_lookup(request, queryset, field, limit=5):
-    # XXX We should probably restrict member (or other) lookups to registered users
     obj_list = []
     lookup = { '%s__icontains' % field: request.GET['query'],}
     for obj in queryset.filter(**lookup)[:limit]:
                 obj_list.append({"id": obj.id, "name": getattr(obj, field)}) 
     object = {"ResultSet": { "total": str(limit), "Result": obj_list } }
     return HttpResponse(simplejson.dumps(object), mimetype='application/javascript')
-
-def rpc_quote(request, **kwargs):
-    post = Post.objects.select_related().get(id=kwargs['oid'])
-    if not post.thread.category.can_read(request.user):
-        raise PermissionError
-    return {'text': post.text, 'author': unicode(post.user)}

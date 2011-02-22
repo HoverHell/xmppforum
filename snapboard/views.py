@@ -42,7 +42,6 @@ from anon.decorators import anonymous_login_required
 from snapboard.forms import *
 from snapboard.models import *
 from snapboard.models import AnonymousUser
-from snapboard.rpc import *
 from snapboard.util import *
 
 _log = logging.getLogger('snapboard.views')
@@ -118,7 +117,6 @@ extra_processors = [user_settings_context]
 # x) XMPP requests.
 #   Return some success (or error) message.
 # .
-# * Right now legacy javascript-only suff is used as well.
 
 
 def rpc_dispatch(request):
@@ -126,10 +124,6 @@ def rpc_dispatch(request):
     javascripts.  """
     if not request.POST:
         return HttpResponseServerError("RPC data is absent")
-
-    ## User might be Anonymous but still should be authenticated.    
-    if not request.user.is_authenticated():
-        return HttpResponseServerError("RPC request by unauthenticated user")
 
     response_dict = {}
 
@@ -142,68 +136,13 @@ def rpc_dispatch(request):
     try:
         oid = int(request.POST['oid'])
     except KeyError:
-        return HttpResponseServerError("RPC handler: KeyError, missing oid.")
-    
-    #if action == 'quote':
-    #    try:
-    #        return HttpResponse(simplejson.dumps(rpc_func(request,
-    #          oid=int(request.POST['oid']))))
-    #    except (KeyError, ValueError):
-    #        return HttpResponseServerError("RPC: Failed to find/process
-    #          the requested post.")
+        return HttpResponseServerError("RPC: missing oid.")
 
-    if action in RPC_AACTIONS:  # Just do it.
-        # Note: django's exception handling in here.
-        # Dict is expected for rpc=True call.
-        response_dict.update(rpc_func(request, oid, rpc=True))
-    else:  # Otherwise... (XXX: This 'else'd part should be removed later)
-        try:
-            # oclass_str will be used as a keyword in a function call, so it
-            # must be a string, not a unicode object (changed since Django
-            # went unicode).  Thanks to Peter Sheats for catching this.
-            oclass_str = str(request.POST['oclass'].lower())
-            oclass = RPC_OBJECT_MAP[oclass_str]
-        except KeyError:
-            return HttpResponseServerError("RPC: Unknown requested "
-              "object type.")
-
-        try:  # process...
-            forum_object = oclass.objects.get(pk=oid)
-        except oclass.DoesNotExist:
-            return HttpResponseServerError("RPC handler: no such object.")
-        # Note: django's exception handling in here.
-        response_dict.update(rpc_func(request, **{oclass_str: forum_object}))
-    # pack the (whichever) result.
+    # Note: django's exception handling is used.
+    # Dict is expected for rpc=True call of the view.
+    response_dict.update(rpc_func(request, oid, rpc=True))
     return HttpResponse(simplejson.dumps(response_dict),
-     mimetype='application/javascript')
-
-
-def r_getreturn(request, rpc=False, nextr=None, rpcdata={}, successtext=None,
-  postid=None):
-    """ Common function for RPCable views to easily return some appropriate
-    data (rpcdata or next-redirect).  """
-    if rpc:  # explicit request to return RPC-usable data
-        # do conversion in rpc().
-        return rpcdata
-    else:
-        if successtext is None and 'msg' in rpcdata:
-            successtext = rpcdata['msg']
-        if request.is_xmpp():  # simplify it here.
-            return XmppResponse(successtext)
-        # ! TODO: Add a django-mesasge if HTTP?
-        nextr = nextr or request.GET.get('next')
-        if nextr:  # know where should return to.
-            return HttpResponseRedirect(nextr)
-        else:  # explicitly return 
-            if postid:  # we have a post to return to.
-                # msg isn't going to be used, though.
-                return success_or_reverse_redirect('snapboard_locate_post',
-                  args=(postid,), req=request, msg=successtext)
-            else:
-                # Might supply some more data if we need to return somewhere
-                # else?
-                return HttpResponseServerError(
-                  "RPC return: unknown return.")  # Nothing else to do here.
+      mimetype='application/javascript')
 
 
 @login_required
@@ -347,9 +286,48 @@ r_set_censor = rpc_gettoggler(Post, 'censor', rpcreturn=(
 #@userbannable
 @anonymous_login_required
 def thread(request, thread_id):
-
+    """ Render a particular thread starting from its root post.  """
     thr = get_object_or_404(Thread, pk=thread_id)
+    top_post = get_object_or_404(Post, thread=thread_id, depth=1)
+    return thread_post(request, top_post.id, subtopic=False)
 
+
+def _find_depth(qs, startdepth=1, approxnum=20):
+    """ Finds a target maximal depth that will result in minimal amount of
+    objects which is still more than approxnum.  """
+    # ! TODO: Cache.
+    _get_try = lambda depth: qs.filter(depth__lte=depth).count()
+    ## Step 1: find approximation level 1.
+    res = 5  # starting point.
+    last = "x"  # for checking if there's no deeper posts.
+    cur = _get_try(res)
+    while cur < approxnum and last != cur:
+        last = cur
+        res *= 2
+        cur = _get_try(res)
+    if last == cur:
+        return res  # there's less than approxnum anyway.
+    # Step 2: find approximation between last and cur (with binary search).
+    lo, hi = res // 2, res  # current and previous attempts.
+    while last != cur and lo < hi:
+        res_p, res = res, (lo + hi) // 2
+        last = cur
+        cur = _get_try(res)
+        if cur < approxnum:  # not enough, seek higher.
+            lo = res
+        else:  # too much, seek lower
+            hi = res
+    return res if cur > approxnum else res + 1
+
+
+@anonymous_login_required
+def thread_post(request, post_id, depth="v", subtopic=True):
+    """ Renders (part of) the thread starting from the specified post. 
+    Passes the `subtopic` parameter to the template, which annotates it with
+    "Showing a part of the thread" message. """ 
+    
+    top_post = get_object_or_404(Post, pk=post_id)
+    thr = top_post.thread
     if not thr.category.can_read(request.user):
         raise PermissionError, "You are not allowed to read this thread"
 
@@ -360,32 +338,36 @@ def thread(request, thread_id):
     #      WatchList.objects.filter(user=request.user,
     #        thread=thr).count() != 0})
 
-    top_post = Post.objects.filter(thread=thread_id, depth=1)[0]
-    # Get list of all replies.
-    post_list = Post.get_children(top_post)  # Paginated by this list.
+    if subtopic:
+        post_list = [top_post]
+        listdepth = top_post.depth
+        top_post = None
+    else:
+        # Get list of all replies.
+        post_list = Post.get_children(top_post)  # Paginated by this list.
+        listdepth = 2
 
-    ## sorting by last answer.
-    if request.GET.get('sl', None) == '1':
-        ### v1: unoptimal:
-        #for post in post_list:
-        #    post.last_answer_date = \
-        #      Post.get_tree(post).order_by("-date")[0].date
-        #post_list = sorted(post_list, key=lambda p: p.last_answer_date,
-        # reverse=True)
-        ### v2: SQLed.
-        ## Not sure what 'ESCAPE' is meant to do here. Grabbed from
-        ## treebeard queries:
-        ##  cls.objects.filter(path__startswith=parent.path,
-        ##  depth__gte=parent.depth)
-        ## !! XXX: somewhat SQLite-specific (concat is '||')
-        ##  XXX: Move into the model manager?
-        post_list = post_list.extra(select={
-          "lastanswer": """SELECT date FROM snapboard_post AS child
-            WHERE (child.path LIKE (snapboard_post.path || '%%') AND
-              child.depth >= snapboard_post.depth)
-            ORDER BY date DESC LIMIT 1 """
-        }).order_by("-lastanswer")
-
+        ## sorting by last answer.
+        if request.GET.get('sl', None) == '1':
+            ### v1: unoptimal:
+            #for post in post_list:
+            #    post.last_answer_date = \
+            #      Post.get_tree(post).order_by("-date")[0].date
+            #post_list = sorted(post_list, key=lambda p: p.last_answer_date,
+            # reverse=True)
+            ### v2: SQLed.
+            ## Not sure what 'ESCAPE' is meant to do here. Grabbed from
+            ## treebeard queries:
+            ##  cls.objects.filter(path__startswith=parent.path,
+            ##  depth__gte=parent.depth)
+            ## !! XXX: somewhat SQLite-specific (concat is '||')
+            ##  XXX: Move into the model manager?
+            post_list = post_list.extra(select={
+              "lastanswer": """SELECT date FROM snapboard_post AS child
+                WHERE (child.path LIKE (snapboard_post.path || '%%') AND
+                  child.depth >= snapboard_post.depth)
+                ORDER BY date DESC LIMIT 1 """
+            }).order_by("-lastanswer")
 
     # Additional note: annotating watched posts in the tree can be done, for
     # example, by using 
@@ -400,6 +382,8 @@ def thread(request, thread_id):
       'top_post': top_post,
       'post_list': post_list,
       'thr': thr,
+      'subtopic': subtopic,
+      'listdepth': listdepth,  # at which depth the post_list is.
     })
     
     return render_to_response('snapboard/thread',
@@ -544,37 +528,10 @@ def show_revisions(request, post_id, rpc=False):
     posts = posts[::-1]  # up->down -- old->new
     
     ## Diff v2:
-    import re
-    from snapboard.templatetags.extras import render_filter
-    import difflib
-    def _processtext(text):
-        """ Prepares the supplied post text to be diff'ed.  """
-        texth = render_filter(text)  # -> html
-        textl = re.findall(r'<[^>]*?>|[^<]+', texth)  # -> tags&text
-        out = []
-        for item in textl: # -> tags & words.
-            if item.startswith("<"):
-                out.append(item)
-            else:
-                #out += item.split()  # Extra spaces?
-                out += re.findall(r'[ ]+|[^ ]+', item)
-        return out
     prev_post = None
     for post in posts:
         if prev_post is not None:
-            listv = []
-            diffl = difflib.ndiff(_processtext(prev_post.text),
-              _processtext(post.text))
-            for item in diffl:
-                # to get HTML tags as plain non-changed from the newer
-                # version.
-                if item.startswith('+ <'):
-                    listv.append(("  ", item[2:]))
-                elif item.startswith('- <'):
-                    pass  # ignore removed tags.
-                else:
-                    listv.append((item[:2], item[2:]))
-            post.difflist = listv
+            post.difflist = _diff_posts(prev_post, post)
         prev_post = post
     
     if rpc:  # return JSONed data of all revisions.
@@ -999,28 +956,16 @@ def xmpp_get_help(request, subject=None):
         raise Http404, "No such help subject"
 
 
-# RPC information with previous functions.
-RPC_OBJECT_MAP = {
-        "thread": Thread,
-        "post": Post,
-        }
-
 RPC_ACTION_MAP = {
-        "gsticky": r_set_gsticky,
-        "csticky": r_set_csticky,
-        "close": r_set_close,
-        "censor": r_set_censor,
-        "removethread": r_removethread,
-
-        "abuse": r_abusereport,
-        "watch": r_watch_post,
-        "geteditform": edit_post,
-        "getreplyform": post_reply,
-        "getrevisions": show_revisions,
-
-        "quote": rpc_quote,
-        }
-# Temporary list of RPC functions coverted to advanced action handers.
-RPC_AACTIONS = ["gsticky", "csticky", "close", "censor", "removethread",
-  "abuse", "watch", "geteditform", "getreplyform", "getrevisions", ]
+  "gsticky": r_set_gsticky,
+  "csticky": r_set_csticky,
+  "close": r_set_close,
+  "censor": r_set_censor,
+  "removethread": r_removethread,
+  "abuse": r_abusereport,
+  "watch": r_watch_post,
+  "geteditform": edit_post,
+  "getreplyform": post_reply,
+  "getrevisions": show_revisions,
+  }
 
