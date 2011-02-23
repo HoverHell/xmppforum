@@ -12,7 +12,7 @@
       <div class="ph">
         <img src="{% avatar_url top_post.user %}" class="up" />
         <span class="mr">
-          <span class="un">[ {{ top_post.user }} ]</span>
+          <span class="un">[{{ top_post.user }}]</span>
           {% if user.is_authenticated  %}
             <a href="{% url snapboard_post_reply top_post.id %}" onclick="return show_reply_form('{{ top_post.id }}');">{% trans "reply" %}</a>
           {% endif %}
@@ -20,7 +20,7 @@
             <a href="{% url snapboard_edit_post top_post.id %}?next={{ request.get_full_path|urlencode }}" onclick="return t_e('{{ top_post.id }}')">{% trans "edit" %}</a>
           {% endifequal %}{% endif %}
           {% if user.is_staff %}
-            <a id="c{{ top_post.id }}" href="#sp{{ top_post.id }}" onclick="s_c('{{ top_post.id }}');">{{ top_post.censor|yesno:_("uncensor,censor") }} </a>
+            <a id="c{{ top_post.id }}" href="#sp{{ top_post.id }}" onclick="s_c('{{ top_post.id }}');">{{ top_post.censor|yesno:_("uncensor,censor") }}</a>
           {% endif %}
           {% if user.is_authenticated and not top_post.freespeech and not user.really_anonymous %}
             <a id="a{{ top_post.id }}" href="#sp{{ top_post.id }}" onclick="s_a('{{ top_post.id }}');">{% trans "abuse" %}</a>
@@ -84,7 +84,7 @@
           <img src="{% avatar_url post.user %}" class="up" />
           <span class="mr">
             <span class="pi">#{{ post.id_form_a }}{#{{ post.id_form_b }}#}</span>
-            <span class="un">[ <a href="#sp{{ post.id }}" onclick="t_p('{{ post.id }}'); return false;">{{ post.user }}</a> ] </span>
+            <span class="un">[<a href="#sp{{ post.id }}" onclick="t_p('{{ post.id }}'); return false;">{{ post.user }}</a>] </span>
             {% if user.is_authenticated %}
               {% if not user.really_anonymous %}{% ifequal post.user_id user.id %}
                 <a href="{% url snapboard_edit_post post.id %}?next={{ request.get_full_path|urlencode }}%23sp{{ post.id }}" onclick="return t_e('{{ post.id }}')">{% trans "edit" %}</a>
