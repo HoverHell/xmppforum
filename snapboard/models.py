@@ -73,8 +73,8 @@ def get_flathelper_list(self):
     specified node) to display "straight" branches as flat """
     # hack-helper for extra data. Will probably be removed later.
     from django.db.models import Count
-    qs = self.get_tree(self).annotate(abuse=Count('sb_abusereport_set'))
-    # ! branched from revision 250:310d63a10571 (tag 'flatpost'), minimized.
+    qs = self.get_tree(self).annotate(
+      abuse=Count('sb_abusereport_set')).select_related(depth=2)
     annotated = get_adv_annotated_list(self, qs)
     prev_node, prev_info = annotated[0]
     def is_alone(n, i):

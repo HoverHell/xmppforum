@@ -50,23 +50,30 @@ _log = logging.getLogger('snapboard.views')
 CAT_REMTHREADS_NAME = getattr(settings, 'CAT_REMTHREADS_NAME',
   'Removed Threads')
 
+
+## Get and save the site name (or URL) for the further use.
+try:  # (totally optional)
+    CURRENT_SITE = Site.objects.get_current()
+    FORUM_NAME = CURRENT_SITE.name
+    FORUM_DOMAIN = CURRENT_SITE.domain
+except Exception:  # whatever.  XMPP links won't work though.
+    FORUM_NAME = ""
+    FORUM_DOMAIN = ""
+
         
 def snapboard_default_context(request):
     """ Provides some default information for all templates.
 
     This should be added to the settings variable
     TEMPLATE_CONTEXT_PROCESSORS """
-    try:  # (totally optional)
-        forum_name = Site.objects.get_current().name
-    except Exception:  # whatever.
-        forum_name = ""
 
     return {
       'SNAP_MEDIA_PREFIX': SNAP_MEDIA_PREFIX,
       'SNAP_POST_FILTER': SNAP_POST_FILTER,
       'LOGIN_URL': settings.LOGIN_URL,
       'LOGOUT_URL': settings.LOGOUT_URL,
-      'forum_name': forum_name,
+      'FORUM_NAME': FORUM_NAME,
+      'FORUM_DOMAIN': FORUM_DOMAIN,
       }
 
 
