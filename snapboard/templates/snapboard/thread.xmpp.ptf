@@ -19,7 +19,7 @@
     {{ top_post.text|striptags|render_post|safe }}{% endif %}
 
 {% for top_answer in post_list %}
-    {% for post, post_info in top_answer.get_annotated_list %}
+    {% for post, post_info in top_answer.get_flathelper_list %}
 
     {%br%} {%br%}
 

@@ -116,8 +116,17 @@ AVATAR_GRAVATAR_DEFAULT = "identicon"
 # AVATAR_STORAGE_DIR = SNAP_MEDIA_PREFIX+"/avatars"
 AVATAR_DEFAULT_SIZE = 50
 
-## A special category for removed (hidden, censored) threads.
-# (disabling not yet possible)
+
+### timedelta parameters.
+## display names for all time periods. 
+#TIMEDELTA_NAMES = (' yr', ' mon', ' wk', ' day', ' hr', ' min', ' sec')
+#TIMEDELTA_NAMES = ('y', 'mo', 'w', 'd', 'h', 'm', 's')  # default.
+## Maximal amount of non-zero periods to display (0 - all)
+#TIMEDELTA_MAXLEN = 2
+#TIMEDELTA_MAXLEN = 0  # default.
+
+### A special category for removed (hidden, censored) threads.
+## (disabling not yet possible)
 CAT_REMTHREADS_NAME = "Removed Threads"
 
 # Local time zone for this installation. All choices can be found here:

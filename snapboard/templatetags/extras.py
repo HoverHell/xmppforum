@@ -13,17 +13,18 @@ register = template.Library()
 register.filter('textile', textile)
 
 
+@register.filter
 def post_summary(value, arg):
-    """
-    Returns the first N characters of a block of text where N is the only argument.
-    """
+    """ Returns the first N characters of a block of text where N is the
+    only argument.  """
     l = int(arg)
     if len(value) > arg:
         return value
     else:
         return value[:l] + '...'
-register.filter('post_summary', post_summary)
 
+
+@register.filter(name='markdown')
 def markdown_filter(value, arg=''):
     extensions=arg.split(",")
     if len(extensions) == 1 and extensions[0] == '':
@@ -38,13 +39,14 @@ def markdown_filter(value, arg=''):
         safe_mode = False
 
     return markdown.markdown(value, extensions, safe_mode=safe_mode)
-register.filter('markdown', markdown_filter)
 
+
+@register.filter(name='bbcode')
 def bbcode_filter(value, arg=''):
     return bbcode.bb2xhtml(value, True)
-register.filter('bbcode', bbcode_filter)
 
-snap_filter = getattr(settings, 'SNAP_POST_FILTER', 'markdown').lower()
+
+snap_filter = getattr(settings, 'SNAP_POST_FILTER', 'bbcode').lower()
 if snap_filter == 'bbcode':
     render_filter = bbcode_filter
 elif snap_filter == 'textile':
@@ -53,14 +55,44 @@ else:
     render_filter = markdown_filter
 register.filter('render_post', render_filter)
 
+
+@register.filter
 def timestamp(dt):
-    """
-    Returns a timestamp usable by JavaScript from a datetime.
-    """
+    """ Returns a timestamp usable by JavaScript from a datetime.  """
     try:
         return str(int(1000*mktime(dt.timetuple())))
     except:
         return u''
-register.filter('timestamp', timestamp)
 
-# vim: ai ts=4 sts=4 et sw=4
+
+import time
+import datetime
+from snapboard.util import format_timedelta
+class RelTimeNode(template.Node):
+    """ A template tag for printing relative-readable-formatted time from
+    the given date.  """
+    def __init__(self, p_ndate):
+        self.ndate = template.Variable(p_ndate)
+        print "RTN: fs: %r -> %r" % (p_ndate, self.ndate)
+
+    def render(self, context):
+        now = context.get('now', None)
+        if now is None:
+            print "RTN: D: making now!"
+            now = time.mktime(datetime.datetime.now().timetuple())
+            context['now'] = now
+        try:
+            ndate = self.ndate.resolve(context)
+        except template.VariableDoesNotExist:
+            return u''
+        print "RTN: ndate: %r" % ndate
+        return format_timedelta(now - time.mktime(ndate.timetuple()))
+
+
+@register.tag
+def reltime(parser, token):
+    args = token.split_contents()
+    if len(args) == 2:
+        return RelTimeNode(args[1])
+    else:
+        raise template.TemplateSyntaxError

@@ -44,6 +44,7 @@ from snapboard.models import *
 from snapboard.models import AnonymousUser
 from snapboard.util import *
 
+
 _log = logging.getLogger('snapboard.views')
 
 
@@ -60,13 +61,11 @@ except Exception:  # whatever.  XMPP links won't work though.
     SITE_NAME = ""
     SITE_DOMAIN = ""
 
-        
 def snapboard_default_context(request):
     """ Provides some default information for all templates.
 
     This should be added to the settings variable
     TEMPLATE_CONTEXT_PROCESSORS """
-
     return {
       'SNAP_MEDIA_PREFIX': SNAP_MEDIA_PREFIX,
       'SNAP_POST_FILTER': SNAP_POST_FILTER,
@@ -76,13 +75,16 @@ def snapboard_default_context(request):
       'SITE_DOMAIN': SITE_DOMAIN,
       }
 
-
 def user_settings_context(request):
     return {'user_settings': request.user.get_user_settings()}
 
+def timedelta_now_context(request):
+    """ A somewhat weird context processor that adds now() into the context
+    so it can be called exactly once per request.  """
+    return {'now': time.mktime(datetime.datetime.now().timetuple())}
 
-extra_processors = [user_settings_context, snapboard_default_context]
-
+extra_processors = [user_settings_context, snapboard_default_context,
+  timedelta_now_context]
 
 
 def _get_that_post(request, post_id=None):
@@ -109,6 +111,10 @@ def _get_that_post(request, post_id=None):
             raise Http404, "Dunno such. Must've vanished. Specify precise post."
     else:
         raise Http404, "Dunno any. Specify precise post."
+
+
+
+
 
 
 ## RPC/similar stuff:

@@ -1,6 +1,7 @@
 """ Helper stuff specific to this project (even if reusable).  """
 
 from django.core.exceptions import PermissionDenied
+from django.conf import settings
 
 ## Helper wrapper, used instead of
 ## django.contrib.admin.views.decorators.staff_member_required for using it
@@ -46,6 +47,38 @@ def r_getreturn(request, rpc=False, nextr=None, rpcdata={}, successtext=None,
                 # else?
                 return HttpResponseServerError(
                   "RPC return: unknown return.")  # Nothing else to do here.
+
+
+## Timedelta stuff.
+# configurable/overridable:
+TIMEDELTA_NAMES = getattr(settings, 'TIMEDELTA_NAMES',
+  ('y', 'mo', 'w', 'd', 'h', 'm', 's'))
+TIMEDELTA_MAXLEN = getattr(settings, 'TIMEDELTA_MAXLEN', 0)
+TIMEDELTA_SIZES = (
+  3600 * 24 * 365, 3600 * 24 * 30, 3600 * 24 * 7, 3600 * 24, 3600, 60, 1
+)
+TIMEDELTA_UNITS = zip(TIMEDELTA_NAMES, TIMEDELTA_SIZES)
+
+
+from datetime import timedelta
+def format_timedelta(delta, maxlen=TIMEDELTA_MAXLEN):
+    """ Return a time delta (seconds or timedelta) as human-readable.  """
+    if isinstance(delta, timedelta):
+        seconds = abs(int((delta.days * 86400) + delta.seconds))
+    else:
+        seconds = abs(delta)
+
+    a_res = []
+    for unit, secs_per_unit in TIMEDELTA_UNITS:
+        if not unit:
+            continue
+        value = seconds // secs_per_unit
+        seconds %= secs_per_unit
+        if value > 0:
+            a_res.append(u"%d%s" % (value, unit))
+            if maxlen and  len(a_res) >= maxlen:
+                break
+    return u' '.join(a_res)
 
 
 ## Diff stuff.

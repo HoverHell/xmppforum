@@ -102,7 +102,7 @@
               <span id="prl{{ post.id }}"><a href="{% url snapboard_show_revisions post.id %}">{% trans "history" %}</a></span>
             {% endif %}
             <span class="ti">
-              <span class="dt">{{ post.date|date:"r T" }}<span class="ts">{{ post.date|timestamp }}</span>
+              {{post.date}} / {% reltime post.date %} ago || <span class="dt">{{ post.date|date:"r T" }}<span class="ts">{{ post.date|timestamp }}</span>
               </span>
             </span>
           </span>
