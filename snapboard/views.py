@@ -54,11 +54,11 @@ CAT_REMTHREADS_NAME = getattr(settings, 'CAT_REMTHREADS_NAME',
 ## Get and save the site name (or URL) for the further use.
 try:  # (totally optional)
     CURRENT_SITE = Site.objects.get_current()
-    FORUM_NAME = CURRENT_SITE.name
-    FORUM_DOMAIN = CURRENT_SITE.domain
+    SITE_NAME = CURRENT_SITE.name
+    SITE_DOMAIN = CURRENT_SITE.domain
 except Exception:  # whatever.  XMPP links won't work though.
-    FORUM_NAME = ""
-    FORUM_DOMAIN = ""
+    SITE_NAME = ""
+    SITE_DOMAIN = ""
 
         
 def snapboard_default_context(request):
@@ -72,8 +72,8 @@ def snapboard_default_context(request):
       'SNAP_POST_FILTER': SNAP_POST_FILTER,
       'LOGIN_URL': settings.LOGIN_URL,
       'LOGOUT_URL': settings.LOGOUT_URL,
-      'FORUM_NAME': FORUM_NAME,
-      'FORUM_DOMAIN': FORUM_DOMAIN,
+      'SITE_NAME': SITE_NAME,
+      'SITE_DOMAIN': SITE_DOMAIN,
       }
 
 
