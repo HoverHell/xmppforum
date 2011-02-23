@@ -5,13 +5,14 @@
 
 <div id="stp" class="tp">
 {% if subtopic %}
-  {% trans "You are viewing part of the topic" %}
+  <p>{% trans "You are viewing part of the topic" %}</p>
 {% else %}
   <div id="sp{{ top_post.id }}">
       <div id="prf{{ top_post.id }}" class="rm"></div>
       <div class="ph">
         <img src="{% avatar_url top_post.user %}" class="up" />
         <span class="mr">
+          <span class="un">[ {{ top_post.user }} ]</span>
           {% if user.is_authenticated  %}
             <a href="{% url snapboard_post_reply top_post.id %}" onclick="return show_reply_form('{{ top_post.id }}');">{% trans "reply" %}</a>
           {% endif %}
@@ -19,12 +20,14 @@
             <a href="{% url snapboard_edit_post top_post.id %}?next={{ request.get_full_path|urlencode }}" onclick="return t_e('{{ top_post.id }}')">{% trans "edit" %}</a>
           {% endifequal %}{% endif %}
           {% if user.is_staff %}
-              <a id="c{{ top_post.id }}" href="#sp{{ top_post.id }}" onclick="s_c('{{ top_post.id }}');">{{ top_post.censor|yesno:_("uncensor,censor") }} </a>
+            <a id="c{{ top_post.id }}" href="#sp{{ top_post.id }}" onclick="s_c('{{ top_post.id }}');">{{ top_post.censor|yesno:_("uncensor,censor") }} </a>
           {% endif %}
           {% if user.is_authenticated and not top_post.freespeech and not user.really_anonymous %}
-              <a id="a{{ top_post.id }}" href="#sp{{ top_post.id }}" onclick="s_a('{{ top_post.id }}');">{% trans "abuse" %}</a>
+            <a id="a{{ top_post.id }}" href="#sp{{ top_post.id }}" onclick="s_a('{{ top_post.id }}');">{% trans "abuse" %}</a>
           {% endif %}
-          <span class="un">[ {{ top_post.user }} ]</span>
+          {% if post.previous %}
+            <span id="prl{{ post.id }}"><a href="{% url snapboard_show_revisions post.id %}">{% trans "history" %}</a></span>
+          {% endif %}
           {% if top_post.private.all %}{% trans "to" %} {% for rec in top_post.private.all %}{{ rec }}{% if not forloop.last %},{% endif %}{% endfor %}{% endif %}
           <span class="ti">
             <span class="dt">{{ top_post.date|date:"r T" }}<span class="ts">{{ top_post.date|timestamp }}</span>
@@ -80,7 +83,8 @@
       <div class="ph{% if post.is_flat %} f{% endif %}">
           <img src="{% avatar_url post.user %}" class="up" />
           <span class="mr">
-            <span class="pi">#{{ post.id_form_a }} | #{{ post.id_form_b }} | </span>
+            <span class="pi">#{{ post.id_form_a }}{#{{ post.id_form_b }}#}</span>
+            <span class="un">[ <a href="#sp{{ post.id }}" onclick="t_p('{{ post.id }}'); return false;">{{ post.user }}</a> ] </span>
             {% if user.is_authenticated %}
               {% if not user.really_anonymous %}{% ifequal post.user_id user.id %}
                 <a href="{% url snapboard_edit_post post.id %}?next={{ request.get_full_path|urlencode }}%23sp{{ post.id }}" onclick="return t_e('{{ post.id }}')">{% trans "edit" %}</a>
@@ -94,17 +98,14 @@
             {% if user.is_authenticated and not post.freespeech and not user.really_anonymous %}
               <a id="a{{ post.id }}" href="#sp{{ post.id }}" onclick="s_a('{{ post.id }}');">{% trans "abuse" %}</a>
             {% endif %}
-            <span>[ <a class="un" href="#sp{{ post.id }}" onclick="t_p('{{ post.id }}'); return false;">{{ post.user }}</a> ] </span>
+            {% if post.previous %}
+              <span id="prl{{ post.id }}"><a href="{% url snapboard_show_revisions post.id %}">{% trans "history" %}</a></span>
+            {% endif %}
             <span class="ti">
               <span class="dt">{{ post.date|date:"r T" }}<span class="ts">{{ post.date|timestamp }}</span>
               </span>
             </span>
           </span>
-          {% if post.previous %}
-            <span id="prl{{ post.id }}">
-              <a href="{% url snapboard_show_revisions post.id %}">{% trans "history" %}</a>
-            </span>
-          {% endif %}
           <span class="ps" style="display:none" id="sps{{ post.id }}"></span>
         </div>
         {% endif %}

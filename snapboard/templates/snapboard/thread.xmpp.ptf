@@ -2,7 +2,6 @@
 {% load i18n %}
 {% load plaintexttags %}
 {% load extras %}
-{% load avatar_tags %}
 
 #c{{ thr.category.id }} {{ thr.category }}:
 {%ws%}{%ws%}{%ws%}{%ws%}{{ thr.subject }}
@@ -25,7 +24,7 @@
 
     {%br%} {%br%}
 
-    <a href="#snap_post{{ post.id }}">#{{ thr.id }}/{{ post.id }}</a>
+    #{{ thr.id }}/{{ post.id_form_b }}{%ws%}|{%ws%}<a href="{{ SITE_DOMAIN }}/#sp{{ post.id }}">{{ post.id }}</a>
     {%ws%}by {{ post.user }}
     {%ws%}at {{ post.date|date:"r T" }} 
     {% if post.censor %}{%ws%}(CENSORED){% else %}
