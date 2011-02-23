@@ -3,7 +3,5 @@
 {% load extras %}
 
 {% block snapboard_main %}
-    <p id="snap_post_reply{{ parent_post.id }}">
-    {% include "snapboard/include/addpost.html" %}
-    </p>
+{% include "snapboard/include/addpost.html" %}
 {% endblock %}

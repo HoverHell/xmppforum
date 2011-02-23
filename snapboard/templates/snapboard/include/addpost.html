@@ -2,23 +2,10 @@
 {% spaceless %}
 {% if not thr.closed %}{# and not page_next #}
     {% if user.is_authenticated %}
-    {% ifequal SNAP_POST_FILTER "markdown" %}
-        <p><span style="float:right;"><a href="#snap_markdown_guide" onclick="toggle('snap_markdown_guide', 'block');">{% trans "Pretty-print guide" %}</a></span></p>
-        {% include "snapboard/include/markdown_guide.html" %}
-    {% endifequal %}
     <form id="add_post_div" action="{% url snapboard_post_reply parent_post.id %}" method="POST">
         <a name="post_form"></a>
-        <script type="text/javascript" src="{{ SNAP_MEDIA_PREFIX }}/js/yui/autocomplete-min.js"></script>
         <div id="toolbar" style="">
-            {% ifequal SNAP_POST_FILTER "markdown" %}
-                <button onclick="return surround('**');"><b>{% trans "B" %}</b></button>
-                <button onclick="return surround('_');"><i>{% trans "i" %}</i></button>
-                <button onclick="return do_prefix('> ');"><span>{% trans "quote" %}</span></button>
-                <button onclick="return do_prefix('    ');"><span>{% trans "code" %}</span></button>
-                <button onclick="return do_prefix('* ');"><span>{% trans "list" %}</span></button>
-                <button onclick="return insert_img();"><span>{% trans "img" %}</span></button>
-                <button onclick="return insert_link();"><u>{% trans "link" %}</u></button>
-            {% else %}{% ifequal SNAP_POST_FILTER "bbcode" %}
+            {% ifequal SNAP_POST_FILTER "bbcode" %}
                 <button onclick="return surround('[b]','[/b]');"><b>{% trans "B" %}</b></button>
                 <button onclick="return surround('[i]','[/i]');"><i>{% trans "i" %}</i></button>
                 <button onclick="return surround('[quote]','[/quote]');"><span>{% trans "quote" %}</span></button>
@@ -26,7 +13,7 @@
                 <button onclick="return do_prefix('[*]');"><span>{% trans "list" %}</span></button>
                 <button onclick="return insert_img();"><span>{% trans "img" %}</span></button>
                 <button onclick="return insert_link();"><u>{% trans "link" %}</u></button>
-            {% endifequal %}{% endifequal %}
+            {% endifequal %}
         </div>
         {{ postform.as_p }}
         <p>{{ postform.errors }}</p>

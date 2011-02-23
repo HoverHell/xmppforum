@@ -3,7 +3,5 @@
 {% load extras %}
 
 {% block snapboard_main %}
-    <p id="snap_post_edit{{ post.id }}">
-    	{% include "snapboard/include/editpost.html" %}
-    </p>
+{% include "snapboard/include/editpost.html" %}
 {% endblock %}
