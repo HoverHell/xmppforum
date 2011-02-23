@@ -8,32 +8,30 @@
 
     {%br%}{%br%}
 
-    <a href="#snap_post{{ top_post.id }}">#{{ thr.id }}/{{ top_post.id }}</a>
+    <a href="{{ SITE_DOMAIN }}{% url snapboard_thread thr.id %}">#{{ thr.id }}/{{ top_post.id }}</a>
     {%ws%}by {{ top_post.user }}
     {%ws%}at {{ top_post.date|date:"r T" }} 
-    {% if top_post.censor %}{%ws%}(CENSORED){% else %}
-    {% ifnotequal top_post.abuse 0 %}{%ws%}(REPORTED){% endifnotequal %}{% endif %}
     {% if top_post.previous %}{%ws%}(REVISED){% endif %}
 
     {%br%}
     
-    {{ top_post.text|striptags|render_post|safe }}
+    {% if post.censor %}Censored post{% else %}
+    {{ top_post.text|striptags|render_post|safe }}{% endif %}
 
 {% for top_answer in post_list %}
     {% for post, post_info in top_answer.get_annotated_list %}
 
     {%br%} {%br%}
 
-    #{{ thr.id }}/{{ post.id_form_b }}{%ws%}|{%ws%}<a href="{{ SITE_DOMAIN }}/#sp{{ post.id }}">{{ post.id }}</a>
+    #{{ thr.id }}/{{ post.id_form_b }}{%ws%}|{%ws%}<a href="{{ SITE_DOMAIN }}{% url snapboard_thread_post post.id %}">{{ post.id }}</a>
     {%ws%}by {{ post.user }}
-    {%ws%}at {{ post.date|date:"r T" }} 
-    {% if post.censor %}{%ws%}(CENSORED){% else %}
-    {% ifnotequal post.abuse 0 %}{%ws%}(REPORTED){% endifnotequal %}{% endif %}
+    {%ws%}at {{ post.date|date:"r T" }}
     {% if post.previous %}{%ws%}(REVISED){% endif %}
 
     {%br%}
     
-    {{ post.text|striptags|render_post|safe }}
+    {% if post.censor %}Censored post{% else %}
+    {{ post.text|striptags|render_post|safe }}{% endif %}
         
     {% endfor %}
 {% endfor %}            

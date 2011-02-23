@@ -93,7 +93,7 @@
               {% if not user.really_anonymous %}<a id="w{{ post.id }}" href="{% url snapboard_watch_post post.id %}?next={{ request.get_full_path|urlencode }}%23sp{{ post.id }}" onclick="s_w('{{ post.id }}'); return false;">{% trans "watch" %}</a>{% endif %}
             {% endif %}
             {% if user.is_staff %}
-              <a id="c{{ post.id }}" href="#sp{{ post.id }}" onclick="s_c('{{ post.id }}');">{{ post.censor|yesno:_("uncensor,censor") }} </a>
+              <a id="c{{ post.id }}" href="#sp{{ post.id }}" onclick="s_c('{{ post.id }}');">{{ post.censor|yesno:_("uncensor,censor") }}</a>
             {% endif %}
             {% if user.is_authenticated and not post.freespeech and not user.really_anonymous %}
               <a id="a{{ post.id }}" href="#sp{{ post.id }}" onclick="s_a('{{ post.id }}');">{% trans "abuse" %}</a>

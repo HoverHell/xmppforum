@@ -77,6 +77,14 @@ def snapboard_default_context(request):
       }
 
 
+def user_settings_context(request):
+    return {'user_settings': request.user.get_user_settings()}
+
+
+extra_processors = [user_settings_context, snapboard_default_context]
+
+
+
 def _get_that_post(request, post_id=None):
     """ Helper function for allowing post-related commands unto unspecified
     "last notified" post.  Raises Http404 if cannot.
@@ -101,15 +109,6 @@ def _get_that_post(request, post_id=None):
             raise Http404, "Dunno such. Must've vanished. Specify precise post."
     else:
         raise Http404, "Dunno any. Specify precise post."
-
-
-def user_settings_context(request):
-    return {'user_settings': request.user.get_user_settings()}
-
-
-extra_processors = [user_settings_context]
-
-
 
 
 ## RPC/similar stuff:
