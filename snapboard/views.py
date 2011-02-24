@@ -152,7 +152,8 @@ def rpc_dispatch(request):
 
     # Note: django's exception handling is used.
     # Dict is expected for rpc=True call of the view.
-    response_dict.update(rpc_func(request, oid, rpc=True))
+    response = rpc_func(request, oid, rpc=True)
+    response_dict.update(response)
     return HttpResponse(simplejson.dumps(response_dict),
       mimetype='application/javascript')
 
@@ -509,7 +510,6 @@ def edit_post(request, original, rpc=False):
 
         div_id_num = orig_post.id
 
-        # TODO: can use r_getreturn here, likely.
         return r_getreturn(request, rpc=False,
           successtext="Message updated.", postid=orig_post.id)
     else:  # get a form for editing.

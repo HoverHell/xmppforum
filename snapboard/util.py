@@ -21,8 +21,8 @@ def staff_required(view_func):
 
 
 ## Other RPC stuff.
-def r_getreturn(request, rpc=False, nextr=None, rpcdata={}, successtext=None,
-  postid=None):
+def r_getreturn(request, rpc=False, rpcdata={}, successtext=None,
+  nextr=None, postid=None):
     """ Common function for RPCable views to easily return some appropriate
     data (rpcdata or next-redirect).  """
     if rpc:  # explicit request to return RPC-usable data
@@ -40,7 +40,7 @@ def r_getreturn(request, rpc=False, nextr=None, rpcdata={}, successtext=None,
         else:  # explicitly return 
             if postid:  # we have a post to return to.
                 # msg isn't going to be used, though.
-                return success_or_reverse_redirect('snapboard_locate_post',
+                return success_or_reverse_redirect('snapboard_thread_post',
                   args=(postid,), req=request, msg=successtext)
             else:
                 # Might supply some more data if we need to return somewhere
