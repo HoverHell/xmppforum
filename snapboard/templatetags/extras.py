@@ -73,11 +73,12 @@ class RelTimeNode(template.Node):
     the given date.  """
     def __init__(self, p_ndate):
         self.ndate = template.Variable(p_ndate)
-        print "RTN: fs: %r -> %r" % (p_ndate, self.ndate)
 
     def render(self, context):
         now = context.get('now', None)
         if now is None:
+            # Should never appen if template context processor
+            # is providing it.
             print "RTN: D: making now!"
             now = time.mktime(datetime.datetime.now().timetuple())
             context['now'] = now
@@ -85,7 +86,6 @@ class RelTimeNode(template.Node):
             ndate = self.ndate.resolve(context)
         except template.VariableDoesNotExist:
             return u''
-        print "RTN: ndate: %r" % ndate
         return format_timedelta(now - time.mktime(ndate.timetuple()))
 
 
