@@ -3,6 +3,7 @@
 from django.core.exceptions import PermissionDenied
 from django.conf import settings
 
+
 ## Helper wrapper, used instead of
 ## django.contrib.admin.views.decorators.staff_member_required for using it
 ## with XMPP and RPC requests.
@@ -128,8 +129,6 @@ def _diff_texts(text1, text2):
     return listv
 
 
-
-
 def _diff_posts(post1, post2):
     """ Returns a list with differences between two posts (pre-processing
     the text or using it cached in the post.  """
@@ -140,3 +139,32 @@ def _diff_posts(post1, post2):
             post.text_diffprocessed = text  # might be used once more.
         return text
     return _diff_texts(_get_text(post1), _get_text(post2))
+
+
+## Paging stuff
+def _find_depth(qs, startdepth=1, approxnum=20):
+    """ Finds a target maximal depth that will result in minimal amount of
+    objects which is still more than approxnum.  """
+    # ! TODO: Cache.
+    _get_try = lambda depth: qs.filter(depth__lte=depth).count()
+    ## Step 1: find approximation level 1.
+    res = 5  # starting point.
+    last = "x"  # for checking if there's no deeper posts.
+    cur = _get_try(res)
+    while cur < approxnum and last != cur:
+        last = cur
+        res *= 2
+        cur = _get_try(res)
+    if last == cur:
+        return res  # there's less than approxnum anyway.
+    # Step 2: find approximation between last and cur (with binary search).
+    lo, hi = res // 2, res  # current and previous attempts.
+    while last != cur and lo < hi:
+        res_p, res = res, (lo + hi) // 2
+        last = cur
+        cur = _get_try(res)
+        if cur < approxnum:  # not enough, seek higher.
+            lo = res
+        else:  # too much, seek lower
+            hi = res
+    return res if cur > approxnum else res + 1

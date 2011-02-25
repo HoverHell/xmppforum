@@ -300,46 +300,30 @@ r_set_censor = rpc_gettoggler(Post, 'censor', rpcreturn=(
 @anonymous_login_required
 def thread(request, thread_id):
     """ Render a particular thread starting from its root post.  """
-    thr = get_object_or_404(Thread, pk=thread_id)
-    top_post = get_object_or_404(Post, thread=thread_id, depth=1)
-    return thread_post(request, top_post.id, subtopic=False)
+    ## ! XXX: might be unnecessary.
+    #thr = get_object_or_404(Thread, pk=thread_id)
 
-
-def _find_depth(qs, startdepth=1, approxnum=20):
-    """ Finds a target maximal depth that will result in minimal amount of
-    objects which is still more than approxnum.  """
-    # ! TODO: Cache.
-    _get_try = lambda depth: qs.filter(depth__lte=depth).count()
-    ## Step 1: find approximation level 1.
-    res = 5  # starting point.
-    last = "x"  # for checking if there's no deeper posts.
-    cur = _get_try(res)
-    while cur < approxnum and last != cur:
-        last = cur
-        res *= 2
-        cur = _get_try(res)
-    if last == cur:
-        return res  # there's less than approxnum anyway.
-    # Step 2: find approximation between last and cur (with binary search).
-    lo, hi = res // 2, res  # current and previous attempts.
-    while last != cur and lo < hi:
-        res_p, res = res, (lo + hi) // 2
-        last = cur
-        cur = _get_try(res)
-        if cur < approxnum:  # not enough, seek higher.
-            lo = res
-        else:  # too much, seek lower
-            hi = res
-    return res if cur > approxnum else res + 1
+    top_post = get_object_or_404(Post.objects.select_related(),
+      thread=thread_id, depth=1)
+    return thread_post(request, post=top_post, subtopic=False)
 
 
 @anonymous_login_required
-def thread_post(request, post_id, depth="v", subtopic=True):
+def thread_post(request, post_id=None, post=None, depth="v", subtopic=True):
     """ Renders (part of) the thread starting from the specified post. 
     Passes the `subtopic` parameter to the template, which annotates it with
     "Showing a part of the thread" message. """ 
     
-    top_post = get_object_or_404(Post, pk=post_id)
+    if post is not None:
+        top_post = post
+    elif post_id is not None:
+        top_post = get_object_or_404(Post, pk=post_id)
+    else:
+        _log.error("Invalid invocation of the thread_post.")
+        import traceback
+        _log.debug("".join(traceback.print_stack()))
+        return HttpResponseServerError()
+
     thr = top_post.thread
     if not thr.category.can_read(request.user):
         raise PermissionError, "You are not allowed to read this thread"
