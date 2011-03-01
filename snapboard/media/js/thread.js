@@ -12,6 +12,18 @@ prl = post_revision_links
 spe = snap_post_edit
 spr = snap_post_reply
 */
+/* gettext library */
+var catalog = new Array();
+
+function gettext(msgid) {
+ var value = catalog[msgid];
+ if (typeof(value) == 'undefined') {
+ return msgid;
+ } else {
+ return (typeof(value) == 'string') ? value : value[0];
+ }
+}
+
 //t_p = toggle_post
 function t_p(id) {
     toggle('sps'+id, 'inline');
@@ -222,86 +234,6 @@ function get_post_to_quote(id, cb) {
     YAHOO.util.Connect.asyncRequest('POST', SNAPBOARD_URLS.rpc_action, callback, postData);
 }
 
-
-/* =======================================================================
-* Time Since
-* January 16, 2004
-*
-* Time Since creates a string which friendly tells you the time since the
-* original date Based on the original time_since() function by
-* Natalie Downe - http://blog.natbat.co.uk/archive/2003/Jun/14/time_since
-*
-* Copyright (c) 2004 Mark Wubben - http://neo.dzygn.com/
-*
-* Usage: date.toTimeSinceString(number nLimit, string sBetween, string sLastBetween)
-* nLimit: limit the shown time units (year, month etc). default = 2
-* sBetween: string between two time units. default = ", "
-* sLastBetween: string between the second-last and last time unit.
-*               default = " and "
-=========================================================================*/
-Date.prototype.toTimeSinceString = function(nLimit, sBetween, sLastBetween){
-    if(!nLimit){ nLimit = 2; }
-    if(!sBetween){ sBetween = ", "; }
-    if(!sLastBetween){ sLastBetween = gettext(" and "); }
-    if(!Date.prototype.toTimeSinceString._collStructs){
-    	Date.prototype.toTimeSinceString._collStructs = new Array(
-    		{seconds: 31536000, name: gettext("year"), plural: gettext("years")},
-    		{seconds: 2592000, name: gettext("month"), plural: gettext("months")},
-    		{seconds: 604800, name: gettext("week"), plural: gettext("weeks")},
-    		{seconds: 86400, name: gettext("day"), plural: gettext("days")},
-    		{seconds: 3600, name: gettext("hour"), plural: gettext("hours")},
-    		{seconds: 60, name: gettext("minute"), plural: gettext("minutes")}
-    	);
-    }
-
-    var collStructs = Date.prototype.toTimeSinceString._collStructs;
-    var nSecondsRemain = ((new Date).valueOf() - this.valueOf()) / 1000;
-    var sReturn = "";
-    var nCount = 0;
-    var nFloored;
-
-    for(var i = 0; i < collStructs.length && nCount < nLimit; i++){
-    	nFloored = Math.floor(nSecondsRemain / collStructs[i].seconds);
-    	if(nFloored > 0){
-    		if(sReturn.length > 0){
-    			if(nCount == nLimit - 1 || i == collStructs.length - 1){
-    				sReturn += sLastBetween;
-    			} else if(nCount < nLimit && i < collStructs.length){
-    				sReturn += sBetween;
-    			}
-    		}
-    		if(nFloored > 1){
-    			sReturn += nFloored + " " + collStructs[i].plural;
-    		} else {
-    			sReturn += nFloored + " " + collStructs[i].name;
-    		}
-    		nSecondsRemain -= nFloored * collStructs[i].seconds;
-    		nCount++;
-    	}
-    }
-
-    return sReturn;
-}
-
-
-function procAllTimeSince() {
-    elst = YAHOO.util.Dom.getElementsByClassName('dt', 'span');
-    for(var i=0; i < elst.length; i++){
-        el = elst[i];
-        timestamp_el = YAHOO.util.Dom.getElementsByClassName('ts', 'span', el)[0];
-    	timestamp = new Number(timestamp_el.innerHTML);
-        dateobj = new Date();
-        dateobj.setTime(timestamp);
-        tdisp = dateobj.toTimeSinceString();
-        if(tdisp == '') {
-            /* blank values indicate a future time... */
-            el.innerHTML = gettext('just now');
-        } else {
-            el.innerHTML = interpolate(gettext('%s ago'), [tdisp]);
-        }
-    }
-}
-
 function get_ta() {
     return document.getElementById('add_post_div').elements['post'];
 }
@@ -373,14 +305,10 @@ function insert_img(url, name, title) {
     if (!title) {
         title = name;
     }
-    if (SNAP_POST_FILTER == 'markdown') {
-        return do_insert('![' + name + '](' + url + ' "' + title + '")');
-    } else {
-        return do_insert('[img' + (name ? '=' + name : '') + ']' + url + '[/img]')
-    }
+    return do_insert('[img' + (name ? '=' + name : '') + ']' + url + '[/img]')
 }
 
-function insert_link(url, name, title) {
+function insert_link(url, name) {
     if (!url) {
         url = prompt(gettext('What is the URL of the link?'), '');
         if (!url) {
@@ -393,42 +321,8 @@ function insert_link(url, name, title) {
             name = url;
         }
     }
-    if (!title) {
-        title = name;
-    }
-    if (SNAP_POST_FILTER == 'markdown') {
-        return do_insert('[' + name + '](' + url + ' "' + title + '")');
-    } else {
         return do_insert('[url=' + url + ']' + name + '[/url]')
-    }
 }
 
 function find_textarea (el) { return true; }// el.tagName.toLowerCase() == 'textarea'; }
-function find_author (el) { return el.className == 'po' && el.title == 'Author'; }
 
-//function do_quote(anchor) {
-//    if (!anchor) {
-//        return false;
-//    }
-//    msg_div = anchor.parentNode.parentNode.parentNode.parentNode;
-//    text = YAHOO.util.Dom.getElementsBy(find_textarea, 'textarea', msg_div)[0].value;
-//    if (SNAP_POST_FILTER == 'markdown') {
-//        get_ta().value += '> ' + text.replace(/\n/g, '\n> ');
-//    } else {
-//        author = YAHOO.util.Dom.getElementsBy(find_author, 'span', msg_div)[0].innerHTML;
-//        get_ta().value += '[quote=' + author + ']' + text + '[/quote]\n';
-//    }
-//    return true;
-//}
-
-function do_quote(id) {
-    var callback = function (author, text) {
-        if (SNAP_POST_FILTER == 'markdown') {
-            get_ta().value += '> ' + text.replace(/\n/g, '\n> ');
-        } else {
-            get_ta().value += '[quote=' + author + ']' + text + '[/quote]\n';
-        }
-    };
-    get_post_to_quote(id, callback);
-    return true;
-}

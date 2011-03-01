@@ -29,10 +29,7 @@
             <span id="prl{{ post.id }}"><a href="{% url snapboard_show_revisions post.id %}">{% trans "history" %}</a></span>
           {% endif %}
           {% if top_post.private.all %}{% trans "to" %} {% for rec in top_post.private.all %}{{ rec }}{% if not forloop.last %},{% endif %}{% endfor %}{% endif %}
-          <span class="ti">
-            <span class="dt">{{ top_post.date|date:"r T" }}<span class="ts">{{ top_post.date|timestamp }}</span>
-            </span>
-          </span>
+          <span class="ti">{% reltime top_post.date %} ago</span>
         </span>
       </div>
       <div id="spv{{ top_post.id }}" class="pv">
@@ -84,27 +81,24 @@
           <img src="{% avatar_url post.user %}" class="up" />
           <span class="mr">
             <span class="pi">#{{ post.id_form_a }}{#{{ post.id_form_b }}#}</span>
-            <span class="un">[<a href="#sp{{ post.id }}" onclick="t_p('{{ post.id }}'); return false;">{{ post.user }}</a>] </span>
+            <span class="un">[<a href="" onclick="t_p('{{ post.id }}'); return false;">{{ post.user }}</a>] </span>
             {% if user.is_authenticated %}
               {% if not user.really_anonymous %}{% ifequal post.user_id user.id %}
                 <a href="{% url snapboard_edit_post post.id %}?next={{ request.get_full_path|urlencode }}%23sp{{ post.id }}" onclick="return t_e('{{ post.id }}')">{% trans "edit" %}</a>
               {% endifequal %}{% endif %}
               <a href="{% url snapboard_post_reply post.id %}" onclick="return t_r('{{ post.id }}');">{% trans "reply" %}</a>
-              {% if not user.really_anonymous %}<a id="w{{ post.id }}" href="{% url snapboard_watch_post post.id %}?next={{ request.get_full_path|urlencode }}%23sp{{ post.id }}" onclick="s_w('{{ post.id }}'); return false;">{% trans "watch" %}</a>{% endif %}
+              {% if not user.really_anonymous %}<a target="_blank" id="w{{ post.id }}" href="{% url snapboard_watch_post post.id %}" onclick="s_w('{{ post.id }}'); return false;">{% trans "watch" %}</a>{% endif %}
             {% endif %}
             {% if user.is_staff %}
-              <a id="c{{ post.id }}" href="#sp{{ post.id }}" onclick="s_c('{{ post.id }}');">{{ post.censor|yesno:_("uncensor,censor") }}</a>
+              <a id="c{{ post.id }}" href="" onclick="s_c('{{ post.id }}');">{{ post.censor|yesno:_("uncensor,censor") }}</a>
             {% endif %}
             {% if user.is_authenticated and not post.freespeech and not user.really_anonymous %}
-              <a id="a{{ post.id }}" href="#sp{{ post.id }}" onclick="s_a('{{ post.id }}');">{% trans "abuse" %}</a>
+              <a id="a{{ post.id }}" href="" onclick="s_a('{{ post.id }}');">{% trans "abuse" %}</a>
             {% endif %}
             {% if post.previous %}
               <span id="prl{{ post.id }}"><a href="{% url snapboard_show_revisions post.id %}">{% trans "history" %}</a></span>
             {% endif %}
-            <span class="ti">
-              {{post.date}} / {% reltime post.date %} ago || <span class="dt">{{ post.date|date:"r T" }}<span class="ts">{{ post.date|timestamp }}</span>
-              </span>
-            </span>
+            <span class="ti">{% reltime post.date %} ago</span>
           </span>
           <span class="ps" style="display:none" id="sps{{ post.id }}"></span>
         </div>
