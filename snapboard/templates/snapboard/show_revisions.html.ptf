@@ -24,8 +24,8 @@
     {% for post in posts %}
         {# render post revision here #}
  <p class="post_header">
-     <span class="timesince"><span class="datetime">{{ post.date|date:"r T" }}<span class="timestamp">{{ post.date|timestamp }}</span></span></span>
-     <span class="post_summary" style="display:none;" id="snap_post_sum{{ post.id }}">:
+     <span class="ti">{% reltime post.date %}</span>
+     <span class="ps" style="display:none;" id="snap_post_sum{{ post.id }}">:
          {{ post.text|post_summary:"30"|safe }}
      </span>
  </p>
@@ -36,9 +36,9 @@
          <div class="post_diff">
            {% for dtype, dstr in post.difflist %}
               {% if dtype == "+ " %}
-                <span class="r_ad" style="color: green;">{{ dstr|safe }}</span>
+                <span class="r_ad" style="border-bottom: 2px dotted green;">{{ dstr|safe }}</span>
               {% else %}{% if dtype == "- " %}
-                <span class="r_re" style="color: red;">{{ dstr|safe }}</span>
+                <span class="r_re" style="color: red; text-decoration: line-through;">{{ dstr|safe }}</span>
               {% else %}{# shouldn't be anything but "  ". #}
                 {{ dstr|safe }}
               {% endif %}{% endif %}

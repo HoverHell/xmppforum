@@ -636,7 +636,7 @@ class UserSettings(models.Model):
             verbose_name=_('user'), related_name='sb_usersettings')
     ppp = models.IntegerField(
             choices = ((5, '5'), (10, '10'), (20, '20'), (50, '50')),
-            default = 4,
+            default = 20,
             help_text = _('Posts per page'), verbose_name=_('posts per page'))
     tpp = models.IntegerField(
             choices = ((5, '5'), (10, '10'), (20, '20'), (50, '50')),

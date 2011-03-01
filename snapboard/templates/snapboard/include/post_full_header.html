@@ -23,7 +23,7 @@
     {% if post.previous %}
       <span id="prl{{ post.id }}"><a href="{% url snapboard_show_revisions post.id %}">{% trans "history" %}</a></span>
     {% endif %}
-    <span class="ti">{% reltime post.date %} ago</span>
+    <span class="ti">{% reltime post.date %}</span>
   </span>
   <span class="ps" style="display:none" id="sps{{ post.id }}"></span>
 </div>

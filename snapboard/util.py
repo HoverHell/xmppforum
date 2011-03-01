@@ -54,7 +54,7 @@ def r_getreturn(request, rpc=False, rpcdata={}, successtext=None,
 ## Timedelta stuff.
 # configurable/overridable:
 TIMEDELTA_NAMES = getattr(settings, 'TIMEDELTA_NAMES',
-  ('y', 'mo', 'w', 'd', 'h', 'm', 's'))
+  ('y', 'mo', 'w', 'd', 'h', 'm', ''))
 TIMEDELTA_MAXLEN = getattr(settings, 'TIMEDELTA_MAXLEN', 0)
 TIMEDELTA_SIZES = (
   3600 * 24 * 365, 3600 * 24 * 30, 3600 * 24 * 7, 3600 * 24, 3600, 60, 1
@@ -81,7 +81,9 @@ def format_timedelta(delta, maxlen=TIMEDELTA_MAXLEN):
             if maxlen and  len(a_res) >= maxlen:
                 break
     if not a_res:
-        a_res = ["0%s" % TIMEDELTA_NAMES[-1]]
+        return u"just now"
+    else:
+        a_res.append("ago")
     return u' '.join(a_res)
 
 
@@ -99,7 +101,8 @@ def diff_processtext(text):
             out.append(item)
         else:
             #out += item.split()  # Extra spaces?
-            out += re.findall(r'[ ]+|[^ ]+', item)
+            #out += re.findall(r'[ ]+|[^ ]+', item)
+            out += list(item)  # by-symbol diff o_O
     return out
 
 
@@ -109,7 +112,7 @@ def diff_texts(text1, text2):
     prevt = None  # type of the previous diff item.
     datas = ""  # collected continuous data.
     listv = []  # resulting list.
-    for item in difflib.ndiff(text1, text2):
+    for item in difflib.ndiff(text1, text2, charjunk=None):
         # Gets HTML tags as plain non-changed from the newer version.
         if item.startswith('+ <'):
             type, data = "  ", item[2:]

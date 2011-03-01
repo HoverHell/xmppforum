@@ -29,7 +29,7 @@
             <span id="prl{{ post.id }}"><a href="{% url snapboard_show_revisions post.id %}">{% trans "history" %}</a></span>
           {% endif %}
           {% if top_post.private.all %}{% trans "to" %} {% for rec in top_post.private.all %}{{ rec }}{% if not forloop.last %},{% endif %}{% endfor %}{% endif %}
-          <span class="ti">{% reltime top_post.date %} ago</span>
+          <span class="ti">{% reltime top_post.date %}</span>
         </span>
       </div>
       <div id="spv{{ top_post.id }}" class="pv">
