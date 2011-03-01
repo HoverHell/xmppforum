@@ -1,0 +1,12 @@
+{% load i18n %}
+{% load extras %}
+{% load avatar_tags %}
+
+<div class="ph{% if post.is_flat %} f{% endif %}">
+  <span class="mr">
+    <span class="pi"><a href="{% url snapboard_thread_post post.id %}">#{{ post.id_form_a }}</a>
+      {#{{ post.id_form_b }}#}</span> | <span>{{ post.numanswers }} more answers. </span> 
+    <span class="ti">{% reltime post.date %} ago</span>
+  </span>
+  <span class="ps" style="display:none" id="sps{{ post.id }}"></span>
+</div>

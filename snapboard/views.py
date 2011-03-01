@@ -12,7 +12,7 @@ from django.core.cache import cache
 from django.core.exceptions import ObjectDoesNotExist, PermissionDenied
 from django.core.urlresolvers import reverse
 from django.db import connection
-from django.db.models import Q
+from django.db.models import Q, Count
 from django.http import (HttpResponse, HttpResponseRedirect, Http404,
   HttpResponseServerError)
 from django.shortcuts import render_to_response, get_object_or_404
@@ -41,7 +41,8 @@ from anon.decorators import anonymous_login_required
 
 from snapboard.forms import *
 from snapboard.models import *
-from snapboard.models import AnonymousUser
+from snapboard.models import (AnonymousUser, get_flathelper_list,
+  get_adv_annotated_list)
 from snapboard.util import *
 
 
@@ -200,7 +201,7 @@ def r_abusereport(request, post_id=None, rpc=False):
         raise PermissionError, "You are not allowed to do that"
     abuse, created = AbuseReport.objects.get_or_create(
       submitter = request.user,
-      post = post_id,
+      post = post,
       )
     return r_getreturn(request, rpc, {
        'link': '',
@@ -330,21 +331,59 @@ def thread_post(request, post_id=None, post=None, depth="v", subtopic=True):
 
     render_dict = {}
 
-    #if request.user.is_authenticated():
-    #    render_dict.update({"watched":
-    #      WatchList.objects.filter(user=request.user,
-    #        thread=thr).count() != 0})
+    l_int2str = lambda v: Post._int2str(v).rjust(Post.steplen, '0')
+    l_getinterval = lambda parent, left, right: (parent + l_int2str(left + 1),
+      parent + l_int2str(right + 1))  # starts from '1', apparently.
+    ppp = request.user.get_user_settings().ppp
+    from django.core.paginator import Paginator, InvalidPage
+    paginator = Paginator(SliceHack(), ppp)
+    # This might be problematic if some posts got deleted/moved.
+    # Bit more safe way (but not completely good either) would be something
+    # like
+    # paginator._count = \
+    #   l_str2int(top_post.get_children().reverse()[:1].path[-Post.steplen]
+    # (with consideration for empty children QS).
+    paginator._count = top_post.get_children_count()
+    page_obj = paginator.page(request.GET.get("page", 1))
+    slice = page_obj.object_list.slice
+    # -1 because last gets included too this way.
+    pinterval = l_getinterval(top_post.path, slice.start, slice.stop - 1)
+
+    maxdepth = top_post.depth + 5  # TODO: can find it dynamically (and then cache)!
+    qs = Post.objects.filter(
+       path__range=pinterval,
+       depth__gt=top_post.depth,
+       depth__lte=maxdepth,
+      ).annotate(
+       abuse=Count('sb_abusereport_set')).filter(
+      ).extra(
+       select={
+        "numanswers": """CASE WHEN snapboard_post.depth = %d THEN
+          (SELECT COUNT(*) FROM snapboard_post AS child WHERE (
+            child.path LIKE (snapboard_post.path || '%%%%') AND
+            child.depth >= snapboard_post.depth
+          ))
+          ELSE "" END
+        """ % maxdepth,
+       }
+      ).select_related(depth=1)
+    
+    # finally, retreive and annotate the result.
 
     if subtopic:
-        post_list = [top_post]
         listdepth = top_post.depth
-        top_post = None
+        post_list = get_flathelper_list(qs=([top_post] + list(qs)))
+        top_post = None  # there ain't no top_post in here!..
+        # (well, actualy can show it; but probably don't need)
     else:
+        post_list = get_flathelper_list(qs=qs)
+        #qs = qs[1:]  # was necessary for skipping top_post in its get_tree.
         # Get list of all replies.
-        post_list = Post.get_children(top_post)  # Paginated by this list.
+        #post_list = Post.get_children(top_post)  # Paginated by this list.
         listdepth = 2
 
         ## sorting by last answer.
+        ## ! Might not make any sense right now.
         if request.GET.get('sl', None) == '1':
             ### v1: unoptimal:
             #for post in post_list:
@@ -379,8 +418,11 @@ def thread_post(request, post_id=None, post=None, depth="v", subtopic=True):
       'top_post': top_post,
       'post_list': post_list,
       'thr': thr,
+      'paginator': paginator,
+      'page_obj': page_obj,
       'subtopic': subtopic,
       'listdepth': listdepth,  # at which depth the post_list is.
+      'maxdepth': maxdepth,
     })
     
     return render_to_response('snapboard/thread',
@@ -527,7 +569,7 @@ def show_revisions(request, post_id, rpc=False):
     prev_post = None
     for post in posts:
         if prev_post is not None:
-            post.difflist = _diff_posts(prev_post, post)
+            post.difflist = diff_posts(prev_post, post)
         prev_post = post
     
     if rpc:  # return JSONed data of all revisions.
@@ -695,8 +737,8 @@ def edit_settings(request):
         kwargs = {'initial': {'choice': uavatar.id}}
     else:
         kwargs = {}
-    settings_form, xfsettings_form, primary_avatar_form, \
-      upload_avatar_form = None, None, None, None
+    settings_form = xfsettings_form = primary_avatar_form = \
+      upload_avatar_form = None
     if request.method == 'POST':
         if 'updatesettings' in request.POST:  # Settings were edited.
             settings_form = UserSettingsForm(request.POST,
@@ -717,7 +759,7 @@ def edit_settings(request):
             primary_avatar_form = PrimaryAvatarForm(request.POST,
               user=request.user, avatars=avatars, **kwargs)
             if primary_avatar_form.is_valid():  # Selection / deletion form.
-                savatar = Avatar.objects.get(
+                savatar = get_object_or_404(Avatar,
                   id=primary_avatar_form.cleaned_data['choice'])
                 if 'defaultavatar' in request.POST:  # "choose" was pressed
                     # ! Maybe should check if it's the same avatar.

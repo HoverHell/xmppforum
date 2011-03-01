@@ -1,19 +1,21 @@
 
-Might be useful: for server-side collapsing of posts, collapsed-tree leaf
- posts can be shortened into summary using
- ': {{ post.text|post_summary:"30"|safe }}'
- in the span if="sps{{ post.id }}".
- * In JS-collapsing should reimplement that simple post_summary in JS!
+* for diff display, use green underline (span r_ad border-bottom) for added
+ parts, and either red underline or, better, strikeout, for removed parts
+ (r_re).  And remove the inline style, ofc.
 
-
-? Auto-creating of XMPP users should probably be handled over login_required
- (since it gets the 'request' object), with options like "show registering
- offer", "warn about registration and offer to set the name" and
- "automatically register and use JID as username"
+? How fast is `BETWEEN` for strings in SQL (sqlite3 / postgresql / ...)? 
+ Esp. compared to `LIKE ...%`? 
 
 TODO: make XMPP XHTML templates use non-relative links.
 
-WARN: can't use 'include' in ptf templates.
+TODO: db-safety of all the code: use .update() when possible, when not - use
+ transactions.
+
+* Couldn't use 'include' in ptf templates. Apparently, can now. Don't know
+ what was the problem or if it will reappear.
+
+* Failed to use ptftemplateloader with django1.2's cached templateloader. 
+ Should fix for the performance.
 
 page-global pagination numeration:
   {{ page_obj.start_index|add:forloop.counter|add:-1 }}
@@ -21,3 +23,104 @@ page-global pagination numeration:
 imgtag_re = \
   re.compile(r'<img\s+(src=[\'"](?P<src>.*?)[\'"]|(?P<alt>alt=)|(?P<title>title=))[^>]*>');
 m = imgtag_re.findall(t); m[0]
+
+
+
+** Funny unfinished/unused hacks:
+
+from django.core.paginator import Paginator
+from django.db.models.query import EmptyQuerySet
+## Probably unnecessary.
+class ChildrenPaginator(Paginator):
+    """ A hack-up Paginator class which does not work with querysets but
+    retains all the other features.  """
+
+    count = 0  # replace original property(...)
+    
+    def __init__(self, parent, *args, **kwargs):
+        super(PaginatorImit, self).__init__(object_list, *args, **kwargs)
+        self.count = parent.get_children_count()
+    
+    def page(self, number):
+        """ Returns a Page object for the given 1-based page number.  """
+        number = self.validate_number(number)
+        bottom = (number - 1) * self.per_page
+        top = bottom + self.per_page
+        if top + self.orphans >= self.count:
+            top = self.count
+        return Page(self.object_list[bottom:top], number, self)
+
+from django.db.models.query import QuerySet
+class ChildrenQuery(QuerySet):
+    """ A paginator-compatible virtual QuerySet which works on MP_Tree
+    children and slices by branches instead of all nodes.  """
+    
+    def __init__(self, parent, qs=None):
+        """ Initialize for the given parent node.  """
+        super(ChildrenQuery, self).__init__(
+        self._parent = parent
+        if qs is not None:
+            self._qs = qs
+        else:
+            self._qs = parent.objects.all()
+
+    def count(self):
+        """ Returns number of branches (direct children).  """
+        return self._parent.get_children_count()
+
+    def __getitem__(self, k):
+        """ Slices results by branches.
+        Single item retreiving is not yet supported.  """
+        self.qs
+
+class Facade(object):
+    def __init__(self, instance):
+        self._instance = instance
+        for i in dir(f._instance):
+            if i.startswith('__'):
+                if not hasattr(self, i):
+                    setattr(self, i, getattr(instance, i))
+        self.__getattr__ = lambda self, name: getattr(self._instance, name)
+
+
+** Other unused thread_post pagination (and not only) bits:
+
+    #if request.user.is_authenticated():
+    #    render_dict.update({"watched":
+    #      WatchList.objects.filter(user=request.user,
+    #        thread=thr).count() != 0})
+
+    ## this all is a rather temporary stuff before it is made into a more
+    # proper special-pagination.
+    ## Or, this is a way-1 which depends on assumption that there were no
+    # modifications that leave "holes" ("cut branches") in the tree paths in
+    # the db.  Quite a bold assumption, but outcomes of failing aren't
+    # likely to be severe.
+
+    #l_getpageinterval = lambda parent, page=1, ppp=5: l_getinterval(parent,
+    #  (page - 1) * ppp, page * ppp - 1)  # -1 because last is included too.
+    
+    #try:
+    #    page = max(int(request.GET.get("page", 1)), 1)
+    #except ValueError:
+    #    page = 90000  # there's no such page / user screwing around.
+    #pinterval = l_getpageinterval(top_post.path, page, ppp)
+    
+    ## Way-2, using conventional paginator and few extra requests.
+    # paginator = Paginator(top_post.get_children(), ppp)
+
+    ## Way-3: hacked-up paginator.
+    ## Hack it down.
+
+    #qs = top_post.get_tree(top_post).annotate(
+    #  abuse=Count('sb_abusereport_set')).filter(
+    #  depth__lte=maxdepth).extra(
+    #  select={
+    #    "numanswers": """CASE WHEN snapboard_post.depth = %d THEN
+    #      (SELECT COUNT(*) FROM snapboard_post AS child WHERE (
+    #        child.path LIKE (snapboard_post.path || '%%%%') AND
+    #        child.depth >= snapboard_post.depth
+    #      ))
+    #      ELSE "" END
+    #    """ % maxdepth,
+    #  }).select_related(depth=1)

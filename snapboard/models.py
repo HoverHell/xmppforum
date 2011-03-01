@@ -21,9 +21,9 @@ def get_rly_annotated_list(self):
     return super(mp_tree.MP_Node, self).get_annotated_list(self)
 
 ## Most likely this stuff should be moved into the Post manager.
-def get_adv_annotated_list(self, qs=None):
+def get_adv_annotated_list(self=None, qs=None):
     """ Gets an annotated list from a tree branch, adding some advanced info
-    along the way.  """
+    along the way.  Can be used on a queryset (or a list) as a function."""
     result, info = [], {}
     start_depth, prev_depth, ddepth, rdepth = (None, -1, None, None)
     prev_siblings = []  # list of possible previous (or last) siblings
@@ -60,34 +60,44 @@ def get_adv_annotated_list(self, qs=None):
             for v in range(prev_depth - start_depth, rdepth, -1):
                 prev_siblings[v] = None
         # `is_last_sibling = not next_sibling`
-
-        info = {'open': open, 'close': [], 'level': rdepth}
+        info = {'open': open, 'close': [], 'rdepth': rdepth}
+        node.treeinfo = info
         result.append((node, info,))
         prev_depth = depth
     if start_depth > 0:
         info['close'] = range(0, prev_depth - start_depth + 1)
     return result
 
-def get_flathelper_list(self):
+
+def get_flathelper_list(self=None, qs=None):
     """ Adds few more information to annotated list (retreived from
-    specified node) to display "straight" branches as flat """
+    specified node) to display "straight" branches as flat.
+    
+    Can be used on a queryset as a function.
+    
+    Can be made obsolete in the current form.  """
     # hack-helper for extra data. Will probably be removed later.
-    from django.db.models import Count
-    qs = self.get_tree(self).annotate(
-      abuse=Count('sb_abusereport_set')).select_related(depth=2)
+    if qs is None:
+        from django.db.models import Count
+        qs = self.get_tree(self).annotate(
+          abuse=Count('sb_abusereport_set')).select_related(depth=2)[1:]
     annotated = get_adv_annotated_list(self, qs)
-    prev_node, prev_info = annotated[0]
+    #prev_node, prev_info = annotated[0]
     def is_alone(n, i):
         """ "node is the only direct child" (no siblings). depends on the
         data computed with later nodes in get_adv_anno... """
         return (getattr(n, "next_sibling", False) is None and i.get('open'))
     # Expecting to change mutable node and info in the list.
-    for node, info in annotated[1:]:  # don't process the root node.
+    # ! TODO: This could probably be one as a function on the model and
+    #  called from the rendering.
+    for node, info in annotated:  # don't process the root node.
         if is_alone(node, info):
             node.is_flat = True
+            # node.is_flat = lambda self: is_alone(self, self.info)
     return annotated
 
 # Provide many various additions.
+# ? XXX: put them into Post model after all?
 mp_tree.MP_Node.get_annotated_list = get_rly_annotated_list
 mp_tree.MP_Node.get_adv_annotated_list = get_adv_annotated_list
 mp_tree.MP_Node.get_flathelper_list = get_flathelper_list

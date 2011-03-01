@@ -1,7 +1,7 @@
 {% load i18n %}
 {% load extras %}
 {% load avatar_tags %}
-{% load i18n pagination_tags %}
+{% load pagination_tags %}
 
 <div id="stp" class="tp">
 {% if subtopic %}
@@ -60,12 +60,11 @@
 </div>
 
 
-{% autopaginate post_list user_settings.ppp %}
+{# autopaginate post_list user_settings.ppp #}
 
 <div class="pmenu">{% paginate %}</div>
 <div class="threads_wrap">
-{% for top_answer in post_list %}
-  {% for post, post_info in top_answer.get_flathelper_list %}
+{% for post, post_info in post_list %}
   {% if not post_info.open %}</td></tr></table>{% endif %}
   <table id="sp{{ post.id }}" class="sp{% if not post.is_flat %}{% ifequal post.depth listdepth %} rp{% else %} lm{% if post.next_sibling %} pn{% endif %}{% endifequal %}{% endif %}">
   <tr>
@@ -77,42 +76,18 @@
       {% if post.censor and not user.is_staff %}
         <div id="spv{{ post.id }}" class="pv pc{% if post.is_flat %} f{% else %} nf{% endif %}"><div id="spt{{ post.id }}" class="pt">Censored post #{{ post.id_form_a }}.</div></div>
       {% else %}
-      <div class="ph{% if post.is_flat %} f{% endif %}">
-          <img src="{% avatar_url post.user %}" class="up" />
-          <span class="mr">
-            <span class="pi">#{{ post.id_form_a }}{#{{ post.id_form_b }}#}</span>
-            <span class="un">[<a href="" onclick="t_p('{{ post.id }}'); return false;">{{ post.user }}</a>] </span>
-            {% if user.is_authenticated %}
-              {% if not user.really_anonymous %}{% ifequal post.user_id user.id %}
-                <a href="{% url snapboard_edit_post post.id %}?next={{ request.get_full_path|urlencode }}%23sp{{ post.id }}" onclick="return t_e('{{ post.id }}')">{% trans "edit" %}</a>
-              {% endifequal %}{% endif %}
-              <a href="{% url snapboard_post_reply post.id %}" onclick="return t_r('{{ post.id }}');">{% trans "reply" %}</a>
-              {% if not user.really_anonymous %}<a target="_blank" id="w{{ post.id }}" href="{% url snapboard_watch_post post.id %}" onclick="s_w('{{ post.id }}'); return false;">{% trans "watch" %}</a>{% endif %}
-            {% endif %}
-            {% if user.is_staff %}
-              <a id="c{{ post.id }}" href="" onclick="s_c('{{ post.id }}');">{{ post.censor|yesno:_("uncensor,censor") }}</a>
-            {% endif %}
-            {% if user.is_authenticated and not post.freespeech and not user.really_anonymous %}
-              <a id="a{{ post.id }}" href="" onclick="s_a('{{ post.id }}');">{% trans "abuse" %}</a>
-            {% endif %}
-            {% if post.previous %}
-              <span id="prl{{ post.id }}"><a href="{% url snapboard_show_revisions post.id %}">{% trans "history" %}</a></span>
-            {% endif %}
-            <span class="ti">{% reltime post.date %} ago</span>
-          </span>
-          <span class="ps" style="display:none" id="sps{{ post.id }}"></span>
-        </div>
+        {% if post.depth != maxdepth or post.numanswers = 1 %}{% include "snapboard/include/post_full_header.html" %}
+        {% else %}{% include "snapboard/include/post_short_header.html" %}
         {% endif %}
+
+      {% endif %}
       {% if not post.is_flat %}{% ifnotequal post.depth listdepth %}</td></tr><tr>{% if post.next_sibling %}<td class="tl">{% else %}<td>{% endif %}</td><td>{% endifnotequal %}{% endif %}
       {% if post.censor and not user.is_staff %}{% else %}
-        <div id="spv{{ post.id }}" class="pv{% if post.censor %}{% if not user.is_staff %} pc{% else %} apc{% endif %}{% else %}{% ifnotequal post.abuse 0 %}{% if not user.is_staff %} pr{% else %} apr{% endif %}{% endifnotequal %}{% endif %}{% if post.is_flat %} f{% endif %}"><div id="prf{{ post.id }}" class="rm"></div>
-          <div style="display:block" class="pt" id="spt{{ post.id }}">{{ post.text|striptags|render_post|safe }}</div>
-          <div style="display:none" id="spe{{ post.id }}"></div>
-          <div style="display:none" id="spr{{ post.id }}" ></div>
-        </div>
+        {% if post.depth != maxdepth or post.numanswers = 1 %}{% include "snapboard/include/post_full_body.html" %}
+        {% else %}{% include "snapboard/include/post_short_body.html" %}
+        {% endif %}
       {% endif %}{# post.censor and not user.is_staff  else #}
   {% for close in post_info.close %}</td></tr></table>{% endfor %} 
-  {% endfor %}
 {% endfor %}
 </div>
 <div class="pmenu">{% paginate %}</div>

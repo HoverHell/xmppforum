@@ -22,6 +22,7 @@ def staff_required(view_func):
 
 
 ## Other RPC stuff.
+from xmppface.xmppbase import success_or_reverse_redirect
 def r_getreturn(request, rpc=False, rpcdata={}, successtext=None,
   nextr=None, postid=None):
     """ Common function for RPCable views to easily return some appropriate
@@ -79,13 +80,15 @@ def format_timedelta(delta, maxlen=TIMEDELTA_MAXLEN):
             a_res.append(u"%d%s" % (value, unit))
             if maxlen and  len(a_res) >= maxlen:
                 break
+    if not a_res:
+        a_res = ["0%s" % TIMEDELTA_NAMES[-1]]
     return u' '.join(a_res)
 
 
 ## Diff stuff.
 import re
 import difflib
-def _diff_processtext(text):
+def diff_processtext(text):
     """ Prepares the supplied post text to be diff'ed.  """
     from snapboard.templatetags.extras import render_filter
     texth = render_filter(text)  # -> html
@@ -100,7 +103,7 @@ def _diff_processtext(text):
     return out
 
 
-def _diff_texts(text1, text2):
+def diff_texts(text1, text2):
     """ Returns a list with differences between two processed HTML texts,
     ready for rendering.  """
     prevt = None  # type of the previous diff item.
@@ -129,16 +132,16 @@ def _diff_texts(text1, text2):
     return listv
 
 
-def _diff_posts(post1, post2):
+def diff_posts(post1, post2):
     """ Returns a list with differences between two posts (pre-processing
     the text or using it cached in the post.  """
     def _get_text(post):
         text = getattr(post, 'text_diffprocessed', None)
         if text is None:
-            text = _diff_processtext(post.text)
+            text = diff_processtext(post.text)
             post.text_diffprocessed = text  # might be used once more.
         return text
-    return _diff_texts(_get_text(post1), _get_text(post2))
+    return diff_texts(_get_text(post1), _get_text(post2))
 
 
 ## Paging stuff
@@ -168,3 +171,15 @@ def _find_depth(qs, startdepth=1, approxnum=20):
         else:  # too much, seek lower
             hi = res
     return res if cur > approxnum else res + 1
+
+
+class SliceHack(object):
+    """ A simmple hack-up class which jsut saves own slices.  Initially
+    intended for Paginator.  """
+
+    slice = None
+
+    def __getitem__(self, slice):
+        """ Saves the slice.  Does not make a copy.  """
+        self.slice = slice
+        return self
