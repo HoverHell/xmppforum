@@ -2,8 +2,11 @@
 {% load extras %}
 {% load avatar_tags %}
 
-<div id="spv{{ post.id }}" class="pv{% if post.censor %}{% if not user.is_staff %} pc{% else %} apc{% endif %}{% else %}{% ifnotequal post.abuse 0 %}{% if not user.is_staff %} pr{% else %} apr{% endif %}{% endifnotequal %}{% endif %}{% if post.is_flat %} f{% endif %}"><div id="prf{{ post.id }}" class="rm"></div>
+<div id="spv{{ post.id }}" class="pv{% if post.censor %}{% if not user.is_staff %} pc{% else %} apc{% endif %}{% else %}{% ifnotequal post.abuse 0 %}{% if not user.is_staff %} pr{% else %} apr{% endif %}{% endifnotequal %}{% endif %}{% if post.is_flat %} f{% endif %}">
+  <div id="prf{{ post.id }}" class="rm"></div>
   <div style="display:block" class="pt" id="spt{{ post.id }}">{{ post.text|render_post|safe }}</div>
-  <div style="display:none" id="spe{{ post.id }}"></div>
+  {% if not user.really_anonymous %}{% ifequal post.user_id user.id %}
+    <div style="display:none" id="spe{{ post.id }}"></div>
+  {% endifequal %}{% endif %}
   <div style="display:none" id="spr{{ post.id }}" ></div>
 </div>

@@ -63,7 +63,7 @@ padding-right:0.5em;
 text-align:right}
 form td {color:#999}
 
-#toolbar,.newthread input[type="text"]{
+#toolbar,.tp .pv #toolbar,.newthread input[type="text"]{
 width:100%;
 float:left;
 clear:left;
@@ -80,20 +80,21 @@ border-right:1px #D0D0D0 solid;
 border-bottom:none;
 border-left:none}
 
-.form_message{
+.form_message,.tp .pv .form_message{
 width:100%;
 max-width:700px;
 border-right:1px solid #D0D0D0;
 border-left:1px solid #D0D0D0;
 text-align:center;
 font-weight:bold}
+.tp .pv .form_message{border-top:1px solid #D0D0D0;}
 
-textarea{
+textarea,.tp .pv textarea{
 border:1px solid #D0D0D0;
 width:100%;
 float:left}
 
-.form_controls{
+.form_controls,.tp .pv .form_controls{
 float:left;
 width:100%;
 border-top:none;
