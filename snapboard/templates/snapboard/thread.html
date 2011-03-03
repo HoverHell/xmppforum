@@ -26,7 +26,7 @@
                 </span>
             {% endif %}
         </span>
-        <span class="topic-addr">/<a href="{% url snapboard_category_thread_index thr.category.id %}">{{ thr.category }}</a> / {{ thr.subject }}</span>
+        <span class="topic-addr"> / <a href="{% url snapboard_category_thread_index thr.category.id %}">{{ thr.category }}</a> / {{ thr.subject }}</span>
     </p>
 
     {% include "snapboard/include/show_posts.html" %}

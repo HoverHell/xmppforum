@@ -351,9 +351,10 @@ def thread_post(request, post_id=None, post=None, depth="v", subtopic=True):
 
     maxdepth = top_post.depth + 5  # TODO: can find it dynamically (and then cache)!
     qs = Post.objects.filter(
-       path__range=pinterval,
+       thread=thr,
        depth__gt=top_post.depth,
-       depth__lte=maxdepth,
+       #depth__lte=maxdepth,
+       #path__range=pinterval,
       ).annotate(
        abuse=Count('sb_abusereport_set')).filter(
       ).extra(

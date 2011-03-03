@@ -14,16 +14,20 @@
   * almost done: !! Make it a separate module/app! 
 
 -- snapbase:
+  
+  * Censoring own posts!
   * Fix abusereport admin: it should point to Post editing but points to the
    abusereport editing instead.
   * Decide on sortlatest post sorting in the thread.
     ? If it is good enough — store latest_answer in the db (updating it the
      same way as numchildren) and sort by it (descending) everywhere?
-  * fix / implement post revisions. Problem is:
+  * ! Decide what to do with avatar_url templatetag caching (it is NOT
+   cached as a templatetag in the latest django-avatar revision!)
+   * https://github.com/ericflo/django-avatar/issues/19 
+  * [done] fix / implement post revisions. Problem is:
    http://stackoverflow.com/questions/4870802/
-    * in process.
     * ! rework related javascript to grab all revisions (RPC 'getrevisions')
-     and then display them as asked.
+     and then display them as asked?
   ...
   * Review CSRF protection stuff. References:
    http://djangobook.com/en/2.0/chapter16/
@@ -32,6 +36,9 @@
    / django-piston?
   * Try to DRY the settings view regarding Avatar.  If impossible - move
    the avatar settings away after all.
+   * ! Problem: combined select-default & delete form is used, which
+    requires some copied code after all. But still might be able to
+    minimize.
   * Try to DRY notification XMPP support. Looks like might have to find out
    what django-notification developer meant for such stuff. (Unanswered
    question at http://stackoverflow.com/questions/2562492/ ).

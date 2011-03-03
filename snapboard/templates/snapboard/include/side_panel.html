@@ -1,7 +1,7 @@
 {% load i18n %}
 
 <div class="forummenu-first">
-        <span class="homelink">/<a href="/">XMPPForum</a></span>
+        <span class="homelink"><a href="/">{{ SITE_NAME }}</a></span>
     {% if user.is_authenticated and not user.really_anonymous %}
         <span class="logged-as"> || {% trans "[" %} <a href="{% url snapboard_edit_settings %}">{{ user.username }}</a> {% trans "]" %}</span>
         <span class="logout"> || <a href="{{ LOGOUT_URL }}">{% trans "Logout" %}</a></span>
