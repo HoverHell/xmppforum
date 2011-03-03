@@ -55,22 +55,31 @@
   <table id="sp{{ post.id }}" class="sp{% if not post.is_flat %}{% ifequal post.depth listdepth %} rp{% else %} lm{% if post.next_sibling %} pn{% endif %}{% endifequal %}{% endif %}">
   <tr>
     {% if not post.is_flat %}{% ifnotequal post.depth listdepth %}
-    <td class="pp"></td></tr><tr>
-    <td class="{% if not post.next_sibling %}tc{% else %}et{% endif %}"><div></div></td>
+      <td class="pp"></td></tr><tr>
+      <td class="{% if not post.next_sibling %}tc{% else %}et{% endif %}"><div></div></td>
     {% endifnotequal %}{% endif %}
     <td>
       {% if post.censor and not user.is_staff %}
         <div id="spv{{ post.id }}" class="pv pc{% if post.is_flat %} f{% else %} nf{% endif %}"><div id="spt{{ post.id }}" class="pt">Censored post #{{ post.id_form_a }}.</div></div>
       {% else %}
-        {% if post.depth != maxdepth or post.numanswers = 1 %}{% include "snapboard/include/post_full_header.html" %}
-        {% else %}{% include "snapboard/include/post_short_header.html" %}
+        {% if post.depth != maxdepth or post.numanswers = 1 %}
+          {% include "snapboard/include/post_full_header.html" %}
+        {% else %}
+          {% include "snapboard/include/post_short_header.html" %}
         {% endif %}
-
       {% endif %}
-      {% if not post.is_flat %}{% ifnotequal post.depth listdepth %}</td></tr><tr>{% if post.next_sibling %}<td class="tl">{% else %}<td>{% endif %}</td><td>{% endifnotequal %}{% endif %}
+          </td></tr><tr>
+          {% if not post.is_flat %}{% ifnotequal post.depth listdepth %}{% if post.next_sibling %}
+            <td class="tl"></td>
+          {% else %}
+            <td></td>
+          {% endif %}{% endifnotequal %}{% endif %}
+          <td>
       {% if post.censor and not user.is_staff %}{% else %}
-        {% if post.depth != maxdepth or post.numanswers = 1 %}{% include "snapboard/include/post_full_body.html" %}
-        {% else %}{% include "snapboard/include/post_short_body.html" %}
+        {% if post.depth != maxdepth or post.numanswers = 1 %}
+          {% include "snapboard/include/post_full_body.html" %}
+        {% else %}
+          {% include "snapboard/include/post_short_body.html" %}
         {% endif %}
       {% endif %}{# post.censor and not user.is_staff  else #}
   {% for close in post_info.close %}</td></tr></table>{% endfor %} 
