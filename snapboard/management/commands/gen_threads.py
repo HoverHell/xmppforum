@@ -13,7 +13,7 @@ from django.contrib.auth.models import User
 from snapboard.models import Thread, Post, Category
 from snapboard import sampledata
 
-def make_random_post_tree(parent_post, amount, thread, ratio=0.5):
+def make_random_post_tree(parent_post, amount, thread, ratio=0.5, **kwargs):
     text = '\n\n'.join([sampledata.sample_data() for x in range(0, choice(range(2, 5)))])
     # the post data
     postdata = {

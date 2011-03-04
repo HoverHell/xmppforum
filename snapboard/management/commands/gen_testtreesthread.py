@@ -7,7 +7,7 @@ from django.core.management.base import BaseCommand
 import random
 import traceback
 
-def _make_testtrees(maxdepth=512):
+def _make_testtrees(maxdepth=512, **kwargs):
     thr = Thread(subject="Test trees.", category=Category.objects.all()[0])
     thr.save()
     top_post = Post.add_root(user=user, thread=thr, text="subj.")

@@ -447,6 +447,8 @@ class Post_revisions(Post_base):
         verbose_name_plural = _('post revisions')
 
 
+
+mp_tree.MP_Node.path = models.TextField(unique=True)
 class Post(Post_base, mp_tree.MP_Node):
     """ Tree-aligned set of posts (of latest versions). """
     ## Moderation:
@@ -522,7 +524,9 @@ class Post(Post_base, mp_tree.MP_Node):
     # *might* run out of root posts, though!
     # ! FIXME: put something like 5 or 6 here and increase the 'path' field
     #  length (or remove length limit completely if possible).
-    steplen = 3
+    steplen = 5
+    #path = models.CharField(max_length=255, unique=True)
+
 
     def save(self, force_insert=False, force_update=False):
         # ? huh?
@@ -537,8 +541,8 @@ class Post(Post_base, mp_tree.MP_Node):
         self.ip = threadlocals.get_current_ip()
         
         # ! XXX: Not really appropriate to do it here?..
-        from snapboard.templatetag.extras import render_filter
-        self.texth = render_filter(text)
+        from snapboard.templatetags.extras import render_filter
+        self.texth = render_filter(self.text)
 
         super(Post, self).save(force_insert, force_update)
         ## Update the thread-local id afterwards.
@@ -583,7 +587,6 @@ class Post(Post_base, mp_tree.MP_Node):
         sql = ' '.join(['UPDATE', table_n, 'SET', lid_n, '=', 'COALESCE((',
           subsql, '), 0)', 'WHERE', self._meta.pk.column, '=', '%s'])
         values = local_values + [self.pk]
-        print (sql, values)
         connection.cursor().execute(sql, values)
         transaction.commit_unless_managed()
     update_lid.alters_data = True

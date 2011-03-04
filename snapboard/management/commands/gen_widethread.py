@@ -4,7 +4,7 @@ from snapboard.models import *
 from optparse import make_option
 from django.core.management.base import BaseCommand
 
-def _make_widethread(n=512, nlines=11):
+def _make_widethread(n=512, nlines=11, **kwargs):
     user = User.objects.all()[0]
     r = ['.'*i for i in range(1, (nlines+1)//2+1)]; r += r[::-1][1:]
     textbase = '\n'.join(r)
@@ -18,7 +18,7 @@ def _make_widethread(n=512, nlines=11):
 
 class Command(BaseCommand):
     option_list = BaseCommand.option_list + (
-        make_option('-n', default=512, dest='nthreads', type='int',
+        make_option('-n', default=512, dest='n', type='int',
             help='amount of posts to make'),
         make_option('-l', default=10, dest='nlines', type='int',
             help='approximate amount of lines per post'),
