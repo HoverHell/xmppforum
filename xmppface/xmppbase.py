@@ -127,9 +127,12 @@ class XmppResponse(dict):
         # ! Probably should replace <a> tags with some link representation.
         # ! Or even always add actual link to the tag.
         # ! See above on rstrip.
+        #self['body'] = django.utils.encoding.force_unicode(
+        #  django.utils.html.strip_tags(self.imgfix(html))).rstrip()
+        import html2text
         self['body'] = django.utils.encoding.force_unicode(
-          django.utils.html.strip_tags(self.imgfix(html))).rstrip()
-          
+          html2text.html2text(html)).rstrip()
+    
     def imgfix(self, htmlsource):
         """
         Replaces all <img> tags in htmlsource with some more

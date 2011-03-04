@@ -27,7 +27,7 @@
           {% if user.is_authenticated and not top_post.freespeech and not user.really_anonymous %}
             <a id="a{{ top_post.id }}" href="" onclick="s_a('{{ top_post.id }}');">{% trans "abuse" %}</a>
           {% endif %}
-          {% if post.previous %}
+          {% if post.previous_id %}
             <span id="prl{{ post.id }}"><a href="{% url snapboard_show_revisions post.id %}">{% trans "history" %}</a></span>
           {% endif %}
           {% if top_post.private.all %}{% trans "to" %} {% for rec in top_post.private.all %}{{ rec }}{% if not forloop.last %},{% endif %}{% endfor %}{% endif %}

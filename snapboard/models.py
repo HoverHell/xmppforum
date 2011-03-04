@@ -12,6 +12,8 @@ from django.dispatch import dispatcher
 from django.utils.translation import ugettext_lazy as _
 from django.core.cache import cache
 
+import re
+
 from treebeard import mp_tree
 
 from xmppface.xmppstuff import send_notifications
@@ -385,13 +387,13 @@ class Post_base(models.Model):
     #, related_name='sb_created_posts_set')
     thread = models.ForeignKey(Thread, verbose_name=_('thread'))
     text = models.TextField(verbose_name=_('text'))
+    texth = models.TextField(blank=True, null=True,
+      verbose_name=_('cached rendered text'))
     date = models.DateTimeField(editable=False, auto_now_add=True,
       verbose_name=_('date'))
     ip = models.IPAddressField(verbose_name=_('ip address'),
       blank=True, null=True)
     
-    odate = models.DateTimeField(editable=False, null=True)
-
     class Meta:
         abstract = True
 
@@ -457,6 +459,8 @@ class Post(Post_base, mp_tree.MP_Node):
     ## Revisions are in a different model here.
     previous = models.ForeignKey(Post_revisions, related_name="prev_last",
       editable=False, null=True, blank=True)
+    
+    tlid = models.IntegerField(null=True, blank=True, verbose_name=_('thread-local id'))
     #objects = models.Manager()  # needs to be explicit due to below
     #view_manager = managers.PostManager()
     
@@ -467,7 +471,7 @@ class Post(Post_base, mp_tree.MP_Node):
     # ! get_descendants_group_count could be useful.
     
     # IDs. id_form_X <-> from_id_X
-    #      (  String <-> Post  )
+    #      ( String  <-> Post  )
     def id_form_a(self):
         # Simple post number.
         return str(self.id)
@@ -503,8 +507,21 @@ class Post(Post_base, mp_tree.MP_Node):
         tpath = "".join([l_int2str(int(i)) for i in anpath])
         return cls.objects.get(path=tpath)
 
+    def id_form_t(self):
+        """ Thread-local number.  """
+        return u"#%s/%s" % (self.thread_id, self.tlid)
+
+    @classmethod
+    def from_id_t(cls, idt):
+        m = re.match(r'^#(\d+/\d+$', idt)
+        assert bool(m), "idt %r is malformed" % idt
+        thr, tlid = m.groups()
+        return cls.objects.get(thread=int(thr), tlid=int(tlid))
+
     # for (possibly) better maxwidth/maxdepth ratio.
     # *might* run out of root posts, though!
+    # ! FIXME: put something like 5 or 6 here and increase the 'path' field
+    #  length (or remove length limit completely if possible).
     steplen = 3
 
     def save(self, force_insert=False, force_update=False):
@@ -518,22 +535,63 @@ class Post(Post_base, mp_tree.MP_Node):
 
         # disregard any modifications to ip address
         self.ip = threadlocals.get_current_ip()
+        
+        # ! XXX: Not really appropriate to do it here?..
+        from snapboard.templatetag.extras import render_filter
+        self.texth = render_filter(text)
 
-        ## ! XXX This looks doubtul (with tree-sorted trees):
-        if self.previous is not None:
-            self.odate = self.previous.odate
-        elif not self.id:
-            # only do the following on creation, not modification
-            self.odate = datetime.now()
         super(Post, self).save(force_insert, force_update)
+        ## Update the thread-local id afterwards.
+        self.update_lid()
 
-    def management_save(self):
-        if self.previous is not None:
-            self.odate = self.previous.odate
-        elif not self.id:
-            # only do the following on creation, not modification
-            self.odate = datetime.now()
-        super(Post, self).save(False, False)
+    def update_lid(self, force=False):
+        """ Atomically (SQL-level) updates the local id to the next
+        available number (next to the highest).
+        Does not replace an existing lid unless `force`d; but does not
+        update it on the object after setting!  """
+        #from django.db import models, connection, transaction
+        from django.db import connection, transaction
+        lid_s = "tlid"
+        
+        if getattr(self, lid_s, None) and not force:
+            return  # do not replace it with higher.
+
+        table_n = connection.ops.quote_name(self._meta.db_table)
+        lid_n = connection.ops.quote_name(lid_s)
+        local_fields = ('thread',)  # fields that define 'local'.
+        # ! It is also possible to include a filtered QS (i.e. with `WHERE`)
+        #  for defining 'local' (or even replace a list of fields with it)
+        
+        local_sql_l = []
+        local_values = []
+        for field_name in local_fields:
+            field = self._meta.get_field(field_name)
+            # ? No need to supply connection? :
+            # also, db_prep returns list, it seems.
+            local_values.extend(field.get_db_prep_lookup('exact',
+              getattr(self, field.column)))
+            local_sql_l.append(
+              ' '.join([connection.ops.quote_name(field.column), '=', '%s'])
+              )
+        local_sql = ' AND '.join(local_sql_l)  # combine them.
+
+        # Written as space-joined lists for convenience (avoiding the
+        #   escaping hell, even if not much of it).
+        # Note: starting from 0.
+        subsql = ' '.join(['SELECT', lid_n, '+ 1', 'FROM', table_n, 'WHERE',
+         local_sql, 'ORDER BY', lid_n, 'DESC LIMIT 1'])
+        sql = ' '.join(['UPDATE', table_n, 'SET', lid_n, '=', 'COALESCE((',
+          subsql, '), 0)', 'WHERE', self._meta.pk.column, '=', '%s'])
+        values = local_values + [self.pk]
+        print (sql, values)
+        connection.cursor().execute(sql, values)
+        transaction.commit_unless_managed()
+    update_lid.alters_data = True
+    
+    def update_fields(self, **kwargs):
+        """ A small helper function for slightly more neat code.   """
+        return self.__class__.objects.filter(pk=self.pk).update(**kwargs)
+    update_fields.alters_data = True
 
     def notify(self, **kwargs):
         if not self.previous:
@@ -576,6 +634,7 @@ class Post(Post_base, mp_tree.MP_Node):
     class Meta:
         verbose_name = _('post')
         verbose_name_plural = _('posts')
+        unique_together = (('thread', 'tlid'),)
 
 
 # Signals make it hard to handle the notification of private recipients

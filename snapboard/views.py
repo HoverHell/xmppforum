@@ -349,14 +349,14 @@ def thread_post(request, post_id=None, post=None, depth="v", subtopic=True):
     # -1 because last gets included too this way.
     pinterval = l_getinterval(top_post.path, slice.start, slice.stop - 1)
 
-    maxdepth = top_post.depth + 5  # TODO: can find it dynamically (and then cache)!
+    maxdepth = top_post.depth + 28  # TODO: can find it dynamically (and then cache)!
     qs = Post.objects.filter(
        thread=thr,
        depth__gt=top_post.depth,
-       #depth__lte=maxdepth,
+       depth__lte=maxdepth,
        #path__range=pinterval,
       ).annotate(
-       abuse=Count('sb_abusereport_set')).filter(
+       abuse=Count('sb_abusereport_set')
       ).extra(
        select={
         "numanswers": """CASE WHEN snapboard_post.depth = %d THEN
@@ -366,9 +366,18 @@ def thread_post(request, post_id=None, post=None, depth="v", subtopic=True):
           ))
           ELSE "" END
         """ % maxdepth,
+        # "abuse": 0,
        }
-      ).select_related(depth=1)
-    
+      ).select_related(depth=1
+      #).only(
+      #  'depth', 'texth', 'date', 'censor', 'freespeech', 'previous',
+      #  'tlid', 'user__username', 'user__is_staff'
+      )
+      
+      #.defer(
+      #  'text', 'path', 'thread', 'ip',
+      #).select_related(depth=1)
+
     # finally, retreive and annotate the result.
 
     if subtopic:

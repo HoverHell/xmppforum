@@ -14,7 +14,8 @@ Or, if you're running Debian or similar distribution, you can try using
 "python inst/bootstrap.py -d" after installing some packages by running
 
   sudo aptitude install python-django python-imaging python-wokkel \
-    python-django-treebeard python-django-registration python-simplejson git
+    python-django-treebeard python-django-registration python-simplejson
+    python-html2text git
 
 or just "inst/deb_apt.sh".
 

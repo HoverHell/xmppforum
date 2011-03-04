@@ -6,6 +6,7 @@ from django.db.models import Q
 _log = logging.getLogger('snapboard.managers')
 
 
+# Obsolete (not used) by now.
 class PostManager(models.Manager):
     def get_query_set(self):
         select = {}

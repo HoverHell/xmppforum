@@ -1,3 +1,4 @@
 django-registration
 django-treebeard
 django
+html2text

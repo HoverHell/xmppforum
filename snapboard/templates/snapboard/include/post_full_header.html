@@ -5,7 +5,7 @@
 <div class="ph{% if post.is_flat %} f{% endif %}">
   <img src="{% avatar_url post.user %}" class="up" />
   <span class="mr">
-    <span class="pi"><a href="{% url snapboard_thread_post post.id %}">#{{ post.id_form_a }}</a>{#{{ post.id_form_b }}#}</span>
+    <span class="pi"><a href="{% url snapboard_thread_post post.id %}">#{{ post.id_form_a }} | {{ post.id_form_t }}</a></span>
     <span class="un">[<a href="" onclick="t_p('{{ post.id }}'); return false;">{{ post.user }}</a>]</span>
     {% if user.is_authenticated %}
       {% if not user.really_anonymous %}{% ifequal post.user_id user.id %}
@@ -20,7 +20,7 @@
     {% if user.is_authenticated and not post.freespeech and not user.really_anonymous %}
       <a id="a{{ post.id }}" href="" onclick="s_a('{{ post.id }}');">{% trans "abuse" %}</a>
     {% endif %}
-    {% if post.previous %}
+    {% if post.previous_id %}
       <span id="prl{{ post.id }}"><a href="{% url snapboard_show_revisions post.id %}">{% trans "history" %}</a></span>
     {% endif %}
     <span class="ti">{% reltime post.date %}</span>

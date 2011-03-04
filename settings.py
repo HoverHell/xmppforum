@@ -118,9 +118,9 @@ AVATAR_DEFAULT_SIZE = 50
 
 
 ### timedelta parameters.
-## display names for all time periods. 
+## display names for all time periods. Empty ones are not used.
 #TIMEDELTA_NAMES = (' yr', ' mon', ' wk', ' day', ' hr', ' min', ' sec')
-#TIMEDELTA_NAMES = ('y', 'mo', 'w', 'd', 'h', 'm', 's')  # default.
+#TIMEDELTA_NAMES = ('y', 'mo', 'w', 'd', 'h', 'm', '')  # default.
 ## Maximal amount of non-zero periods to display (0 - all)
 #TIMEDELTA_MAXLEN = 2
 #TIMEDELTA_MAXLEN = 0  # default.
