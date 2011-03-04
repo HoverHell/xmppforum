@@ -130,17 +130,17 @@ background-color:#DCDCDC;
 width:100%;
 height:18px;
 float:left;
-clear:left}
+clear:left;
+margin:8px 0 0 0}
 
 .pmenu .pagination {padding:0 3px}
 .pmenu .pagination span,.pmenu .pagination a {padding:0 2px}
 
 .threads_wrap{
-float:left;
-clear:left;
-padding:0 10px 8px 10px}
 
-.tp{padding:8px 0 8px 10px;float:left}
+padding:0 10px}
+
+.tp{padding:8px 0 0 10px;float:left}
 
 .sp{
 float:left;
@@ -157,9 +157,8 @@ border-collapse:separate}
 .pp{height:8px;border-left:2px black solid}
 
 .ph{
-background-color: #D0D0D0;
 float:left;
-clear:both;
+background-color: #D0D0D0;
 width:100%;
 border:1px solid #D0D0D0;
 max-width:700px}

@@ -1,12 +1,3 @@
-var catalog = new Array();
-
-function gettext(msgid) {
- var value = catalog[msgid];
- if (typeof(value) == 'undefined') {
-  return msgid;} 
- else {
-  return (typeof(value) == 'string') ? value : value[0];}}
-
 function t_p(id) {
  toggle('sps'+id, 'inline');
  toggle('spv'+id, 'block');}
@@ -41,7 +32,7 @@ function exttoggle(id, type, action) {
     res = JSON.parse(o.responseText);
     e.innerHTML = res.html;}};
   var handleFailure = function(o) {
-   e.innerHTML = "<b>" + gettext('ERROR. ') + "</b>";
+   e.innerHTML = "<b>" + "ERROR." + "</b>";
    if(o.responseText !== undefined) {
     for (var n in o) {
      if (o.hasOwnProperty(n)) {
@@ -50,7 +41,7 @@ function exttoggle(id, type, action) {
    success:handleSuccess,
    failure:handleFailure,
    argument:[]};
-  e.innerHTML = "<b>" + gettext('Processing...') + "</b>";
+  e.innerHTML = "<b>" + "Processing..." + "</b>";
   var request = YAHOO.util.Connect.asyncRequest('POST', SNAPBOARD_URLS.rpc_action, callback, action);}
  else {
   e.style.display = 'none';}}
@@ -68,7 +59,7 @@ function preview(form_id) {
  var handleFailure = function(o) {
   var errordiv = document.getElementById("thread_rpc_feedback");
   if(o.responseText !== undefined) {
-   div_preview.innerHTML = gettext("There was an error previewing your post.");
+   div_preview.innerHTML = 'There was an error previewing your post.';
    div_preview.parentNode.style.display = 'block';}};
  var callback = {success:handleSuccess, failure:handleFailure, argument: []};
  YAHOO.util.Connect.setDefaultPostHeader(false);
@@ -88,12 +79,12 @@ function rev(orig_id, show_id) {
    if(res['prev_id'] !== '') {
     links_html += '<a href="#post' + orig_id + '" onClick="rev(\'';
     links_html += orig_id + '\',\'' + res['prev_id'];
-    links_html += '\');">&#171; ' + gettext('previous') + '</a>';}
+    links_html += '\');">&#171; ' + 'previous' + '</a>';}
    links_html += gettext('This message has been revised')
    if(res['rev_id'] !== '') {
     links_html += '<a href="#post' + orig_id + '" onClick="rev(\'';
     links_html += orig_id + '\',\'' + res['rev_id'];
-    links_html += '\');">' + gettext('next') + ' &#187;</a>';}
+    links_html += '\');">' + 'next' + ' &#187;</a>';}
    div_links.innerHTML = links_html;}};
  var handleFailure = function(o) {
   var errordiv = document.getElementById("thread_rpc_feedback");
@@ -124,7 +115,7 @@ function toggle_variable(action, oname, oclass, oid, msgdivid) {
     msgdiv.innerHTML = '<p class="rm">' + res['msg'] + '</p>';}};
   var handleFailure = function(o) {
    var errordiv = document.getElementById("thread_rpc_feedback");
-   errordiv.innerHTML = "<b>" + gettext('ERROR. ') + "</b>";
+   errordiv.innerHTML = "<b>" + "ERROR." + "</b>";
    if(o.responseText !== undefined) {
     for (var n in o) {
      if (o.hasOwnProperty(n)) {
@@ -196,11 +187,11 @@ function do_insert(tag) {
 
 function insert_img(url, name, title) {
  if (!url) {
-  url = prompt(gettext('What is the URL of the image?'), '');
+  url = prompt('What is the URL of the image?', '');
   if (!url) {
    return false;}}
  if (!name) {
-  name = prompt(gettext('What is the title of the image?'));
+  name = prompt('What is the title of the image?');
   if (!name) {
    name = '';}}
  if (!title) {
@@ -209,14 +200,13 @@ function insert_img(url, name, title) {
 
 function insert_link(url, name) {
  if (!url) {
-  url = prompt(gettext('What is the URL of the link?'), '');
+  url = prompt('What is the URL of the link?', '');
   if (!url) {
    return false;}}
  if (!name) {
-  name = prompt(gettext('What is the title of the link?'));
+  name = prompt('What is the title of the link?');
   if (!name) {
    name = url;}}
  return do_insert('[url=' + url + ']' + name + '[/url]')}
 
 function find_textarea (el) { return true; }// el.tagName.toLowerCase() == 'textarea'; }
-
