@@ -8,13 +8,14 @@ import random
 import traceback
 
 def _make_testtrees(maxdepth=512, **kwargs):
+    user = User.objects.all()[0]
     thr = Thread(subject="Test trees.", category=Category.objects.all()[0])
     thr.save()
     top_post = Post.add_root(user=user, thread=thr, text="subj.")
     try:
         post = top_post
         print "lin"
-        for d in xrange(2, max):
+        for d in xrange(2, maxdepth):
             post = post.add_child(text="#1 at %d (lin)" % d, user=post.user, thread=post.thread)
             print d
     except Exception:
@@ -23,7 +24,7 @@ def _make_testtrees(maxdepth=512, **kwargs):
     try:
         post = top_post
         print "dbl"
-        for d in xrange(2, max):
+        for d in xrange(2, maxdepth):
             post1 = post.add_child(text="#1 at %d (dbl)" % d, user=post.user, thread=post.thread)
             post2 = post.add_child(text="#2 at %d (dbl)" % d, user=post.user, thread=post.thread)
             post = post1
@@ -34,7 +35,7 @@ def _make_testtrees(maxdepth=512, **kwargs):
     try:
         post = top_post
         print "rnd"
-        for d in xrange(2, max):
+        for d in xrange(2, maxdepth):
             post1 = post.add_child(text="#1 at %d (rnd)" % d, user=post.user, thread=post.thread)
             post2 = post.add_child(text="#2 at %d (rnd)" % d, user=post.user, thread=post.thread)
             post1.save()
@@ -53,4 +54,4 @@ class Command(BaseCommand):
     help = 'Generate some testing trees.'
 
     def handle(self, *args, **kwargs):
-        make_random_threads(**kwargs)
+        _make_testtrees(**kwargs)

@@ -353,7 +353,7 @@ def thread_post(request, post_id=None, post=None, depth="v", subtopic=True):
     qs = Post.objects.filter(
        thread=thr,
        depth__gt=top_post.depth,
-       depth__lte=maxdepth,
+       #depth__lte=maxdepth,
        #path__range=pinterval,
       ).annotate(
        abuse=Count('sb_abusereport_set')
