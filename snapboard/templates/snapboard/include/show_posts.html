@@ -48,7 +48,7 @@
 
 {# autopaginate post_list user_settings.ppp #}
 
-<div class="pmenu">{# paginate #}
+<div class="pm{% if subtopic %} st{% endif %}">{# paginate #}
 {% if top_post.nav %}
 {% if top_post.n_left %}<a href="{% url snapboard_thread_post top_post.n_left.id %}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}">←</a>{% else %}←{% endif %}
 {% if top_post.n_down %}<a href="{% url snapboard_thread_post top_post.n_down.id %}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}">↓</a>{% else %}↓{% endif %}
@@ -92,4 +92,4 @@
   {% for close in post_info.close %}</td></tr></table>{% endfor %} 
 {% endfor %}
 </div>
-<div class="pmenu">{% paginate %}</div>
+<div class="pm">{% paginate %}</div>

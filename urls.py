@@ -1,7 +1,7 @@
 
 from django.conf import settings
 from django.contrib import admin
-from django.contrib.auth import views as auth_views
+#from django.contrib.auth import views as auth_views
 
 # default error handlers:
 from django.conf.urls.defaults import (handler404, handler500,
@@ -10,28 +10,35 @@ from django.conf.urls.defaults import (handler404, handler500,
 admin.autodiscover()
 
 # Address under the site root for forum main URLs.
-mainurl = 'xmppboard'
+# ? Move to settings?
+#mainurl = 'xb/'
+mainurl = ''
 
-urlpatterns = patterns('',
-    (r'^%s/' % mainurl, include('snapboard.urls')),
-    (r'^snapboard/(?P<suburl>.*)$',
-      'django.views.generic.simple.redirect_to',
-      {'url': '/%s/%%(suburl)s' % mainurl}),
+urlpatterns = patterns('',)  # start with empty for easier playing with ordering.
 
-    (r'^accounts/login/$', auth_views.login,
+
+if mainurl:
+    ## Redirect to home by default (if it's defined).
+    urlpatterns += patterns('',
+        (r'^$', 'django.views.generic.simple.redirect_to',
+          {'url': '/%s' % mainurl}),
+    )
+
+
+## Auth
+urlpatterns += patterns('',
+    (r'^accounts/login/$', 'django.contrib.auth.views.login',
       {'template_name': 'snapboard/signin.html'}, 'auth_login'),
-    (r'^accounts/logout/$', auth_views.logout,
+    (r'^accounts/logout/$', 'django.contrib.auth.views.logout',
       {'template_name': 'snapboard/signout.html'}, 'auth_logout'),
+)
 
-    # admin:
+
+## Admin
+urlpatterns += patterns('',
     (r'^admin/(.*)', admin.site.root),
 )
 
-urlpatterns += patterns('',
-    ## Redirect to snapboard home by default.
-    (r'^$', 'django.views.generic.simple.redirect_to',
-      {'url': '/%s/' % mainurl}),
-)
 
 import notification
 urlpatterns += patterns('',
@@ -42,10 +49,13 @@ urlpatterns += patterns('',
     (r'^notices/', include('notification.urls')),
 )
 
+
+## Easy-set-up static
 if settings.DEBUG:
     urlpatterns += patterns('',
         (r'^media/(?P<path>.*)$', 'django.views.static.serve', {'document_root': settings.MEDIA_ROOT}),
     )
+
 
 ## Registration:
 import snapboard.forms
@@ -57,10 +67,12 @@ urlpatterns += patterns('',
     (r'^accounts/', include('registration.urls')),
 )
 
+
 ## Avatar
 urlpatterns += patterns('',
     (r'^avatar/', include('avatar.urls')),
 )
+
 
 ## loginurl
 try:
@@ -75,3 +87,9 @@ else:  # do our scary things!..
     urlpatterns += patterns('',
         (r'^loginurl/', include('loginurl.urls'), {}, 'loginurl'),
     )
+
+
+## "home" - can be at the root.
+urlpatterns += patterns('',
+    (r'^%s' % mainurl, include('snapboard.urls')),
+)

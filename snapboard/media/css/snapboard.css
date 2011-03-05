@@ -1,4 +1,4 @@
-body,div,dl,dt,dd,ul,ol,li,h1,h2,h3,h4,h5,h6,pre,form,fieldset,input,textarea,p,blockquote,th,td{margin:0;padding:0}
+body,div,dl,dt,dd,h1,h2,h3,h4,h5,h6,pre,form,fieldset,input,textarea,p,blockquote,th,td{margin:0;padding:0}
 table{border-collapse:collapse;border-spacing:0pt;}
 fieldset,img,abbr,acronym{border:none}
 address,caption,cite,pre,code,dfn,em,strong,th,var{font-style:normal;font-weight:normal}
@@ -6,62 +6,29 @@ h1,h2,h3,h4,h5,h6{font-size:100%;font-weight:normal}
 body{font-family:arial,helvetica,clean,sans-serif;font-size:13px;}
 pre,code{font-family:monospace;}
 /*===========================*/
-a.redlink{color:red}
+.red{color:red}
 
-.errorlist{color:red}
-
-div.index_title{
-background-color:#D9D4C3;
-border-bottom:1px solid #000;
-padding:3px}
-
-div.thread{
+.thread{
 background:#CDD;
 border-bottom:1px solid #999;
 padding:0.2em 0.5em 0.2em 1em}
 
-.forummenu-first{
+.topbar{
 background-color:#DCDCDC;
-padding:0 0 2px 5px;
-height:16px}
+padding:0 10px 2px}
 
-div.forummenu ul{
-list-style:none;
-margin-left:0;
-padding-left:1em;
-text-indent:-1em}
-
-p.thread_page_nav {
-font-size:77%;
-margin-left:10%;
-margin-right:10%}
-
-p.index_page_nav{font-size:77%}
-
-span.thread_menu{
-float:right;
-font-size:85%}
-
-span.thread_menu2{font-size:85%}
-
-span.ti{}
-
-span.dt span.ts{display:none}
+.thread_menu{float:right;margin:0 10px}
+.thread_menu a{margin:0 3px}
 
 div.rm{
 text-align:center;
 width:100%}
+p.rm{border:1px solid #000}
 
-p.rm{
-background-color:#f33;
-border:1px solid #000}
-
-ul li{margin-left: 1.5em}
 /*===========================*/
 form th{
 padding-right:0.5em;
 text-align:right}
-form td {color:#999}
 
 #toolbar,.tp .pv #toolbar,.newthread input[type="text"]{
 width:100%;
@@ -106,7 +73,7 @@ border-left:1px #D0D0D0 solid}
 float:left;
 background-color:#fff;
 border:none;
-padding:1px 3px 2px 3px;
+padding:1px 3px 2px;
 border-top:none;
 border-right:1px #D0D0D0 solid;
 border-bottom:none;
@@ -118,29 +85,26 @@ border-left:none}
 .pv .form_controls{border:none}
 .pv #add_post_div,.pv #edit_post_div{padding:0}
 /*===========================*/
-#navigation div{text-align:center}
-#navigation ul li{list-style:none;margin-right:1em;display:inline}
-/*===========================*/
-#absolute_center{position:absolute;top:25%;left:50%;width:30em;margin-left:-15em}
-/*===========================*/
-.topic-addr{padding:0 0 0 10px}
+.index_title,.topic-addr{padding:8px 0 0 10px}
 
-.pmenu{
+.pm{
 background-color:#DCDCDC;
 width:100%;
 height:18px;
 float:left;
 clear:left;
 margin:8px 0 0 0}
+.pm.st{margin:8px 0}
 
-.pmenu .pagination {padding:0 3px}
-.pmenu .pagination span,.pmenu .pagination a {padding:0 2px}
+.pm .pagination {padding:0 10px}
+.pm .pagination span,.pm .pagination a {padding:0 2px}
+.pm .pagination span.prev{padding:0 2px 0 0}
 
 .threads_wrap{
 
 padding:0 10px}
 
-.tp{padding:8px 0 0 10px;float:left}
+.tp{padding:8px 10px 0;float:left}
 
 .sp{
 float:left;
@@ -166,9 +130,12 @@ max-width:700px}
 background-color: transparent;
 padding:0;
 border:none}
+.tp .un{margin:0 3px 0 0}
 .ph.f{background-color:#ECECEC;border:1px solid #ECECEC}
 
 .up{display:block;float:left}
+.up[src*="default_avatar.gif"]{display:none}
+.tp .up{margin:0 3px 0 0}
 .mr a,.pi,.un,.ti {margin:0 3px}
 .un a {margin:0}
 .ps {color:#B0BFAC}
@@ -185,19 +152,21 @@ max-width:700px}
 .pv.nf{border:1px solid #D0D0D0}
 .pv.f{border-color:#ECECEC}
 .pv.pr{}
-.pv.apr{outline: 1px solid #D050D0}
+.pv.apr{outline: 1px solid #D050D0;outline-offset:-1px}
 .pv.pc{}
-.pv.apc{outline:2px solid red}
+.pv.apc{outline:2px solid red;outline-offset:-2px}
 .tp .pv{outline:none;border:none;background-color:transparent}
 
 .pt{
 display:block;
-padding:2px 5px 3px 5px}
+padding:2px 5px 3px}
+.tp .pt{padding:2px 0 3px}
 .pt p{margin:10px 0}
 .pt strong,.pt h1,.pt h2,.pt h3{font-weight:700}
 .pt h1{font-size:130%}
 .pt h2{font-size:120%}
 .pt h3{font-size:110%}
+.pt 
 .pt ol{list-style-type:decimal}
 .pt blockquote,.pt pre{
 background:#EEE none repeat scroll 0;
@@ -206,6 +175,3 @@ padding:0 0 0 0.5em}
 .pt pre{border-left:1px solid #363}
 .pt code{font-family:courier}
 .pt .quoteheader{margin:0 0 0 1em}
-
-table.pt{border:1px solid #ccc}
-ol.pt,ul.pt{margin:0 2em 0 2em}
