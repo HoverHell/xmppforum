@@ -25,6 +25,8 @@ from django.views.decorators.csrf import csrf_protect
 # For easy notification resource handling:
 from notification import models as notification
 
+import re
+
 #from django.contrib.auth.decorators import login_required
 # XmppFace
 import xmppface.xmppbase
@@ -348,12 +350,16 @@ def thread_post(request, post_id=None, post=None, depth="v", subtopic=True):
     slice = page_obj.object_list.slice
     # -1 because last gets included too this way.
     pinterval = l_getinterval(top_post.path, slice.start, slice.stop - 1)
+    
+    md = request.GET.get('md', '')
+    maxdepthd = int(md) if md.isdigit() else 28
 
-    maxdepth = top_post.depth + 28  # TODO: can find it dynamically (and then cache)!
-    qs = Post.objects.filter(
+    maxdepth = top_post.depth + maxdepthd  # TODO: can find it dynamically (and then cache)!
+    #qs = Post.objects.filter(
+    qs = top_post.get_descendants().filter(
        thread=thr,
        depth__gt=top_post.depth,
-       #depth__lte=maxdepth,
+       depth__lte=maxdepth,
        #path__range=pinterval,
       ).annotate(
        abuse=Count('sb_abusereport_set')
@@ -379,12 +385,29 @@ def thread_post(request, post_id=None, post=None, depth="v", subtopic=True):
       #).select_related(depth=1)
 
     # finally, retreive and annotate the result.
-
     if subtopic:
         listdepth = top_post.depth
-        post_list = get_flathelper_list(qs=([top_post] + list(qs)))
-        top_post = None  # there ain't no top_post in here!..
-        # (well, actualy can show it; but probably don't need)
+        qsl = list(qs)  # grab the data.
+        res = [top_post] + qsl  # resulting page tree.
+        if request.GET.get('nav', None) == '1':
+            top_post.nav = True
+            top_post.n_down = top_post.get_next_sibling()
+            top_post.n_up = top_post.get_prev_sibling()
+            ancestors = list(top_post.get_ancestors())
+            top_post.n_left = ancestors[-1] if ancestors else None
+            # if len(ancestors) == 1:
+            # / if depth = 2:
+            #  top_post.n_left = "thr".
+            top_post.n_right = qsl[0] if qsl else None
+            ma = request.GET.get('ma', None)  # max. ancestors.
+            if ma is not None and ma.isdigit():
+                ma = int(ma)
+                res = ancestors[-ma:] + res
+            else:
+                res = ancestors + res
+        post_list = get_flathelper_list(qs=res)
+        #top_post = None  # there ain't no top_post in here!..  But not a problem, okay.
+        # (and actually can show it; but probably don't need)
     else:
         post_list = get_flathelper_list(qs=qs)
         #qs = qs[1:]  # was necessary for skipping top_post in its get_tree.

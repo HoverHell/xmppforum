@@ -1,6 +1,7 @@
 {% load i18n %}
 {% load extras %}
 {% load avatar_tags %}
+{% load plaintexttags %}
 
 <div class="ph{% if post.is_flat %} f{% endif %}">
   <img src="{% avatar_url post.user %}" class="up" />
@@ -11,7 +12,7 @@
       {% if not user.really_anonymous %}{% ifequal post.user_id user.id %}
         <a href="{% url snapboard_edit_post post.id %}?next={{ request.get_full_path|urlencode }}%23sp{{ post.id }}" onclick="return t_e('{{ post.id }}')">{% trans "edit" %}</a>
       {% endifequal %}{% endif %}
-      <a href="{% url snapboard_post_reply post.id %}" onclick="return t_r('{{ post.id }}');">{% trans "reply" %}</a>
+      {%ws%}<a href="{% url snapboard_post_reply post.id %}" onclick="return t_r('{{ post.id }}');">{% trans "reply" %}</a>
       {% if not user.really_anonymous %}<a target="_blank" id="w{{ post.id }}" href="{% url snapboard_watch_post post.id %}" onclick="s_w('{{ post.id }}'); return false;">{% trans "watch" %}</a>{% endif %}
     {% endif %}
     {% if user.is_staff %}
@@ -23,7 +24,7 @@
     {% if post.previous_id %}
       <span id="prl{{ post.id }}"><a href="{% url snapboard_show_revisions post.id %}">{% trans "history" %}</a></span>
     {% endif %}
-    <span class="ti">{% reltime post.date %}</span>
+    {%ws%}<span class="ti">{% reltime post.date %}</span>
   </span>
   <span class="ps" style="display:none" id="sps{{ post.id }}"></span>
 </div>

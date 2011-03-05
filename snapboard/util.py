@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """ Helper stuff specific to this project (even if reusable).  """
 
 from django.core.exceptions import PermissionDenied
@@ -81,10 +82,10 @@ def format_timedelta(delta, maxlen=TIMEDELTA_MAXLEN):
             if maxlen and  len(a_res) >= maxlen:
                 break
     if not a_res:
-        return u"just now"
+        return u"just now"  # nbsp!
     else:
         a_res.append("ago")
-    return u' '.join(a_res)
+    return u' '.join(a_res)  # nbsp too.
 
 
 ## Diff stuff.
