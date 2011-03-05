@@ -1,24 +1,23 @@
 {% load i18n %}
 
-<div class="forummenu-first">
-        <span class="homelink"><a href="/">{{ SITE_NAME }}</a></span>
+<div class="topbar">
+        <span><a href="/">{{ SITE_NAME }}</a></span>
     {% if user.is_authenticated and not user.really_anonymous %}
-        <span class="logged-as"> || {% trans "[" %} <a href="{% url snapboard_edit_settings %}">{{ user.username }}</a> {% trans "]" %}</span>
-        <span class="logout"> || <a href="{{ LOGOUT_URL }}">{% trans "Logout" %}</a></span>
-        <span class="new_thread_link"> || {% if thr %}<a href="{% url snapboard_new_thread thr.category.id %}" class="redlink">new thread </a>{% endif %}{% if category %}<a href="{% url snapboard_new_thread category.id %}" class="redlink">new thread </a>{% endif %}</span>
+        <span> || [ <a href="{% url snapboard_edit_settings %}">{{ user.username }}</a> ]</span>
+        <span> || <a href="{{ LOGOUT_URL }}">Logout</a></span>
+        <span> || {% if thr %}<a href="{% url snapboard_new_thread thr.category.id %}" class="red">new thread</a>{% endif %}{% if category %}<a href="{% url snapboard_new_thread category.id %}" class="red">new thread</a>{% endif %}</span>
         {% if user.is_staff %}
-        <span class="admin-menu">[
-        {% trans "STAFF" %}
-        <span> || <a href="/admin/">{% trans "AS" %}</a></span>
-        <span> || <a href="/admin/snapboard/post/?censor__exact=1">{% trans "CP" %}</a></span>
-        <span> || <a href="/admin/snapboard/abusereport/">{% trans "AR" %}</a></span>
-        <span> || <a href="/admin/snapboard/thread/?csticky__exact=1">{% trans "CS" %}</a></span>
-        <span> || <a href="/admin/snapboard/thread/?gsticky__exact=1">{% trans "GS" %}</a></span>
-        ]</span>
+        <span> [ {% trans "STAFF" %}
+        <span> || <a href="/admin/">AS</a></span>
+        <span> || <a href="/admin/snapboard/post/?censor__exact=1">CP</a></span>
+        <span> || <a href="/admin/snapboard/abusereport/">AR</a></span>
+        <span> || <a href="/admin/snapboard/thread/?csticky__exact=1">CS</a></span>
+        <span> || <a href="/admin/snapboard/thread/?gsticky__exact=1">GS</a></span> ]
+        </span>
         {% endif %}
     {% else %}
-        <span> || {% trans "[ Anonymous ]" %}</span>
-        <span class="login"> || <a href="{% url auth_login %}">Login</a></span>
-        <span class="register"> || <a href="/accounts/register/">{% trans "Register" %}</a></span>
+        <span> || [ Anonymous ]</span>
+        <span> || <a href="{% url auth_login %}">Login</a></span>
+        <span> || <a href="/accounts/register/">Register</a></span>
     {% endif %}
 </div>

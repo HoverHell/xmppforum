@@ -48,7 +48,7 @@
 
 {# autopaginate post_list user_settings.ppp #}
 
-<div class="pmenu">{% paginate %}</div>
+<div class="pm{% if subtopic %} st{% endif %}">{% paginate %}</div>
 <div class="threads_wrap">
 {% for post, post_info in post_list %}
   {% if not post_info.open %}</td></tr></table>{% endif %}
@@ -85,4 +85,4 @@
   {% for close in post_info.close %}</td></tr></table>{% endfor %} 
 {% endfor %}
 </div>
-<div class="pmenu">{% paginate %}</div>
+<div class="pm">{% paginate %}</div>

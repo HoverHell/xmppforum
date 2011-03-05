@@ -140,7 +140,7 @@ TIME_ZONE = 'UTC'
 
 ROOT_URLCONF = 'urls'
 ROOT_CMDCONF = 'cmds'
-LOGIN_REDIRECT_URL = '/snapboard/'
+LOGIN_REDIRECT_URL = '/'
 
 
 # -------   -------   -------   Nothing to see below here, citizen. Move along.
