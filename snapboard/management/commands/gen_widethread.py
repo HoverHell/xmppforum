@@ -11,9 +11,11 @@ def _make_widethread(n=512, nlines=11, **kwargs):
     thr = Thread(subject="WIDE.", category=Category.objects.all()[0])
     thr.save()
     top_post = Post.add_root(user=user, thread=thr, text="subj.")
+    print "generating posts..."
     for i in range(n):
         top_post.add_child(user=user, thread=thr,
-          text="post %s%d" % (textbase, i)).save()
+          text="post %s %d" % (textbase, i)).save()
+        print i
 
 
 class Command(BaseCommand):

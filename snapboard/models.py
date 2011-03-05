@@ -448,7 +448,6 @@ class Post_revisions(Post_base):
 
 
 
-mp_tree.MP_Node.path = models.TextField(unique=True)
 class Post(Post_base, mp_tree.MP_Node):
     """ Tree-aligned set of posts (of latest versions). """
     ## Moderation:
@@ -638,9 +637,12 @@ class Post(Post_base, mp_tree.MP_Node):
         verbose_name = _('post')
         verbose_name_plural = _('posts')
         unique_together = (('thread', 'tlid'),)
-
+# ! XXX: h4x it up!
+mp_tree.MP_Node.path = models.TextField(unique=True)
+Post._meta.get_field('path').max_length = 90000
 
 # Signals make it hard to handle the notification of private recipients
+# ** Not sure if it would be better to use them now.
 #if notification:
 #    signals.post_save.connect(Post.notify, sender=Post)
 

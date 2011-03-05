@@ -13,6 +13,9 @@
   ...
   * almost done: !! Make it a separate module/app! 
 
+-- ?
+  * Add various triggers for forced grabbing of the JID's avatar?
+
 -- snapbase:
   
   * Censoring own posts!

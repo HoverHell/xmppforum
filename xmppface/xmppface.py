@@ -112,7 +112,7 @@ def update_vcard(local, remote_b, vcard):
     except ImportError:
         _log.debug("... could not import Avatar model!")
         return  # nothing to do then.
-    user_qs = get
+    user_qs = get_user_qs(remote_b)
     if not user_qs:
         _log.debug(" ... vCard for an unregistered JID!")
         return

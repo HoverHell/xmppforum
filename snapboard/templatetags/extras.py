@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 from time import mktime
 
 from django import template
@@ -79,7 +81,6 @@ class RelTimeNode(template.Node):
         if now is None:
             # Should never appen if template context processor
             # is providing it.
-            print "RTN: D: making now!"
             now = time.mktime(datetime.datetime.now().timetuple())
             context['now'] = now
         try:
