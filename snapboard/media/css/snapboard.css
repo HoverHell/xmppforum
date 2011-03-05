@@ -136,8 +136,8 @@ border:none}
 .up{display:block;float:left}
 .up[src*="default_avatar.gif"]{display:none}
 .tp .up{margin:0 3px 0 0}
-.mr a,.pi,.un,.ti {margin:0 3px}
-.un a {margin:0}
+.mr a,.pi,.un,.ti {margin:0 3px;float:left}
+.un a {margin:0;float:none}
 .ps {color:#B0BFAC}
 
 .pv{
