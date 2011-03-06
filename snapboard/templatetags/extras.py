@@ -140,7 +140,7 @@ else:
         return _make_av_tag(url, **kwa)
 
 @register.simple_tag
-def avatar_opt(user, sizef=None, t_class="up"):
+def avatar_opt(user, size=AVATAR_DEFAULT_SIZE, t_class=""):
     """ Customized avatar templatetag.
     Can be used as {% avatar_opt user None "" %}.  """
     ## v1: hack-ish.
@@ -148,5 +148,5 @@ def avatar_opt(user, sizef=None, t_class="up"):
     #if aurl == MEDIA_URL:
     #    return u''
     #return avatar_utils.avatar_url(user, size)
-    size = sizef if sizef is not None else AVATAR_DEFAULT_SIZE
+    #size = sizef if sizef is not None else AVATAR_DEFAULT_SIZE
     return _in_avatar_opt(user, size, t_class=t_class)

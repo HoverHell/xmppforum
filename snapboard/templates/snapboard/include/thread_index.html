@@ -3,7 +3,7 @@
 {% load extras %}
 
 <div class="index_title">
-  <h2>{{ title }}</h2>
+  <span>{{ title }}</span>
   {% autopaginate threads user_settings.tpp %}
   {% paginate %}
 </div>

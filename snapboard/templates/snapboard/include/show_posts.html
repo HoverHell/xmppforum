@@ -13,17 +13,13 @@
       <div id="prf{{ post.id }}" class="rm"></div>
       <div class="ph">
         {% avatar_opt post.user %}
-        <span class="mr">
-          <span class="un">[{{ post.user }}]</span>
+          <span class="un">{{ post.user }}</span>
           {% if user.is_authenticated  %}
             <a href="{% url snapboard_post_reply post.id %}" onclick="return t_r('{{ post.id }}');">{% trans "reply" %}</a>
           {% endif %}
           {% if not user.really_anonymous %}{% ifequal post.user_id user.id  %}
             <a href="{% url snapboard_edit_post post.id %}?next={{ request.get_full_path|urlencode }}" onclick="return t_e('{{ post.id }}');">{% trans "edit" %}</a>
           {% endifequal %}{% endif %}
-          {% if user.is_staff %}
-            <a id="c{{ post.id }}" href="" onclick="s_c('{{ post.id }}');">{{ post.censor|yesno:_("uncensor,censor") }}</a>
-          {% endif %}
           {% if user.is_authenticated and not post.freespeech and not user.really_anonymous %}
             <a id="a{{ post.id }}" href="" onclick="s_a('{{ post.id }}');">{% trans "abuse" %}</a>
           {% endif %}
@@ -59,15 +55,15 @@
 <div class="threads_wrap">
 {% for post, post_info in post_list %}
   {% if not post_info.open %}</td></tr></table>{% endif %}
-  <table id="sp{{ post.id }}" class="sp{% if not post.is_flat %}{% ifequal post.depth listdepth %} rp{% else %} lm{% if post.next_sibling %} pn{% endif %}{% endifequal %}{% endif %}">
+  <table id="sp{{ post.id }}" class="sp {% if not post.is_flat %}{% ifequal post.depth listdepth %} bp{% else %}{% if post.next_sibling %} np{% else %} ep{% endif %}{% endifequal %}{% else %} fp{% endif %}{% if post.censor %}{% if not user.is_staff %} pc{% else %} apc{% endif %}{% else %}{% ifnotequal post.abuse 0 %}{% if not user.is_staff %} pr{% else %} apr{% endif %}{% endifnotequal %}{% endif %}">
   <tr>
     {% if not post.is_flat %}{% ifnotequal post.depth listdepth %}
-      <td class="pp"></td></tr><tr>
-      <td class="{% if not post.next_sibling %}tc{% else %}et{% endif %}"><div></div></td>
+      <td></td></tr><tr>
+      <td class="tc"><div></div></td>
     {% endifnotequal %}{% endif %}
     <td>
       {% if post.censor and not user.is_staff %}
-        <div id="spv{{ post.id }}" class="pv pc{% if post.is_flat %} f{% else %} nf{% endif %}"><div id="spt{{ post.id }}" class="pt">Censored post #{{ post.id_form_a }}.</div></div>
+        <div id="spv{{ post.id }}" class="pv"><div id="spt{{ post.id }}" class="pt">Censored post #{{ post.id_form_a }}.</div></div>
       {% else %}
         {% if post.depth != maxdepth or post.numanswers = 1 %}
           {% include "snapboard/include/post_full_header.html" %}

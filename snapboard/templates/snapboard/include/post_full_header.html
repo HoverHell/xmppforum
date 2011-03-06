@@ -3,27 +3,23 @@
 {% load avatar_tags %}
 {% load plaintexttags %}
 
-<div class="ph{% if post.is_flat %} f{% endif %}">
+<div class="ph">
   {% avatar_opt post.user %}
-  <span class="mr">
-    <a href="{% url snapboard_thread_post post.id %}">#{{ post.id_form_a }} | {{ post.id_form_t }}</a>
-    <a class="un" href="" onclick="t_p('{{ post.id }}'); return false;">{{ post.user }}</a>
-    {% if user.is_authenticated %}
-      {% if not user.really_anonymous %}{% ifequal post.user_id user.id %}
-        <a href="{% url snapboard_edit_post post.id %}?next={{ request.get_full_path|urlencode }}#sp{{ post.id }}" onclick="return t_e('{{ post.id }}')">{% trans "edit" %}</a>
-      {% endifequal %}{% endif %}
-      {%ws%}<a href="{% url snapboard_post_reply post.id %}" onclick="return t_r('{{ post.id }}');">{% trans "reply" %}</a>
-      {% if not user.really_anonymous %}<a target="_blank" id="w{{ post.id }}" href="{% url snapboard_watch_post post.id %}" onclick="s_w('{{ post.id }}'); return false;">{% trans "watch" %}</a>{% endif %}
-    {% endif %}
+  <a href="{% url snapboard_thread_post post.id %}">#{{ post.id_form_a }} | {{ post.id_form_t }}</a>
+  <a class="un" href="" onclick="t_p('{{ post.id }}'); return false;">{{ post.user }}</a>
+  {% if user.is_authenticated %}
+    {% if not user.really_anonymous %}{% ifequal post.user_id user.id %}
+      <a href="{% url snapboard_edit_post post.id %}?next={{ request.get_full_path|urlencode }}#sp{{ post.id }}" onclick="return t_e('{{ post.id }}')">{% trans "edit" %}</a>
+    {% endifequal %}{% endif %}
+    <a href="{% url snapboard_post_reply post.id %}" onclick="return t_r('{{ post.id }}');">{% trans "reply" %}</a>
+    {% if not user.really_anonymous %}<a target="_blank" id="w{{ post.id }}" href="{% url snapboard_watch_post post.id %}" onclick="s_w('{{ post.id }}'); return false;">{% trans "watch" %}</a>{% endif %}
+    {% if not post.freespeech and not user.really_anonymous and not user.is_staff %}<a id="a{{ post.id }}" href="" onclick="s_a('{{ post.id }}');">{% trans "abuse" %}</a>{% endif %}
     {% if user.is_staff %}
-      <a id="c{{ post.id }}" href="" onclick="s_c('{{ post.id }}');">{{ post.censor|yesno:_("uncensor,censor") }}</a>
+    <a id="c{{ post.id }}" href="" onclick="s_c('{{ post.id }}');">{{ post.censor|yesno:_("uncensor,censor") }}</a>
     {% endif %}
-    {% if user.is_authenticated and not post.freespeech and not user.really_anonymous %}
-      <a id="a{{ post.id }}" href="" onclick="s_a('{{ post.id }}');">{% trans "abuse" %}</a>
-    {% endif %}
-    {% if post.previous_id %}
-      <a href="{% url snapboard_show_revisions post.id %}">{% trans "history" %}</a>
-    {% endif %}
-    {%ws%}<span class="ti">{% reltime post.date %}</span>
-  </span>
+  {% endif %}
+  {% if post.previous_id %}
+    <a href="{% url snapboard_show_revisions post.id %}">{% trans "history" %}</a>
+  {% endif %}
+  <span class="ti">{% reltime post.date %}</span>
 </div>

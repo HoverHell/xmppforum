@@ -1,27 +1,6 @@
 *{margin:0;padding:0}
 table{border-spacing:0pt}
-h1,h2,h3,h4,h5,h6{font-size:100%;font-weight:normal}
 body{font-family:arial,helvetica,clean,sans-serif;font-size:13px}
-/*===========================*/
-.red{color:red}
-
-.thread{
-background:#CDD;
-border-bottom:1px solid #999;
-padding:0.2em 0.5em 0.2em 1em}
-
-.topbar{
-background-color:#DCDCDC;
-padding:0 10px 2px}
-
-.thread_menu{float:right;margin:0 10px}
-.thread_menu a{margin:0 3px}
-
-div.rm{
-text-align:center;
-width:100%}
-p.rm{border:1px solid #000}
-
 /*===========================*/
 form th{
 padding-right:0.5em;
@@ -32,18 +11,15 @@ font-weight:normal}
 width:100%;
 float:left;
 clear:left;
-border-top:1px #D0D0D0 solid;
-border-right:1px #D0D0D0 solid;
-border-bottom:none;
-border-left:1px #D0D0D0 solid}
+border:1px #D0D0D0 solid;
+border-bottom:none}
 #toolbar button{
 float:left;
 background-color:#fff;
 margin:0;
-border-top:none;
-border-right:1px #D0D0D0 solid;
-border-bottom:none;
-border-left:none}
+padding:1px 3px 2px;
+border:none;
+border-right:1px #D0D0D0 solid;}
 
 .form_message,.tp .pv .form_message{
 width:100%;
@@ -62,26 +38,35 @@ float:left}
 .form_controls,.tp .pv .form_controls{
 float:left;
 width:100%;
-border-top:none;
-border-right:1px #D0D0D0 solid;
-border-bottom:1px #D0D0D0 solid;
-border-left:1px #D0D0D0 solid}
+border:1px #D0D0D0 solid;
+border-top:none}
 
 .form_controls input{
 float:left;
 background-color:#fff;
-border:none;
 padding:1px 3px 2px;
-border-top:none;
-border-right:1px #D0D0D0 solid;
-border-bottom:none;
-border-left:none}
+border:none;
+border-right:1px #D0D0D0 solid;}
 
 #add_post_div,#edit_post_div{max-width:700px;padding:0 10px}
 
 .pv .form_message,.pv textarea,.pv #toolbar{border-right:none;border-left:none}
 .pv .form_controls{border:none}
 .pv #add_post_div,.pv #edit_post_div{padding:0}
+/*===========================*/
+.red{color:red}
+
+.topbar{
+background-color:#DCDCDC;
+padding:0 10px 2px}
+
+.thread_menu{float:right;margin:0 10px}
+.thread_menu a{margin:0 3px}
+
+div.rm{
+text-align:center;
+width:100%}
+p.rm{border:1px solid #000}
 /*===========================*/
 .index_title,.topic-addr{padding:8px 0 0 10px}
 
@@ -105,14 +90,18 @@ margin:8px 0 0 0}
 float:left;
 clear:left;
 width:100%}
-.rp{margin:8px 0 0 0}
-.lm{border-left:2px #fff solid}
+.bp{margin:8px 0 0 0}
+.np,.ep{border-left:2px #fff solid}
 
-.tc,.pp{width:8px}
-.et,.tl{width:6px;border-left:2px black solid}
-.tc div,.et div{height:2px;background-color:black;width:100%}
-.tc{background:transparent url(/m/img/thread_turn.gif) no-repeat scroll 0 50%}
-.pp{height:8px;border-left:2px black solid}
+.np>tbody>:first-child>:first-child,
+.ep>tbody>:first-child>:first-child,
+.tc{width:8px}
+
+.np>tbody>tr>.tc,.tl{width:6px;border-left:2px black solid}
+.tc div{height:2px;background-color:black;width:100%}
+.ep>tbody>tr>.tc{background:transparent url(/m/img/thread_turn.gif) no-repeat scroll 0 50%}
+.np>tbody>:first-child>:first-child,
+.ep>tbody>:first-child>:first-child{height:8px;border-left:2px black solid}
 
 .ph{
 float:left;
@@ -124,31 +113,33 @@ max-width:700px}
 background-color: transparent;
 padding:0;
 border:none}
-.tp .un{margin:0 3px 0 0}
-.ph.f{background-color:#ECECEC;border:1px solid #ECECEC}
+.fp>tbody>tr>td>.ph{background-color:#ECECEC;border:1px solid #ECECEC}
 
-.up{display:block;float:left}
-.up[src*="default_avatar.gif"]{display:none}
-.tp .up{margin:0 3px 0 0}
-.mr a,.ti {margin:0 3px;float:left}
+.ph>*{display:block;float:left;margin:0 0 0 5px}
+.ph img,.tp .ph .un{margin:0}
+img[src*="default_avatar.gif"]{display:none}
 .un{font-weight:bold}
-.ps {color:#B0BFAC}
 
 .pv{
 display:block;
 float:left;
-border-left:1px solid #D0D0D0;
-border-right:1px solid #D0D0D0;
-border-bottom:1px solid #D0D0D0;
+border:1px solid #D0D0D0;
+border-top:none;
 background-color:#F9F9F9;
 width:100%;
 max-width:700px}
-.pv.nf{border:1px solid #D0D0D0}
-.pv.f{border-color:#ECECEC}
-.pv.pr{}
-.pv.apr{outline: 1px solid #D050D0;outline-offset:-1px}
-.pv.pc{}
-.pv.apc{outline:2px solid red;outline-offset:-2px}
+.bp>tbody>tr>td>.pv,
+.np>tbody>tr>td>.pv,
+.ep>tbody>tr>td>.pv{border-color:#D0D0D0;}
+.np.pc>tbody>tr>td>.pv,
+.bp.pc>tbody>tr>td>.pv,
+.ep.pc>tbody>tr>td>.pv{border-top:1px solid #D0D0D0}
+.fp>tbody>tr>td>.pv{border-color:#ECECEC}
+
+.pr>tr>td>.pv{}
+.apr>tbody>tr>td>.pv{outline: 1px solid #D050D0;outline-offset:-1px}
+.pc>tbody>tr>td>.pv{}
+.apc>tbody>tr>td>.pv{outline:2px solid red;outline-offset:-2px}
 .tp .pv{outline:none;border:none;background-color:transparent}
 
 .pt{
@@ -156,16 +147,17 @@ display:block;
 padding:2px 5px 3px}
 .tp .pt{padding:2px 0 3px}
 .pt p{margin:10px 0}
-.pt strong,.pt h1,.pt h2,.pt h3{font-weight:700}
+.pt strong,
+.pt h1,
+.pt h2,
+.pt h3{font-weight:700}
 .pt h1{font-size:130%}
 .pt h2{font-size:120%}
 .pt h3{font-size:110%}
-.pt 
-.pt ol{list-style-type:decimal}
-.pt blockquote,.pt pre{
+.pt blockquote,
+.pt pre{
 background:#EEE none repeat scroll 0;
 margin:0 0 0 1em;
 padding:0 0 0 0.5em}
 .pt pre{border-left:1px solid #363}
-.pt code{font-family:courier}
 .pt .quoteheader{margin:0 0 0 1em}
