@@ -1,8 +1,7 @@
-body,div,dl,dt,dd,h1,h2,h3,h4,h5,h6,pre,form,fieldset,input,textarea,p,blockquote,th,td{margin:0;padding:0}
-table{border-collapse:collapse;border-spacing:0pt;}
-fieldset,img,abbr,acronym{border:none}
+*{margin:0;padding:0}
+table{border-spacing:0pt}
 h1,h2,h3,h4,h5,h6{font-size:100%;font-weight:normal}
-body{font-family:arial,helvetica,clean,sans-serif;font-size:13px;}
+body{font-family:arial,helvetica,clean,sans-serif;font-size:13px}
 /*===========================*/
 .red{color:red}
 
@@ -96,20 +95,16 @@ margin:8px 0 0 0}
 .pm.st{margin:8px 0}
 
 .pm .pagination {padding:0 10px}
-.pm .pagination span,.pm .pagination a {padding:0 2px}
-.pm .pagination span.prev{padding:0 2px 0 0}
+.pm .pagination span,.pm .pagination a {padding:0 4px 0 0}
 
-.threads_wrap{
-
-padding:0 10px}
+.threads_wrap{padding:0 10px}
 
 .tp{padding:8px 10px 0;float:left}
 
 .sp{
 float:left;
 clear:left;
-width:100%;
-border-collapse:separate}
+width:100%}
 .rp{margin:8px 0 0 0}
 .lm{border-left:2px #fff solid}
 
@@ -135,8 +130,8 @@ border:none}
 .up{display:block;float:left}
 .up[src*="default_avatar.gif"]{display:none}
 .tp .up{margin:0 3px 0 0}
-.mr a,.pi,.un,.ti {margin:0 3px;float:left}
-.un a {margin:0;float:none}
+.mr a,.ti {margin:0 3px;float:left}
+.un{font-weight:bold}
 .ps {color:#B0BFAC}
 
 .pv{
