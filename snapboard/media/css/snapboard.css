@@ -1,10 +1,8 @@
 body,div,dl,dt,dd,h1,h2,h3,h4,h5,h6,pre,form,fieldset,input,textarea,p,blockquote,th,td{margin:0;padding:0}
 table{border-collapse:collapse;border-spacing:0pt;}
 fieldset,img,abbr,acronym{border:none}
-address,caption,cite,pre,code,dfn,em,strong,th,var{font-style:normal;font-weight:normal}
 h1,h2,h3,h4,h5,h6{font-size:100%;font-weight:normal}
 body{font-family:arial,helvetica,clean,sans-serif;font-size:13px;}
-pre,code{font-family:monospace;}
 /*===========================*/
 .red{color:red}
 
@@ -28,7 +26,8 @@ p.rm{border:1px solid #000}
 /*===========================*/
 form th{
 padding-right:0.5em;
-text-align:right}
+text-align:right;
+font-weight:normal}
 
 #toolbar,.tp .pv #toolbar,.newthread input[type="text"]{
 width:100%;

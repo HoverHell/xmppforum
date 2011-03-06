@@ -10,7 +10,7 @@
     <span class="un">[<a href="" onclick="t_p('{{ post.id }}'); return false;">{{ post.user }}</a>]</span>
     {% if user.is_authenticated %}
       {% if not user.really_anonymous %}{% ifequal post.user_id user.id %}
-        <a href="{% url snapboard_edit_post post.id %}?next={{ request.get_full_path|urlencode }}%23sp{{ post.id }}" onclick="return t_e('{{ post.id }}')">{% trans "edit" %}</a>
+        <a href="{% url snapboard_edit_post post.id %}?next={{ request.get_full_path|urlencode }}#sp{{ post.id }}" onclick="return t_e('{{ post.id }}')">{% trans "edit" %}</a>
       {% endifequal %}{% endif %}
       {%ws%}<a href="{% url snapboard_post_reply post.id %}" onclick="return t_r('{{ post.id }}');">{% trans "reply" %}</a>
       {% if not user.really_anonymous %}<a target="_blank" id="w{{ post.id }}" href="{% url snapboard_watch_post post.id %}" onclick="s_w('{{ post.id }}'); return false;">{% trans "watch" %}</a>{% endif %}
