@@ -17,8 +17,9 @@
   * Add various triggers for forced grabbing of the JID's avatar?
 
 -- snapbase:
-  
-  * Censoring own posts!
+  * Allow censoring own posts?
+  * Check if user has the permission to add new thread / new post for
+   showing the new_thread / reply links.
   * Fix abusereport admin: it should point to Post editing but points to the
    abusereport editing instead.
   * Decide on sortlatest post sorting in the thread.

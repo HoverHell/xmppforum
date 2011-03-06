@@ -38,8 +38,10 @@ DEFAULT_FROM_EMAIL = "jfu@localhost"
 # Example: "http://media.lawrence.com"
 # Full URI required for XMPP images to have any chances of working.
 #MEDIA_URL = 'http://localhost:8000/media/'
-MEDIA_URL = '/media/'
+MEDIA_URL = '/m/'
 
+# SNAPBoard-specific media files path.
+#SNAP_MEDIA_PREFIX = MEDIA_URL  ## Default.
 
 # URL prefix for admin media -- CSS, JavaScript and images. Make sure to use a
 # trailing slash.
@@ -93,12 +95,6 @@ DATABASE_HOST = ''
 DATABASE_PORT = ''
 
 
-# SNAPBoard specific OPTIONAL settings:
-
-# Defaults to MEDIA_URL + 'snapboard/'
-SNAP_MEDIA_PREFIX = '/media'
-
-
 # -------   -------   -------   General config.  Defaults can be used, but tune to your likings.
 
 # Select your filter, the SNAPBoard default is Markdown
@@ -113,7 +109,7 @@ ACCOUNT_ACTIVATION_DAYS = 5
 AVATAR_DEFAULT_URL = "img/default_avatar.gif"
 AVATAR_GRAVATAR_BACKUP = False
 AVATAR_GRAVATAR_DEFAULT = "identicon"
-# AVATAR_STORAGE_DIR = SNAP_MEDIA_PREFIX+"/avatars"
+AVATAR_STORAGE_DIR = "up"  # UserPic
 AVATAR_DEFAULT_SIZE = 50
 
 

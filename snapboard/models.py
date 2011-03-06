@@ -118,10 +118,10 @@ __all__ = [
 
 _log = logging.getLogger('snapboard.models')
 
-SNAP_PREFIX = getattr(settings, 'SNAP_PREFIX', '/snapboard')
+SNAP_PREFIX = getattr(settings, 'SNAP_PREFIX', '')
 SNAP_MEDIA_PREFIX = getattr(settings, 'SNAP_MEDIA_PREFIX',
-        getattr(settings, 'MEDIA_URL', '') + '/snapboard')
-SNAP_POST_FILTER = getattr(settings, 'SNAP_POST_FILTER', 'markdown').lower()
+  getattr(settings, 'MEDIA_URL', ''))
+SNAP_POST_FILTER = getattr(settings, 'SNAP_POST_FILTER', 'bbcode').lower()
 
 
 (NOBODY, ALL, USERS, CUSTOM) = range(4)

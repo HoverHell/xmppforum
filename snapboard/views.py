@@ -336,7 +336,10 @@ def thread_post(request, post_id=None, post=None, depth="v", subtopic=True):
     l_int2str = lambda v: Post._int2str(v).rjust(Post.steplen, '0')
     l_getinterval = lambda parent, left, right: (parent + l_int2str(left + 1),
       parent + l_int2str(right + 1))  # starts from '1', apparently.
-    ppp = request.user.get_user_settings().ppp
+    ## overridable ppp.
+    ppp = request.GET.get('md', '')                                      
+    ppp = int(ppp) if ppp.isdigit() else request.user.get_user_settings().ppp
+
     from django.core.paginator import Paginator, InvalidPage
     paginator = Paginator(SliceHack(), ppp)
     # This might be problematic if some posts got deleted/moved.
@@ -360,8 +363,8 @@ def thread_post(request, post_id=None, post=None, depth="v", subtopic=True):
        thread=thr,
        depth__gt=top_post.depth,
        depth__lte=maxdepth,
-       #path__range=pinterval,
-      ).annotate(
+      )
+    qs = qs.annotate(
        abuse=Count('sb_abusereport_set')
       ).extra(
        select={
@@ -375,14 +378,19 @@ def thread_post(request, post_id=None, post=None, depth="v", subtopic=True):
         # "abuse": 0,
        }
       ).select_related(depth=1
+      ## A problem: .only() or .defer() together with .select_related()
+      ## significantly increase query's execution time.
       #).only(
       #  'depth', 'texth', 'date', 'censor', 'freespeech', 'previous',
       #  'tlid', 'user__username', 'user__is_staff'
-      )
-      
       #.defer(
       #  'text', 'path', 'thread', 'ip',
       #).select_related(depth=1)
+      )
+      
+    ## Can grab a specific page if willing.
+    if request.GET.get('page', ''):
+        qs = qs.filter(path__range=pinterval,)
 
     # finally, retreive and annotate the result.
     if subtopic:
@@ -409,12 +417,6 @@ def thread_post(request, post_id=None, post=None, depth="v", subtopic=True):
         #top_post = None  # there ain't no top_post in here!..  But not a problem, okay.
         # (and actually can show it; but probably don't need)
     else:
-        post_list = get_flathelper_list(qs=qs)
-        #qs = qs[1:]  # was necessary for skipping top_post in its get_tree.
-        # Get list of all replies.
-        #post_list = Post.get_children(top_post)  # Paginated by this list.
-        listdepth = 2
-
         ## sorting by last answer.
         ## ! Might not make any sense right now.
         if request.GET.get('sl', None) == '1':
@@ -437,6 +439,12 @@ def thread_post(request, post_id=None, post=None, depth="v", subtopic=True):
                   child.depth >= snapboard_post.depth)
                 ORDER BY date DESC LIMIT 1 """
             }).order_by("-lastanswer")
+
+        post_list = get_flathelper_list(qs=qs)
+        #qs = qs[1:]  # was necessary for skipping top_post in its get_tree.
+        # Get list of all replies.
+        #post_list = Post.get_children(top_post)  # Paginated by this list.
+        listdepth = 2
 
     # Additional note: annotating watched posts in the tree can be done, for
     # example, by using 
