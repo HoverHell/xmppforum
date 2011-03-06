@@ -97,3 +97,56 @@ def reltime(parser, token):
         return RelTimeNode(args[1])
     else:
         raise template.TemplateSyntaxError
+
+
+## Avatar-reworked.
+from avatar.templatetags import avatar_tags
+from avatar import util as avatar_util
+from avatar.settings import (AVATAR_DEFAULT_SIZE, AVATAR_DEFAULT_URL,
+  AVATAR_GRAVATAR_BACKUP)
+get_primary_avatar_c = \
+  avatar_util.cache_result(avatar_util.get_primary_avatar)
+
+def _make_av_tag(url, **kwa):
+    """ Renders an actual <img/> tag for avatar_opt.
+    All parameters are added to the tag unless their value is empty (thus no
+    empty parameter can be included.  """
+    ## kwa's join has space prepended if any items are there.
+    return u'<img src="%s"%s />' % (
+      url,
+      u''.join(
+        [u' %s="%s"' % (k[2:], v) \
+          for k, v in kwa.iteritems() \
+          if (v and k.startswith('t_'))]),
+      )
+
+
+if not (AVATAR_DEFAULT_URL or AVATAR_GRAVATAR_BACKUP):
+    def _in_avatar_opt(user, sizef=None, **kwa):
+        """ Internal avatar_opt function: returns nothing if there's no
+        avatar.  """
+        size = sizef if sizef is not None else AVATAR_DEFAULT_SIZE
+        avatar = get_primary_avatar_c(user, sizef)
+        if not avatar:
+            return u''  # no tag at all.
+        url = avatar.avatar_url(size)
+        return _make_av_tag(url, **kwa)
+          
+else:
+    def _in_avatar_opt(user, size, **kwa):
+        """ Internal avatar_opt function: wraps avatar_url with custom img
+        tag.  """
+        url = avatar_tags.avatar_url(user, size)
+        return _make_av_tag(url, **kwa)
+
+@register.simple_tag
+def avatar_opt(user, sizef=None, t_class="up"):
+    """ Customized avatar templatetag.
+    Can be used as {% avatar_opt user None "" %}.  """
+    ## v1: hack-ish.
+    #aurl = avatar_tags.avatar_url(user, size)
+    #if aurl == MEDIA_URL:
+    #    return u''
+    #return avatar_utils.avatar_url(user, size)
+    size = sizef if sizef is not None else AVATAR_DEFAULT_SIZE
+    return _in_avatar_opt(user, size, t_class=t_class)

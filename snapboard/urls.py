@@ -13,6 +13,10 @@ from snapboard.views import *
 from django.conf.urls.defaults import patterns
 #from django.conf.urls.defaults import handler404, handler500, include
 
+from django.views.decorators.cache import cache_page
+from django.views.generic.simple import direct_to_template
+
+
 feeds = {'latest': LatestPosts}
 
 js_info_dict = {
@@ -93,4 +97,9 @@ urlpatterns = patterns('',
     ## javascript translations
     (r'^jsi18n/$', 'django.views.i18n.javascript_catalog',
         js_info_dict, 'snapboard_js_i18n'),
+
+    (r'^mv/volatile.css',
+      cache_page(direct_to_template, 3600*24*7),
+      {'template': 'snapboard/volatile.css'},
+      'snapboard_vcss'),
 )

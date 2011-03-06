@@ -1,10 +1,9 @@
 {% load i18n %}
 {% load extras %}
-{% load avatar_tags %}
 {% load plaintexttags %}
 
 <div class="ph{% if post.is_flat %} f{% endif %}">
-  <img src="{% avatar_url post.user %}" class="up" />
+  {% avatar_opt post.user %}
   <span class="mr">
     <span class="pi"><a href="{% url snapboard_thread_post post.id %}">#{{ post.id_form_a }} | {{ post.id_form_t }}</a></span>
     <span class="un">[<a href="" onclick="t_p('{{ post.id }}'); return false;">{{ post.user }}</a>]</span>

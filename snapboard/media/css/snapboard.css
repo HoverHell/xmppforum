@@ -116,7 +116,7 @@ border-collapse:separate}
 .tc,.pp{width:8px}
 .et,.tl{width:6px;border-left:2px black solid}
 .tc div,.et div{height:2px;background-color:black;width:100%}
-.tc{background:transparent url(../../media/img/thread_turn.gif) no-repeat scroll 0 50%}
+.tc{background:transparent url(/m/img/thread_turn.gif) no-repeat scroll 0 50%}
 .pp{height:8px;border-left:2px black solid}
 
 .ph{
