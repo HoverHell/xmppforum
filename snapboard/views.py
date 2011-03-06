@@ -631,7 +631,8 @@ def show_revisions(request, post_id, rpc=False):
 @anonymous_login_required
 def new_thread(request, cat_id):
     """ Start a new discussion.  """
-    category = get_object_or_404(Category, pk=cat_id)
+    if cat_id is not None:  # A specific category was supplied in URL.
+        category = get_object_or_404(Category, pk=cat_id)
     if not category.can_create_thread(request.user):
         raise PermissionError, "You cannost post in this category"
 
@@ -639,6 +640,7 @@ def new_thread(request, cat_id):
         threadform = ThreadForm(request.POST)
         if threadform.is_valid():
             # create the thread
+
             nthread = Thread(
                     subject = threadform.cleaned_data['subject'],
                     category = category,
