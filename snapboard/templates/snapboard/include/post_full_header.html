@@ -4,10 +4,10 @@
 {% load plaintexttags %}
 
 <div class="ph{% if post.is_flat %} f{% endif %}">
-  <img src="{% avatar_url post.user %}" class="up" />
+  <img src="{% avatar_url post.user %}" class="up" />{#% avatar_img_opt post.user %#}
   <span class="mr">
-    <span class="pi"><a href="{% url snapboard_thread_post post.id %}">#{{ post.id_form_a }} | {{ post.id_form_t }}</a></span>
-    <span class="un">[<a href="" onclick="t_p('{{ post.id }}'); return false;">{{ post.user }}</a>]</span>
+    <a href="{% url snapboard_thread_post post.id %}">#{{ post.id_form_a }} | {{ post.id_form_t }}</a>
+    <a class="un" href="" onclick="t_p('{{ post.id }}'); return false;">{{ post.user }}</a>
     {% if user.is_authenticated %}
       {% if not user.really_anonymous %}{% ifequal post.user_id user.id %}
         <a href="{% url snapboard_edit_post post.id %}?next={{ request.get_full_path|urlencode }}#sp{{ post.id }}" onclick="return t_e('{{ post.id }}')">{% trans "edit" %}</a>
@@ -22,9 +22,8 @@
       <a id="a{{ post.id }}" href="" onclick="s_a('{{ post.id }}');">{% trans "abuse" %}</a>
     {% endif %}
     {% if post.previous_id %}
-      <span id="prl{{ post.id }}"><a href="{% url snapboard_show_revisions post.id %}">{% trans "history" %}</a></span>
+      <a href="{% url snapboard_show_revisions post.id %}">{% trans "history" %}</a>
     {% endif %}
     {%ws%}<span class="ti">{% reltime post.date %}</span>
   </span>
-  <span class="ps" style="display:none" id="sps{{ post.id }}"></span>
 </div>
