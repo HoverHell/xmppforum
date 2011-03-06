@@ -24,8 +24,7 @@ js_info_dict = {
 }
 
 urlpatterns = patterns('',
-    (r'^$', thread_index, {}, 'snapboard_index'),
-    (r'^categories/$', category_index, {}, 'snapboard_category_index'),
+    (r'^$', merged_index, {}, 'snapboard_index'),
     (r'^watchlist/$', watchlist, {}, 'snapboard_watchlist'),
     # Please note that next two have to end with post id (required for
     #  javascript features)
@@ -53,6 +52,7 @@ urlpatterns = patterns('',
       r_set_censor, {}, 'snapboard_set_censor'),
 
     (r'^ti/$', thread_index, {}, 'snapboard_thread_index'),
+    (r'^ci/$', category_index, {}, 'snapboard_category_index'),
     (r'^t/(?P<thread_id>\d+)/$', thread, {}, 'snapboard_thread'),
     (r'^c/(?P<cat_id>\d+)/$',
          category_thread_index, {}, 'snapboard_category_thread_index'),
@@ -60,7 +60,8 @@ urlpatterns = patterns('',
          new_thread, {}, 'snapboard_new_thread'),
     (r'^p/(?P<post_id>\d+)/$',
          thread_post, {}, 'snapboard_thread_post'),
-    (r'^thr/locate_post/(?P<post_id>\d+)/$',
+    ## FIXME: Should probably be removed already.
+    (r'^locate_post/(?P<post_id>\d+)/$',
          locate_post, {}, 'snapboard_locate_post'),
     (r'^settings/$', edit_settings, {}, 'snapboard_edit_settings'),
 

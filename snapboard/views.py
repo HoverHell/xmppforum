@@ -530,7 +530,7 @@ def post_reply(request, parent_id, thread_id=None, rpc=False):
             )
             postobj.save()
             postobj.notify()
-            return success_or_reverse_redirect('snapboard_locate_post',
+            return success_or_reverse_redirect('snapboard_thread_post',
               args=(postobj.id,), req=request, msg="Posted successfully.")
     else:
         context = {'postform': PostForm(), 
@@ -693,7 +693,8 @@ def category_thread_index(request, cat_id):
       context_instance=RequestContext(request, processors=extra_processors))
 
 
-def thread_index(request, num_limit=None, num_start=None):
+def thread_index(request, num_limit=None, num_start=None,
+  template_name='snapboard/thread_index'):
     if request.user.is_authenticated():
         # filter on user prefs
         thread_list = Thread.view_manager.get_user_query_set(request.user)
@@ -708,10 +709,22 @@ def thread_index(request, num_limit=None, num_start=None):
         num_limit = int(num_limit or 20)
         thread_list = thread_list[num_start:num_start+num_limit]
     render_dict = {'title': _("Recent Discussions"), 'threads': thread_list}
-    return render_to_response('snapboard/thread_index',
+    return render_to_response(template_name,
       render_dict,
       context_instance=RequestContext(request, processors=extra_processors))
 
+def merged_index(request):
+    """ Outputs a page with both thread_index and category_index on it.  """
+    ## XXX: Okay, this is NOT good.
+    catresp = category_index(request,
+      template_name='snapboard/include/category_index')
+    cathtml = getattr(catresp, 'content', '')
+    thrresp = thread_index(request,
+      template_name='snapboard/include/thread_index')
+    thrhtml = getattr(thrresp, 'content', '')
+    return render_to_response('snapboard/merged_index',
+      {'category_index': cathtml, 'thread_index': thrhtml},
+      context_instance=RequestContext(request, processors=extra_processors))
 
 def locate_post(request, post_id):
     """ Redirects to a post, given its ID.  """
@@ -749,8 +762,8 @@ def locate_post(request, post_id):
       reverse('snapboard_thread', args=(post.thread.id,)), page, post.id))
 
 
-def category_index(request):
-    return render_to_response('snapboard/category_index', {
+def category_index(request, template_name='snapboard/category_index'):
+    return render_to_response(template_name, {
       'cat_list': [c for c in Category.objects.all()
         if c.can_view(request.user)],
       },

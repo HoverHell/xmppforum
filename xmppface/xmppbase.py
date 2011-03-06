@@ -314,9 +314,11 @@ def send_xmpp_message(msg):
             start_new_thread(connkeeper, ())
         
 
-def render_to_response(*args, **kwargs):
+def render_to_response(template_name, *args, **kwargs):
     """ A render_to_response wrapper that allows using it for both
-    HttpRequest and XmppRequest.  """
+    HttpRequest and XmppRequest.  `template_name` is explicit since it is
+    modified to end with '.xmpp' or '.html' depending on the request.
+    XMPP response rendering can only be used with RequestContext. """
     from django.shortcuts import render_to_response as render_to_response_orig
     # There should be other ways to determine an Xmpp request, no?
     # Or it would be 'other function'.
@@ -330,13 +332,16 @@ def render_to_response(*args, **kwargs):
         isxmpp = False
     if isxmpp:  # Return some XmppResponse with rendered template.
         # ! Wouldn't it be better to 's/(\.html)?$/.xmpp/' here?
-        args = (args[0] + '.xmpp',) + args[1:]  # Fix template name.
         return XmppResponse(
-          django.template.loader.render_to_string(*args, **kwargs), 
+          django.template.loader.render_to_string(
+            re.sub(r'(\.html|\.xmpp)?$', '.xmpp', template_name),
+            *args, **kwargs), 
           user=request.user)
     else:  # Not Xmpp. Not our business.
-        args = (args[0] + '.html',) + args[1:]  # ...
-        return render_to_response_orig(*args, **kwargs)
+        ## Can even require using '.html' in calls, but likely should not.
+        return render_to_response_orig(
+            re.sub(r'(\.html)?$', '.html', template_name),
+          *args, **kwargs)
 
 
 def xmpp_loginreq_handler(request, function, *args, **kwargs):

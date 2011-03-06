@@ -5,4 +5,5 @@ syntax: glob
 *.db
 *.orig
 ENV
-snapboard/media/avatars
+settings_local.py
+snapboard/media/up

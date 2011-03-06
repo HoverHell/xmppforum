@@ -1,0 +1,27 @@
+{% load i18n %}
+{% load pagination_tags %}
+{% load extras %}
+
+<div class="index_title">
+  <h2>{{ title }}</h2>
+  {% autopaginate threads user_settings.tpp %}
+  {% paginate %}
+</div>
+{% if threads %}
+{% for thread in threads %}
+<div class="thread">
+  <span>{{ thread.post_count }} posts</span>
+  <span>started by {{ thread.starter }}</span>
+  <span>{% if thread.gsticky %}STICKY{% else %}{% if category and thread.csticky %}STICKY{% endif %}{% endif %}
+    {% if thread.closed %}CLOSED{% endif %} <a href="{% url snapboard_thread thread.id %}">{{ thread.subject }}</a></span>
+  <span class="ti">last updated {% reltime thread.date %}</span>
+  <span>by {{ thread.last_poster }}</span>
+  {% block thread_category_optional %}
+    <span>category:<a href="{% url snapboard_category_thread_index thread.category.id %}">{{ thread.category }}</a></span>
+  {% endblock %}
+</div>
+{% endfor %}
+{% paginate %}{# XXX It's inefficient calling that twice for the same result #}
+{% else %}
+  <p>{% trans "No threads are available." %}</p>
+{% endif %}
