@@ -13,7 +13,7 @@ from django.contrib.auth.models import User
 from snapboard.models import Thread, Post, Category
 from snapboard import sampledata
 
-def make_random_post_tree(parent_post, amount, thread, ratio=0.5, **kwargs):
+def make_random_post_tree(parent_post, amount, thread, ratio=0.5):
     text = '\n\n'.join([sampledata.sample_data() for x in range(0, choice(range(2, 5)))])
     # the post data
     postdata = {
@@ -28,7 +28,7 @@ def make_random_post_tree(parent_post, amount, thread, ratio=0.5, **kwargs):
     else:
         post = parent_post.add_child(**postdata)
     # allows setting of arbitrary ip
-    post.management_save()
+    post.save()
     posts_remain = amount - 1  # Minus just-created one
     
     # ... got better ideas?
@@ -47,7 +47,7 @@ def make_random_post_tree(parent_post, amount, thread, ratio=0.5, **kwargs):
         make_random_post_tree(post, next_tree_posts, thread)
         posts_remain -= next_tree_posts
 
-def make_random_thread(nposts=100, cat=None, ratio=0.5):
+def make_random_thread(nposts=100, cat=None, ratio=0.5, **kwargs):
     cat = Category.objects.get(pk=cat) if cat else choice(Category.objects.all())
     subj = choice(sampledata.objects.split('\n'))
     thread = Thread(subject=subj, category=cat)
@@ -55,9 +55,9 @@ def make_random_thread(nposts=100, cat=None, ratio=0.5):
     n = randrange(nposts//2, nposts)  # Amount of posts in whole tread tree
     make_random_post_tree(None, n, thread, ratio=ratio)
 
-def make_random_threads(nthreads, nposts=19, cat=None, ratio=0.5):
+def make_random_threads(nthreads, nposts=19, cat=None, ratio=0.5, **kwargs):
     for i in range(nthreads):
-        make_random_thread(nposts, cat, ratio)
+        make_random_thread(nposts, cat, ratio, **kwargs)
         print 'thread ', i, 'created'
 
 
@@ -69,7 +69,7 @@ class Command(BaseCommand):
             help='approximate amount of posts to generate'),
         make_option('-c', default=None, dest='cat', type='int',
             help='category (id) to put them into (default: random)'),
-        make_option('-r', default=None, dest='ratio', type='int',
+        make_option('-r', default=0.5, dest='ratio', type='int',
             help='approximate width/depth ratio of the generated post tree.'),
     )
 

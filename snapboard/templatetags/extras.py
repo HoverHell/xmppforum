@@ -87,6 +87,8 @@ class RelTimeNode(template.Node):
             ndate = self.ndate.resolve(context)
         except template.VariableDoesNotExist:
             return u''
+        if not isinstance(ndate, datetime.datetime):
+            return (u'?sometime?')
         return format_timedelta(now - time.mktime(ndate.timetuple()))
 
 

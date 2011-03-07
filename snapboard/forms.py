@@ -22,6 +22,14 @@ class PostForm(forms.ModelForm):
         model = Post
         fields = ('text', )
 
+    def as_fields(self):
+        "Returns this form rendered as HTML <p>s."
+        return self._html_output(
+            normal_row = u'%(label)s %(field)s%(help_text)s',
+            error_row = u'%s',
+            row_ender = '',
+            help_text_html = u' %s',
+            errors_on_separate_row = True)
 
 #class CategoryChoiceField(forms.ModelChoiceField):
 #    def label_from_instance(self, cat):

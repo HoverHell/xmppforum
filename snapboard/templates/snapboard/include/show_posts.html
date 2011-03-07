@@ -65,7 +65,7 @@
       {% if post.censor and not user.is_staff %}
         <div id="spv{{ post.id }}" class="pv"><div id="spt{{ post.id }}" class="pt">Censored post #{{ post.id_form_a }}.</div></div>
       {% else %}
-        {% if post.depth != maxdepth or post.numanswers = 1 %}
+        {% if not numanswers %}
           {% include "snapboard/include/post_full_header.html" %}
         {% else %}
           {% include "snapboard/include/post_short_header.html" %}

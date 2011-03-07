@@ -337,7 +337,7 @@ def thread_post(request, post_id=None, post=None, depth="v", subtopic=True):
     l_getinterval = lambda parent, left, right: (parent + l_int2str(left + 1),
       parent + l_int2str(right + 1))  # starts from '1', apparently.
     ## overridable ppp.
-    ppp = request.GET.get('md', '')                                      
+    ppp = request.GET.get('ppp', '')
     ppp = int(ppp) if ppp.isdigit() else request.user.get_user_settings().ppp
 
     from django.core.paginator import Paginator, InvalidPage
@@ -371,7 +371,7 @@ def thread_post(request, post_id=None, post=None, depth="v", subtopic=True):
         "numanswers": """CASE WHEN snapboard_post.depth = %d THEN
           (SELECT COUNT(*) FROM snapboard_post AS child WHERE (
             child.path LIKE (snapboard_post.path || '%%%%') AND
-            child.depth >= snapboard_post.depth
+            child.depth > snapboard_post.depth
           ))
           ELSE "" END
         """ % maxdepth,
@@ -388,6 +388,30 @@ def thread_post(request, post_id=None, post=None, depth="v", subtopic=True):
       #).select_related(depth=1)
       )
       
+    # ! FIXME: temporary hack.
+    top_post.abuse = 0    
+
+    sibqs = None
+    nsib = request.GET.get('nsib', '')
+    nsib = int(nsib) if nsib.isdigit() else None
+    if nsib:
+        sibqs = top_post.get_siblings(
+          ).filter(thread=thr, path__gt=top_post.path
+          ).annotate(
+            abuse=Count('sb_abusereport_set')
+          ).extra(
+            select={
+             "numanswers": """
+               SELECT COUNT(*) FROM snapboard_post AS child WHERE (
+                 child.path LIKE (snapboard_post.path || '%%%%') AND
+                 child.depth > snapboard_post.depth
+               )""",
+            }
+          ).select_related(depth=1
+          )
+        sibqs = sibqs[:nsib]
+        
+      
     ## Can grab a specific page if willing.
     if request.GET.get('page', ''):
         qs = qs.filter(path__range=pinterval,)
@@ -401,8 +425,8 @@ def thread_post(request, post_id=None, post=None, depth="v", subtopic=True):
             top_post.nav = True
             top_post.n_down = top_post.get_next_sibling()
             top_post.n_up = top_post.get_prev_sibling()
-            ancestors = list(top_post.get_ancestors())
-            top_post.n_left = ancestors[-1] if ancestors else None
+            ancestors = top_post.get_ancestors().reverse()
+            top_post.n_left = ancestors[0] if ancestors.exists() else None
             # if len(ancestors) == 1:
             # / if depth = 2:
             #  top_post.n_left = "thr".
@@ -410,9 +434,11 @@ def thread_post(request, post_id=None, post=None, depth="v", subtopic=True):
             ma = request.GET.get('ma', None)  # max. ancestors.
             if ma is not None and ma.isdigit():
                 ma = int(ma)
-                res = ancestors[-ma:] + res
+                res = list(ancestors[:ma])[::-1] + res
             else:
-                res = ancestors + res
+                res = list(ancestors)[::-1] + res
+        if nsib:
+            res = res + list(sibqs)
         post_list = get_flathelper_list(qs=res)
         #top_post = None  # there ain't no top_post in here!..  But not a problem, okay.
         # (and actually can show it; but probably don't need)
