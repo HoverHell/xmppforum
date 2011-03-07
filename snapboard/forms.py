@@ -6,7 +6,7 @@ from django.forms import widgets, ValidationError
 from django.utils.translation import ugettext_lazy as _
 from django.utils.translation import ungettext
 
-from snapboard.models import Category, UserSettings, Post
+from snapboard.models import Category, UserSettings, Post, Thread
 
 
 class PostForm(forms.ModelForm):
@@ -23,29 +23,61 @@ class PostForm(forms.ModelForm):
         fields = ('text', )
 
 
+#class CategoryChoiceField(forms.ModelChoiceField):
+#    def label_from_instance(self, cat):
+#        return cat.name
+
+
 class ThreadForm(forms.Form):
-#    def __init__( self, *args, **kwargs ):
-#        super( ThreadForm, self ).__init__( *args, **kwargs )
-#        self.fields['category'] = forms.ChoiceField(
-#                label = _('Category'),
-#                choices = [(str(x.id), x.label) for x in Category.objects.all()]
-#                )
+    def __init__(self, user, *args, **kwargs):
+        super(ThreadForm, self).__init__(*args, **kwargs)
+        ### Limit categories on user.
+        ## Fail: cannot use list for ModelChoiceField, problematic to
+        ## generate queryset from those permissions.
+        #catfield = self.fields['category']
+        #catfield.empty_label = None
+        #catfield.queryset = [
+        #  cat for cat in Category.objects.all() \
+        #  if cat.can_create_thread(user)]
+        ## Use it with normal Form and ChoiceField.
+        self.fields['category'].choices = \
+          [(str(cat.id), str(cat))
+            for cat in Category.objects.all() \
+            if cat.can_create_thread(user)]
+        self.fields['subject'].max_length = 80
 
-#    # this is here to set the order
-#    category = forms.CharField(label=_('Category'))
+    ## See "Fail" above.
+    #category = forms.ModelChoiceField(
+    #  label=_('Category'),
+    #  empty_label=None,
+    #  #queryset=[cat for cat in Category.objects.all()
+    #  #  if cat.can_create_thread(user)]
+    #  )
+    category = forms.ChoiceField(
+      label=_('Category'),
+      choices=[
+        (str(cat.id), str(cat))
+        for cat in Category.objects.all()]
+      )
+    ## could need it here to set the order
+    #forms.CharField(label=_('Category'))
 
+    # limit length.
     subject = forms.CharField(max_length=80,
-            label=_('Subject'),
-            widget=forms.TextInput(
-                attrs={
-                    'size': '80',
-                }))
-    post = forms.CharField(widget=forms.Textarea(
-            attrs={
-                'rows': '8',
-                'cols': '80',
-            }),
-            label=_('Message'))
+      label=_('Subject'),
+      widget=forms.TextInput(
+        attrs={'size': '80', }))
+
+    ## use Post ModelForm.
+    #post = forms.CharField(widget=forms.Textarea(
+    #        attrs={
+    #            'rows': '8',
+    #            'cols': '80',
+    #        }),
+    #        label=_('Message'))
+    #class Meta:
+    #    model = Thread
+    #    fields = ('category', 'subject',)
 
 #    def clean_category(self):
 #        id = int(self.cleaned_data['category'])
@@ -53,7 +85,6 @@ class ThreadForm(forms.Form):
 
 
 class UserSettingsForm(forms.ModelForm):
-
     def __init__(self, *pa, **ka):
         user = ka.pop('user')
         self.user = user

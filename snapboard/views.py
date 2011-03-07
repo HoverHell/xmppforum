@@ -11,7 +11,7 @@ from django.contrib.sites.models import Site
 from django.core.cache import cache
 from django.core.exceptions import ObjectDoesNotExist, PermissionDenied
 from django.core.urlresolvers import reverse
-from django.db import connection
+from django.db import connection, transaction
 from django.db.models import Q, Count
 from django.http import (HttpResponse, HttpResponseRedirect, Http404,
   HttpResponseServerError)
@@ -526,7 +526,7 @@ def post_reply(request, parent_id, thread_id=None, rpc=False):
             postobj = parent_post.add_child(
               thread=thr,
               user=request.user,
-              text=postform.cleaned_data['text'],
+              **(postform.cleaned_data)  # text and whatnot.
             )
             postobj.save()
             postobj.notify()
@@ -631,38 +631,47 @@ def show_revisions(request, post_id, rpc=False):
 @anonymous_login_required
 def new_thread(request, cat_id):
     """ Start a new discussion.  """
-    if cat_id is not None:  # A specific category was supplied in URL.
-        category = get_object_or_404(Category, pk=cat_id)
-    if not category.can_create_thread(request.user):
-        raise PermissionError, "You cannost post in this category"
+    #if cat_id is not None:  # A specific category was supplied in URL.
+    #    
 
+    threadform = ThreadForm(request.user,
+      request.POST if request.POST else None,
+      initial={'category': cat_id})  # will be selected if it's there.
+    postform = PostForm(request.POST if request.POST else None)
     if request.POST:
-        threadform = ThreadForm(request.POST)
-        if threadform.is_valid():
-            # create the thread
-
-            nthread = Thread(
-                    subject = threadform.cleaned_data['subject'],
-                    category = category,
-                    )
-            nthread.save()
-
-            # create the post
-            post = Post.add_root(
-                    user = request.user,
-                    thread = nthread,
-                    text = threadform.cleaned_data['post'],
-                    )
-            post.save()
-
+        if threadform.is_valid() and postform.is_valid():
+            cat_id = threadform.cleaned_data.pop('category')
+            category = get_object_or_404(Category, pk=cat_id)
+            if not category.can_create_thread(request.user):
+                raise PermissionError, "You cannost post in this category"
+            ## To make sure no postless threads remain.
+            #with transaction.commit_on_success():  ## django1.3 required :(
+            @transaction.commit_on_success
+            def make_thread():
+                nthread = Thread(
+                  category=category,
+                  #subject=threadform.cleaned_data['subject'],
+                  **(threadform.cleaned_data)
+                  )
+                nthread.save()
+                # create the post
+                rpost = Post.add_root(
+                  user=request.user,
+                  thread=nthread,
+                  **(postform.cleaned_data)
+                  )
+                rpost.save()
+                return nthread, rpost
+            nthread, rpost = make_thread()
             # redirect to new thread / return success message
             return success_or_reverse_redirect('snapboard_thread',
               args=(nthread.id,), req=request, msg="Thread created.")
-    else:
-        threadform = ThreadForm()
+    #else:
+    #    threadform = ThreadForm()
 
     return render_to_response('snapboard/newthread',
-      {'form': threadform},
+      {'threadform': threadform,
+       'postform': postform},
       context_instance=RequestContext(request, processors=extra_processors))
 
 
