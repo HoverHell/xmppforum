@@ -332,14 +332,22 @@ def thread_post(request, post_id=None, post=None, depth="v", subtopic=True):
         raise PermissionError, "You are not allowed to read this thread"
 
     render_dict = {}
+    
+    ## Helper for retreiving int values from request.GET
+    def l_getintparam(param, default=''):
+        prm = request.GET.get('param', '')
+        ## callable is allower for slight optimization.
+        return int(prm) if prm.isdigit() \
+          else (default() if callable(default) else default)
 
+    l_str2int = lambda x: Post._str2int(x)
     l_int2str = lambda v: Post._int2str(v).rjust(Post.steplen, '0')
     l_getinterval = lambda parent, left, right: (parent + l_int2str(left + 1),
       parent + l_int2str(right + 1))  # starts from '1', apparently.
-    ## overridable ppp.
-    ppp = request.GET.get('ppp', '')
-    ppp = int(ppp) if ppp.isdigit() else request.user.get_user_settings().ppp
 
+    ### Pagination (mildly obsolete):
+    ## overridable ppp.
+    ppp = l_getintparam('ppp', lambda: request.user.get_user_settings().ppp)
     from django.core.paginator import Paginator, InvalidPage
     paginator = Paginator(SliceHack(), ppp)
     # This might be problematic if some posts got deleted/moved.
@@ -354,14 +362,28 @@ def thread_post(request, post_id=None, post=None, depth="v", subtopic=True):
     # -1 because last gets included too this way.
     pinterval = l_getinterval(top_post.path, slice.start, slice.stop - 1)
     
-    md = request.GET.get('md', '')
-    maxdepthd = int(md) if md.isdigit() else 28
+    maxdepthd = l_getintparam('md', 28)
+    nfsib = l_getintparam('nfsib', None)  # full next siblings
 
-    maxdepth = top_post.depth + maxdepthd  # TODO: can find it dynamically (and then cache)!
+    # TODO: can find it dynamically (and then cache)!
+    maxdepth = top_post.depth + maxdepthd
     #qs = Post.objects.filter(
-    qs = top_post.get_descendants().filter(
-       thread=thr,
-       depth__gt=top_post.depth,
+    tppath = None
+    if nfsib:  # 1. show fully target post and few next siblings.
+        parentpath = top_post.path[:-Post.steplen]
+        tpnum = l_str2int(top_post.path[-Post.steplen:]
+        fsibpath = parentpath + l_int2str(tpnum + nsib)  # some further sibling.
+        qs = qs.filter(
+          path__range=(
+            top_post.path,
+            tppath
+            )
+          )
+    else:
+        qs = top_post.get_descendants()
+    qs = qs.filter(
+       thread=thr
+       #depth__gte=top_post.depth,
        depth__lte=maxdepth,
       )
     qs = qs.annotate(
@@ -391,12 +413,14 @@ def thread_post(request, post_id=None, post=None, depth="v", subtopic=True):
     # ! FIXME: temporary hack.
     top_post.abuse = 0    
 
-    sibqs = None
-    nsib = request.GET.get('nsib', '')
-    nsib = int(nsib) if nsib.isdigit() else None
+    sibqs = fsibqs = None
+    nsib = l_getintparam('nsib', None)  # next siblings, short.
+    ## full query on nfsib; push away nsib's paths.
     if nsib:
         sibqs = top_post.get_siblings(
-          ).filter(thread=thr, path__gt=top_post.path
+          ).filter(
+            thread=thr,
+            path__gt=(fsibpath if fsibpath else top_post.path)
           ).annotate(
             abuse=Count('sb_abusereport_set')
           ).extra(
@@ -406,13 +430,14 @@ def thread_post(request, post_id=None, post=None, depth="v", subtopic=True):
                  child.path LIKE (snapboard_post.path || '%%%%') AND
                  child.depth > snapboard_post.depth
                )""",
+             "nsib": "1",
             }
           ).select_related(depth=1
           )
         sibqs = sibqs[:nsib]
         
-      
-    ## Can grab a specific page if willing.
+    ## Only enable pagination filtering if a page is specified.
+    ## (Can grab a specific page if willing.)
     if request.GET.get('page', ''):
         qs = qs.filter(path__range=pinterval,)
 
@@ -544,7 +569,7 @@ def post_reply(request, parent_id, thread_id=None, rpc=False):
     
     if request.POST and not rpc:  # POST HERE.
         thr = parent_post.thread
-        if not thr.category.can_post(request.user):
+        if not thr.category.can_post(request.user) or thr.closed:
             raise PermissionError("You are not allowed to post "
               "in this thread")
         postform = PostForm(request.POST)
@@ -582,7 +607,8 @@ def edit_post(request, original, rpc=False):
         
     if orig_post.user != request.user \
      or not orig_post.thread.category.can_post(request.user) \
-     or not orig_post.thread.category.can_read(request.user):
+     or not orig_post.thread.category.can_read(request.user) \
+     or orig_post.thread.closed:
         # Might be not in sync with the interface in thread.
         raise PermissionError, "You are not allowed to edit that."
 
