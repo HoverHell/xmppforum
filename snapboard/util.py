@@ -82,10 +82,10 @@ def format_timedelta(delta, maxlen=TIMEDELTA_MAXLEN):
             if maxlen and  len(a_res) >= maxlen:
                 break
     if not a_res:
-        return u"just now"  # nbsp!
+        return u"just now"  # nbsp!
     else:
         a_res.append("ago")
-    return u' '.join(a_res)  # nbsp too.
+    return u' '.join(a_res)  # nbsp too.
 
 
 ## Diff stuff.

@@ -1,39 +1,39 @@
 {% load i18n %}
 {% spaceless %}
-{% if not thr.closed %}{# and not page_next #}
-    {% if user.is_authenticated %}
-    <form id="add_post_div" action="{% url snapboard_post_reply parent_post.id %}" method="POST">
-        <a name="post_form"></a>
-        <div id="toolbar" style="">
-            {% ifequal SNAP_POST_FILTER "bbcode" %}
-                <button onclick="return surround('[b]','[/b]');"><b>{% trans "B" %}</b></button>
-                <button onclick="return surround('[i]','[/i]');"><i>{% trans "i" %}</i></button>
-                <button onclick="return surround('[quote]','[/quote]');"><span>{% trans "quote" %}</span></button>
-                <button onclick="return surround('[code]','[/code]');"><span>{% trans "code" %}</span></button>
-                <button onclick="return do_prefix('[*]');"><span>{% trans "list" %}</span></button>
-                <button onclick="return insert_img();"><span>{% trans "img" %}</span></button>
-                <button onclick="return insert_link();"><u>{% trans "link" %}</u></button>
-            {% endifequal %}
-        </div>
-        {{ postform.as_p }}
-        <p>{{ postform.errors }}</p>
-        <div class="form_controls">
-        <input type="submit" value="{% trans "Post" %}" />
-        <input type="button" value="{% trans "Preview" %}" onclick="preview('add_post_div')" />
-        </div>
-    </form>
-    <div style="border: 1px solid #ccc; display: none;">
-        <p><b>{% trans "Post Preview:" %}</b></p>
-        <div id="snap_preview_addpost" class="post_text">
-        </div>
-    </div>
-    {% else %}
-    <p>{% blocktrans with request.path|urlencode as reqpath %}
-        You need to <a href="{{ LOGIN_URL }}?next={{ reqpath }}#add_post_div">sign in</a> to post messages.
-    {% endblocktrans %}</p>
-    {% endif %}
-{% endif %}
 {% if thr.closed %}
-    <p>{% trans "This discussion has been closed by the staff.  You can no longer add posts." %}</p>
+<div class="fe">{% trans "This discussion has been closed by the staff.  You can no longer add posts." %}</div>
+{% else %}
+{% if not user.is_authenticated %}
+<div class="fe">{% blocktrans with request.path|urlencode as reqpath %}You need to <a href="{{ LOGIN_URL }}?next={{ reqpath }}">sign in</a> to post messages.{% endblocktrans %}</div>
+{% else %}
+<div>{{ postform.errors }}</div>
+<form action="{% url snapboard_post_reply parent_post.id %}" method="POST">
+  <table class="aef">
+    {% ifequal SNAP_POST_FILTER "bbcode" %}
+    <tr class="tb">
+      <td>
+        <button onclick="return surround('[b]','[/b]');"><b>{% trans "B" %}</b></button>
+        <button onclick="return surround('[i]','[/i]');"><i>{% trans "i" %}</i></button>
+        <button onclick="return surround('[quote]','[/quote]');"><span>{% trans "quote" %}</span></button>
+        <button onclick="return surround('[code]','[/code]');"><span>{% trans "code" %}</span></button>
+        <button onclick="return do_prefix('[*]');"><span>{% trans "list" %}</span></button>
+        <button onclick="return insert_img();"><span>{% trans "img" %}</span></button>
+        <button onclick="return insert_link();"><u>{% trans "link" %}</u></button>
+      </td>
+    </tr>
+    {% endifequal %}
+    <tr>
+      <td><textarea name="text"></textarea></td>
+    </tr>
+    <tr>
+      <td class="fc"><input type="submit" value="{% trans "Post" %}" /><input type="button" value="{% trans "Preview" %}" onclick="preview('add_post_div')" /></td>
+    </tr>
+  </table>
+</form>
+<div style="display: none">
+  <p>{% trans "Post Preview:" %}</p>
+  <div id="snap_preview_addpost" class="post_text">
+</div>
+{% endif %}
 {% endif %}
 {% endspaceless %}
