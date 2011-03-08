@@ -510,7 +510,7 @@ class Post(Post_base, mp_tree.MP_Node):
 
     def id_form_t(self):
         """ Thread-local number.  """
-        return u"#%s/%s" % (self.thread_id, self.tlid)
+        return u"%s/%s" % (self.thread_id, self.tlid)
 
     @classmethod
     def from_id_t(cls, idt):
