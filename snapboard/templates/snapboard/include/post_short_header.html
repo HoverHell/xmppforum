@@ -2,7 +2,8 @@
 {% load extras %}
 {% load avatar_tags %}
 
-<div class="ph{% if post.is_flat %} f{% endif %}">
-  <span class="pi"><a href="{% url snapboard_thread_post post.id %}">#{{ post.id_form_a }} | {{ post.id_form_t }}</a> {#{{ post.id_form_b }}#}</span> | <span>{{ post.numanswers }} more answers. </span> 
+<div class="ph{% if post.is_flat %} f{% endif %}"><div>
+  <span class="pi"><a href="{% url snapboard_thread_post post.id %}">#{{ post.id_form_t }}</a></span>
+  <span>{{ post.numanswers }} more answers.</span> 
   <span class="ti">{% reltime post.date %}</span>
-</div>
+</div></div>
