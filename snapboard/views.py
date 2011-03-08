@@ -368,11 +368,11 @@ def thread_post(request, post_id=None, post=None, depth="v", subtopic=True):
     # TODO: can find it dynamically (and then cache)!
     maxdepth = top_post.depth + maxdepthd
     #qs = Post.objects.filter(
-    tppath = None
+    fsibpath = None
     if nfsib:  # 1. show fully target post and few next siblings.
         parentpath = top_post.path[:-Post.steplen]
-        tpnum = l_str2int(top_post.path[-Post.steplen:]
-        fsibpath = parentpath + l_int2str(tpnum + nsib)  # some further sibling.
+        tpnum = l_str2int(top_post.path[-Post.steplen:])
+        fsibpath = parentpath + l_int2str(tpnum + nfsib)  # some further sibling.
         qs = qs.filter(
           path__range=(
             top_post.path,
@@ -382,7 +382,7 @@ def thread_post(request, post_id=None, post=None, depth="v", subtopic=True):
     else:
         qs = top_post.get_descendants()
     qs = qs.filter(
-       thread=thr
+       thread=thr,
        #depth__gte=top_post.depth,
        depth__lte=maxdepth,
       )
