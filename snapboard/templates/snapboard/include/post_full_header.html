@@ -21,5 +21,5 @@
   {% if post.previous_id %}
     <a href="{% url snapboard_show_revisions post.id %}">{% trans "history" %}</a>
   {% endif %}
-  <span class="ti">{% reltime post.date %}</span>
+  <span class="ti">{% reltime post.date %}</span>{% if post.numanswers %} | <span>{{ post.numanswers }} answers. </span>{% endif %}
 </div></div>

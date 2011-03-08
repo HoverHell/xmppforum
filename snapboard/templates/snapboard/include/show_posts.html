@@ -59,7 +59,7 @@
       {% if post.censor and not user.is_staff %}
         <div id="spv{{ post.id }}" class="pv"><div id="spt{{ post.id }}" class="pt">Censored post <a href="{% url snapboard_thread_post post.id %}">#{{ post.id_form_a }}</a>.</div></div>
       {% else %}
-        {% if not numanswers %}
+        {% if not post.numanswers or post.nsib %}
           {% include "snapboard/include/post_full_header.html" %}
         {% else %}
           {% include "snapboard/include/post_short_header.html" %}
@@ -68,7 +68,7 @@
     </div>
     {% if post.is_flat %}<div>{% else %}{% ifequal post.depth listdepth %}<div>{% else %}<div class="pp">{% endifequal %}{% endif %}
       {% if post.censor and not user.is_staff %}{% else %}
-        {% if post.depth != maxdepth or post.numanswers = 1 %}
+        {% if not post.numanswers or post.nsib %}
           {% include "snapboard/include/post_full_body.html" %}
         {% else %}
           {% include "snapboard/include/post_short_body.html" %}

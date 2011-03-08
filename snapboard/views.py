@@ -410,8 +410,8 @@ def thread_post(request, post_id=None, post=None, depth="v", subtopic=True):
       #).select_related(depth=1)
       )
       
-    # ! FIXME: temporary hack.
-    top_post.abuse = 0    
+    # ! XXX: temporary hack?
+    top_post.abuse = top_post.sb_abusereport_set.count()
 
     sibqs = fsibqs = None
     nsib = l_getintparam('nsib', None)  # next siblings, short.
