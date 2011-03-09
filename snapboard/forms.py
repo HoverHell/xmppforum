@@ -159,6 +159,12 @@ class RegistrationFormEmailFree(RegistrationForm):
       label=_(u'email address (optional)'),
       required=False)
 
+    ## ? Make max_length configurable?
+    #username = forms.RegexField(regex=r'^\w+$',
+    #  max_length=30,
+    #  widget=forms.TextInput(attrs=attrs_dict),
+    #  label=_(u'username'))
+
     def save(self, profile_callback=None):
         """
         Override of save to allow registering of email-less users.
@@ -186,4 +192,3 @@ class RegistrationFormEmailFree(RegistrationForm):
             new_user.save()
         return new_user
 
-# vim: ai ts=4 sts=4 et sw=4
