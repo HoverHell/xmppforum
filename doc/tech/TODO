@@ -24,6 +24,7 @@
   * Add various triggers for forced grabbing of the JID's avatar?
 
 -- snapbase:
+  ? new_thread: what if there's no allowed categories?
   * Add Messages to the base template!
   * Allow censoring own posts?
   * Fix abusereport admin: it should point to Post editing but points to the

@@ -376,12 +376,19 @@ def direct_to_template(request, template):
     # ! May need direct_to_template_orig?
 
 
+def success_or_redirect(req, target, successmsg):
+    """ Shortcut that returns 'successmsg' response for XMPP and redirects
+    to `target` for HTTP.  """
+    if req.is_xmpp():
+        return XmppResponse(successmsg)
+    else:
+        return HttpResponseRedirect(target)
+
+
 def success_or_reverse_redirect(*args, **kwargs):
+    """ Uncanny obsolete function-shortcut for redirecting to reverse() for
+    HTTP and replying with msg for XMPP.  """
     # Remove reverse()-irrelevant parts of kwargs:
     req = kwargs.pop("req")  # Should always be present, actually.
     msg = kwargs.pop("msg", "Success.")
-    if isinstance(req, XmppRequest):  # ! TODO: request.is_xmpp()?
-        return XmppResponse(msg)
-    else:  # HTTP / redirect to reverse of view.
-        return HttpResponseRedirect(reverse(*args, **kwargs))
-
+    return success_or_redirect(req, reverse(*args, **kwargs), msg)

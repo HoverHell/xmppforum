@@ -60,9 +60,6 @@ urlpatterns = patterns('',
          new_thread, {}, 'snapboard_new_thread'),
     (r'^p/(?P<post_id>\d+)/$',
          thread_post, {}, 'snapboard_thread_post'),
-    ## FIXME: Should probably be removed already.
-    (r'^locate_post/(?P<post_id>\d+)/$',
-         locate_post, {}, 'snapboard_locate_post'),
     (r'^settings/$', edit_settings, {}, 'snapboard_edit_settings'),
 
     ## Groups

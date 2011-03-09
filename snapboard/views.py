@@ -31,7 +31,7 @@ import re
 # XmppFace
 import xmppface.xmppbase
 from xmppface.xmppbase import (XmppRequest, XmppResponse, render_to_response,
- success_or_reverse_redirect)
+ success_or_redirect, success_or_reverse_redirect)
 from xmppface.xmppstuff import send_notifications
 from xmppface import forms as xfforms
 from xmppface.views import login_required
@@ -559,6 +559,14 @@ def thread_latest(request, thread_id, num_posts=10):
       context_instance=RequestContext(request, processors=extra_processors))
 
 
+def _redirect_to_posts(target1, target2=None):
+    res = reverse('snapboard_thread_post',
+      args=(target1.id,),)
+    if target2:
+      res += u'#sp%s' % target2.id  # ? XXX: Use id_form_t?
+    return res
+
+
 #@userbannable
 @anonymous_login_required
 def post_reply(request, parent_id, thread_id=None, rpc=False):
@@ -584,8 +592,9 @@ def post_reply(request, parent_id, thread_id=None, rpc=False):
             )
             postobj.save()
             postobj.notify()
-            return success_or_reverse_redirect('snapboard_thread_post',
-              args=(postobj.id,), req=request, msg="Posted successfully.")
+            return success_or_redirect(request,
+              _redirect_to_posts(parent_post, postobj),
+              u"Posted successfully: %s." % postobj.id_form_t())
     else:
         context = {'postform': PostForm(), 
           "parent_post": parent_post}
@@ -770,6 +779,7 @@ def category_thread_index(request, cat_id):
       context_instance=RequestContext(request, processors=extra_processors))
 
 
+@anonymous_login_required
 def thread_index(request, num_limit=None, num_start=None,
   template_name='snapboard/thread_index'):
     if request.user.is_authenticated():
@@ -790,6 +800,17 @@ def thread_index(request, num_limit=None, num_start=None,
       render_dict,
       context_instance=RequestContext(request, processors=extra_processors))
 
+
+@anonymous_login_required
+def category_index(request, template_name='snapboard/category_index'):
+    return render_to_response(template_name, {
+      'cat_list': [c for c in Category.objects.all()
+        if c.can_view(request.user)],
+      },
+      context_instance=RequestContext(request, processors=extra_processors))
+
+
+@anonymous_login_required
 def merged_index(request):
     """ Outputs a page with both thread_index and category_index on it.  """
     ## XXX: Okay, this is NOT good.
@@ -801,49 +822,6 @@ def merged_index(request):
     thrhtml = getattr(thrresp, 'content', '')
     return render_to_response('snapboard/merged_index',
       {'category_index': cathtml, 'thread_index': thrhtml},
-      context_instance=RequestContext(request, processors=extra_processors))
-
-def locate_post(request, post_id):
-    """ Redirects to a post, given its ID.  """
-    post = get_object_or_404(Post, pk=post_id)
-    if not post.thread.category.can_read(request.user):
-        raise PermissionError, "You cannot see it"
-    # Count the number of visible posts before the one we are looking for, 
-    # as well as the total
-    #total = post.thread.count_posts(request.user)
-
-    # ...everything is visible, threads paginated by first-level answers.
-    # Looks funny, meh.
-    root = post.get_root()
-    # amount of paginated objects:
-    total = root.get_children_count()
-
-    usettings = request.user.get_user_settings()
-    ppp = usettings.ppp
-    if total < ppp:  # nowhere tp look for.
-        page = 1
-    else:
-        # object amongst paginated we're looking for.
-        answer = post.get_ancestors()[1] if post.depth > 2 else post
-        # ...what; anyway, find the index number of the target object.
-        # (not very nicely done, yes)
-        # not sure about '+1' either.
-        preceding_count = (i for i, x in enumerate(answer.get_siblings())
-          if x == answer).next() + 1
-        
-        if usettings.reverse_posts:
-            page = (total - preceding_count - 1) // ppp + 1
-        else:
-            page = preceding_count // ppp + 1
-    return HttpResponseRedirect('%s?page=%i#sp%i' % (
-      reverse('snapboard_thread', args=(post.thread.id,)), page, post.id))
-
-
-def category_index(request, template_name='snapboard/category_index'):
-    return render_to_response(template_name, {
-      'cat_list': [c for c in Category.objects.all()
-        if c.can_view(request.user)],
-      },
       context_instance=RequestContext(request, processors=extra_processors))
 
 
