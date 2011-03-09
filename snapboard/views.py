@@ -450,7 +450,10 @@ def thread_post(request, post_id=None, post=None, depth="v", subtopic=True):
             top_post.nav = True
             top_post.n_down = top_post.get_next_sibling()
             top_post.n_up = top_post.get_prev_sibling()
-            ancestors = top_post.get_ancestors().reverse()
+            ancestors = top_post.get_ancestors(
+              ).filter(depth__gte=2  # avoid the main post in there
+              ).annotate(abuse=Count('sb_abusereport_set')
+              ).reverse()
             top_post.n_left = ancestors[0] if ancestors.exists() else None
             # if len(ancestors) == 1:
             # / if depth = 2:
@@ -683,13 +686,13 @@ def show_revisions(request, post_id, rpc=False):
 @anonymous_login_required
 def new_thread(request, cat_id):
     """ Start a new discussion.  """
-    #if cat_id is not None:  # A specific category was supplied in URL.
-    #    
+    warn = None
 
     threadform = ThreadForm(request.user,
       request.POST if request.POST else None,
       initial={'category': cat_id})  # will be selected if it's there.
     postform = PostForm(request.POST if request.POST else None)
+
     if request.POST:
         if threadform.is_valid() and postform.is_valid():
             cat_id = threadform.cleaned_data.pop('category')
@@ -718,12 +721,23 @@ def new_thread(request, cat_id):
             # redirect to new thread / return success message
             return success_or_reverse_redirect('snapboard_thread',
               args=(nthread.id,), req=request, msg="Thread created.")
-    #else:
-    #    threadform = ThreadForm()
+    else:
+        ## Warn the user if there's a problem with supplied category.
+        if cat_id is not None:  # A specific category was supplied in URL.
+            try:
+                category = Category.objects.get(pk=cat_id)
+            except Category.DoesNotExist:
+                warn = ("Unknown category was supplied."
+                  " Select one from the list.")
+            else:
+                if not category.can_create_thread(request.user):
+                    warn = ("You cannot post in the supplied category."
+                      " You still can select one from the list.")
 
     return render_to_response('snapboard/newthread',
       {'threadform': threadform,
-       'postform': postform},
+       'postform': postform,
+       'warn': warn},
       context_instance=RequestContext(request, processors=extra_processors))
 
 

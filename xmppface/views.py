@@ -89,6 +89,9 @@ def xmpp_web_login_cmd(request):
     Uses the 'loginurl' django app.  """
     import loginurl.utils
     from django.core.urlresolvers import reverse
+    ## Management simplification at the cost of minor inconvenience:
+    loginurl.utils.cleanup()
+    ## ...go on.
     current_site = Site.objects.get_current()
     key = loginurl.utils.create(request.user)
     url = u"http://%s%s" % (

@@ -1,0 +1,2 @@
+## Some other requirements someone might need.
+pysqlite  # jusst to make sure... FreeBSD's python once failed to have _sqlite3
