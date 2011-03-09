@@ -1,19 +1,19 @@
-{% extends "registration/base.html" %}
+{% extends "snapboard/base_forum.html" %}
 {% load i18n %}
 
 {% block registration_content %}
-    <form action="" method="post">
-        <table>
-            <tbody>
-                <input type="hidden" name="next" value="{% url snapboard_index %}" />
-                {{ form }}
-                <tr>
-                    <th></th>
-                    <td><input type="submit" value="{% trans "Log in" %}" /></td>
-                </tr>
-            </tbody>
-        </table>
-    </form>
+<form action="" method="post">
+  <table>
+    <tbody>
+      <input type="hidden" name="next" value="{% url snapboard_index %}" />
+      {{ form }}
+      <tr>
+        <th></th>
+        <td><input type="submit" value="{% trans "Log in" %}" /></td>
+      </tr>
+    </tbody>
+  </table>
+</form>
 {% endblock %}
 
     

@@ -3,7 +3,7 @@
 {% load avatar_tags %}
 {% load plaintexttags %}
 
-<div class="ph"><div>
+<div class="h"><div><div>
   {% avatar_opt post.user %}
   <a href="{% url snapboard_thread_post post.id %}">#{{ post.id_form_t }}</a>
   <a class="un" href="" onclick="t_p('{{ post.id }}'); return false;">{{ post.user }}</a>
@@ -22,4 +22,4 @@
     <a href="{% url snapboard_show_revisions post.id %}">{% trans "history" %}</a>
   {% endif %}
   <span class="ti">{% reltime post.date %}</span>{% if post.numanswers %} | <span>{{ post.numanswers }} answers. </span>{% endif %}
-</div></div>
+</div></div></div>

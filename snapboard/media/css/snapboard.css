@@ -1,74 +1,49 @@
 table{border-spacing:0}
-body{font:13px arial;margin:0}
-/*===========================*/
-form th{padding-right:5px;text-align:right;font-weight:normal}
+body{font-size:13px;margin:0}
 
-.aef{width:100%;max-width:700px;border-collapse:collapse;margin:8px 0 0}
-.aef td{border:1px #D0D0D0 solid;padding:0}
-.aef textarea,.aef input[type="text"]{width:100%;border:none;margin:0;}
-.aef textarea{height:144px}
-.aef select{border:none}
+body>p,body>form,.tw,.tp,.ta,.tm{margin-left:10px;margin-right:10px}
+.ta,.pm,.tp,.tw>*,.tw.st,.tp .v,.f{margin-top:8px}
+
+.f{border-collapse:collapse}
+.f,.f textarea,.f input[type="text"]{width:100%}
+.f textarea,.f input[type="text"],.f select,.fb input,.fb button{border:none;margin:0}
+.f th{padding-right:5px;text-align:right;font-weight:normal}
+.f td{border:1px #D0D0D0 solid;padding:0}
+.f textarea{height:144px}
 .fm{text-align:center;font-weight:bold}
-body>form{margin:0 10px}
+.fb input,.fb button{background-color:#fff;padding:1px 3px 2px;border-right:1px #D0D0D0 solid}
 
-.fc input,.tb button{float:left;background-color:#fff;padding:1px 3px 2px;border:none;border-right:1px #D0D0D0 solid}
-/*===========================*/
-.red{color:#900}
+.topbar,.pm{background-color:#DCDCDC;padding:0 10px 2px}
+.red{color:#d00}
 
-.topbar{background-color:#DCDCDC;padding:0 10px 2px}
+.tm{float:right}
+.tm a{margin:0 3px}
+.pagination>*{padding:0 4px 0 0}
 
-.thread_menu{float:right;margin:0 10px}
-.thread_menu a{margin:0 3px}
-
-div.rm{text-align:center;width:100%}
-p.rm{border:1px solid #000}
-/*===========================*/
-.index_title,.topic-addr{padding:8px 0 0 10px}
-
-.pm{background-color:#DCDCDC;width:100%;height:18px;margin:8px 0 0 0}
-.pm.st{margin:8px 0}
-
-.pagination {padding:0 10px}
-.pagination *{padding:0 4px 0 0}
-
-.tw{padding:0 10px}
-
-.tp{padding:8px 10px 0}
-.tw>*{margin:8px 0 0 0}
-.np{padding:8px 0 0;border-left:2px #000 solid}
+.np{padding-top:8px;border-left:2px #000 solid}
 .np,.ep{margin:0 0 0 2px}
-
-
-.np>.pp{margin:0 0 0 6px}
-.ep>.pp{margin:0 0 0 8px}
+.np>.pp,.pc.np>div>.v,.np>div>.h{margin:0 0 0 6px}
+.ep>.pp,.pc.ep>div>.v,.ep>div>.h{margin:0 0 0 8px}
 .hw{position:relative;overflow:hidden}
-.tc{float:left;position:absolute;bottom:50%}
-.ep>.hw>.tc{height:200px;width:6px;background-color:transparent;border-bottom:2px #000 solid;border-left:2px #000 solid}
+.tc{position:absolute;bottom:50%}
+.ep>.hw>.tc{height:200px;width:6px;border-bottom:2px #000 solid;border-left:2px #000 solid}
 .np>.hw>.tc{height:2px;width:6px;background-color:#000;}
 .ep>:first-child{height:8px;border-left:2px black solid}
 
-.ph,.pv{max-width:700px}
-.tw .ph{background-color:#D0D0D0}
-.np>div>.ph{margin:0 0 0 6px}
-.ep>div>.ph{margin:0 0 0 8px}
-.tp .ph{margin:0 0 8px}
-.fp>div>.ph{background-color:#ECECEC}
-.ph>div{display:table;margin:0}
-.tw .ph>div{border:1px solid #D0D0D0}
-.fp>div>.ph>div{border:1px solid #ECECEC}
-.ph>div>*{float:left;margin:0 0 0 5px}
-.ph img,.tp .ph .un{margin:0}
-.tp .ph img{margin: 0 5px 0 0}
+.h,.v,.f{max-width:700px}
+.tw .h>div{border:1px solid #D0D0D0;background-color:#D0D0D0}
+.fp>.h>div{border:1px solid #ECECEC;background-color:#ECECEC}
+.h>div>div{display:table}
+.h>div>div>*{float:left;margin:0 0 0 5px}
+.h>div>div>img,.tp .h .un{margin:0}
+.tp .h img{margin:0 5px 0 0}
 .un{font-weight:bold}
 .ti{white-space:nowrap}
-.pc>div>.pv{border-top:1px solid #D0D0D0}
-.pc.fp>div>.pv{border-top:none}
-.pc.np>div>.pv{margin:0 0 0 6px}
-.pc.ep>div>.pv{margin:0 0 0 8px}
-.pr>div>.pv{}
-.apr>div>.pv{outline: 1px solid #D050D0;outline-offset:-1px}
-.pc>div>.pv{}
-.apc>div>.pv{outline:2px solid red;outline-offset:-2px}
+.apr>div>.v{outline: 1px solid #D050D0;outline-offset:-1px}
+.apc>div>.v{outline:2px solid red;outline-offset:-2px}
 
-.tw .pt{padding:2px 5px 3px;border:1px solid #D0D0D0;background-color:#F9F9F9;border-top:none}
-.fp>div>.pv>.pt{border-color:#ECECEC}
+div.rm{text-align:center}
+.tw .t,p.rm{border:1px solid #D0D0D0;background-color:#F9F9F9}
+.tw .t,.pc.fp>.v>.t{padding:2px 5px 3px;border-top:none}
+.pc>div>.v>.t,.pc>.v>.t{border-top:1px solid #D0D0D0}
+.fp>div>.v>.t,.pc.fp>.v>.t{border-color:#ECECEC}
