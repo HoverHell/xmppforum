@@ -25,6 +25,7 @@
 
 -- snapbase:
   ? new_thread: what if there's no allowed categories?
+  * After registration w/o e-mail, log in automatically.
   * Add Messages to the base template!
   * Allow censoring own posts?
   * Fix abusereport admin: it should point to Post editing but points to the

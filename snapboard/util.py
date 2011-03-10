@@ -75,8 +75,7 @@ def format_timedelta(delta, maxlen=TIMEDELTA_MAXLEN):
     for unit, secs_per_unit in TIMEDELTA_UNITS:
         if not unit:
             continue
-        value = seconds // secs_per_unit
-        seconds %= secs_per_unit
+        value, seconds = divmod(seconds, secs_per_unit)
         if value > 0:
             a_res.append(u"%d%s" % (value, unit))
             if maxlen and  len(a_res) >= maxlen:

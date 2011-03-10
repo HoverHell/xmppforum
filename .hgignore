@@ -6,4 +6,5 @@ syntax: glob
 *.orig
 ENV
 settings_local.py
-snapboard/media/up
+snapboard/media/up/
+var/
