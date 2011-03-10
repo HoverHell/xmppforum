@@ -9,9 +9,8 @@
         <span> || [ <a href="{% url snapboard_edit_settings %}">{{ user.username }}</a> ]</span>
         <span> || <a href="{{ LOGOUT_URL }}">Logout</a></span>
       {% endif %}
-        {# TODO: 'cat.can_create_thread(user)', somehow? #}
-        {# anyway, category id parameter is optional. #}
-        <span> || {% if thr %}<a href="{% url snapboard_new_thread thr.category.id %}" class="r">new thread</a>{% else %}{% if category %}<a href="{% url snapboard_new_thread category.id %}" class="r">new thread</a>{% else %}<a href="{% url snapboard_new_thread  %}" class="r">new thread</a>{% endif %}{% endif %}
+        {# category id parameter is optional but useful. #}
+        <span> || <a href="{% if thr %}{% url snapboard_new_thread thr.category.id %}{% else %}{% if category %}{% url snapboard_new_thread category.id %}{% else %}{% url snapboard_new_thread %}{% endif %}{% endif %}" class="r">new thread</a>
         </span>
       {% if user.is_staff %}
         <span> [ {% trans "STAFF" %}

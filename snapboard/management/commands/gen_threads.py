@@ -3,24 +3,21 @@
 from optparse import make_option
 from django.core.management.base import BaseCommand
 
-from django.db.models import signals 
-from django.conf import settings
-
-from snapboard import models as snapboard_app
-
 from random import choice, randrange
 from django.contrib.auth.models import User
 from snapboard.models import Thread, Post, Category
 from snapboard import sampledata
 
+
 def make_random_post_tree(parent_post, amount, thread, ratio=0.5):
-    text = '\n\n'.join([sampledata.sample_data() for x in range(0, choice(range(2, 5)))])
+    text = '\n\n'.join([sampledata.sample_data()
+      for x in range(0, randrange(1, 6))])
     # the post data
     postdata = {
       "user": choice(User.objects.all()),
       "thread": thread,
       "text": text,
-      "ip": '.'.join([str(choice(range(2,254))) for x in xrange(4)]),
+      "ip": '.'.join([str(choice(range(2, 254))) for x in xrange(4)]),
     }
     # Create a post in tree.
     if parent_post is None:  # Root node.
@@ -30,7 +27,7 @@ def make_random_post_tree(parent_post, amount, thread, ratio=0.5):
     # allows setting of arbitrary ip
     post.save()
     posts_remain = amount - 1  # Minus just-created one
-    
+
     # ... got better ideas?
     # (got non-uniform random distributions?)
     # Anyway, ratio ~= depth/width. Don't delegate too few / too much to
@@ -47,13 +44,17 @@ def make_random_post_tree(parent_post, amount, thread, ratio=0.5):
         make_random_post_tree(post, next_tree_posts, thread)
         posts_remain -= next_tree_posts
 
+
 def make_random_thread(nposts=100, cat=None, ratio=0.5, **kwargs):
-    cat = Category.objects.get(pk=cat) if cat else choice(Category.objects.all())
+    cat = Category.objects.get(pk=cat) if cat \
+      else choice(Category.objects.all())
     subj = choice(sampledata.objects.split('\n'))
     thread = Thread(subject=subj, category=cat)
     thread.save()
-    n = randrange(nposts//2, nposts)  # Amount of posts in whole tread tree
-    make_random_post_tree(None, n, thread, ratio=ratio)
+    # Amount of posts in the whole tread tree
+    npostsr = randrange(nposts // 2, nposts)
+    make_random_post_tree(None, npostsr, thread, ratio=ratio)
+
 
 def make_random_threads(nthreads, nposts=19, cat=None, ratio=0.5, **kwargs):
     for i in range(nthreads):

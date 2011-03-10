@@ -34,6 +34,20 @@ urlpatterns += patterns('',
 )
 
 
+## Registration:
+import snapboard.forms
+#import registration.views
+urlpatterns += patterns('',
+    (r'^accounts/register/$', 'registration.views.register', 
+      {'form_class': snapboard.forms.RegistrationFormEmailFree,
+       },
+      'registration_register'),
+    (r'^accounts/password/$', 'django.views.generic.simple.redirect_to',
+       {'url': '/'}),
+    (r'^accounts/', include('registration.urls')),
+)
+
+
 ## Admin
 urlpatterns += patterns('',
     (r'^admin/(.*)', admin.site.root),
@@ -55,17 +69,6 @@ if settings.DEBUG:
     urlpatterns += patterns('',
         (r'^m/(?P<path>.*)$', 'django.views.static.serve', {'document_root': settings.MEDIA_ROOT}),
     )
-
-
-## Registration:
-import snapboard.forms
-#import registration.views
-urlpatterns += patterns('',
-    (r'^accounts/register/$', 'registration.views.register', 
-      {"form_class": snapboard.forms.RegistrationFormEmailFree},
-      'registration_register'),  # ! Maybe should be in snapboard.urls
-    (r'^accounts/', include('registration.urls')),
-)
 
 
 ## Avatar

@@ -56,7 +56,7 @@
   <div id="sp{{ post.id }}" {% if not post.is_flat %}{% ifnotequal post.depth listdepth %}{% if post.next_sibling %}class="np{% if post.censor %}{% if not user.is_staff %} pc{% else %} apc{% endif %}{% else %}{% ifnotequal post.abuse 0 %}{% if not user.is_staff %} pr{% else %} apr{% endif %}{% endifnotequal %}{% endif %}"{% else %}class="ep{% if post.censor %}{% if not user.is_staff %} pc{% else %} apc{% endif %}{% else %}{% ifnotequal post.abuse 0 %}{% if not user.is_staff %} pr{% else %} apr{% endif %}{% endifnotequal %}{% endif %}"{% endif %}{% else %}{% if post.censor %}{% if not user.is_staff %}class="pc"{% else %}class="apc"{% endif %}{% else %}{% ifnotequal post.abuse 0 %}{% if not user.is_staff %}class="pr"{% else %}class="apr"{% endif %}{% endifnotequal %}{% endif %}{% endifnotequal %}{% else %}class="fp{% if post.censor %}{% if not user.is_staff %} pc{% else %} apc{% endif %}{% else %}{% ifnotequal post.abuse 0 %}{% if not user.is_staff %} pr{% else %} apr{% endif %}{% endifnotequal %}{% endif %}"{% endif %}>
     {% if not post.is_flat %}{% ifnotequal post.depth listdepth %}{% if not post.next_sibling %}<div></div>{% endif %}<div class="hw"><div></div>{% endifnotequal %}{% endif %}
       {% if post.censor and not user.is_staff %}
-        <div id="spv{{ post.id }}" class="pv"><div id="spt{{ post.id }}" class="pt">Censored post <a href="{% url snapboard_thread_post post.id %}">#{{ post.id_form_t }}</a>.</div></div>
+        <div id="spv{{ post.id }}" class="v"><div id="spt{{ post.id }}" class="t">Censored post <a href="{% url snapboard_thread_post post.id %}">#{{ post.id_form_t }}</a>.</div></div>
       {% else %}
         {% if not post.numanswers or post.nsib %}
           {% include "snapboard/include/post_full_header.html" %}

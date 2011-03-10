@@ -1,51 +1,85 @@
 
 -- xmppface:
-  * put run_... stuff into management commands
-  * ?? Should it be usable without django settings? Or
-   django-dummy-settings-mechanisms are good enough to not care?
-  * [in progress] ? registration-related XMPP workflow?
-  * ! move xmpp_... views into this package.
-  * !! move sb_usersettings__jid into some more general place.
+  * Reorganize:
+    * allow custom 404 / 500 / ... handlers,
+    * move them (defaults) into views.
+    * !! Move the default avatar handling into views!
+      * Possibly over handlers too.
   ...
-  * allow custom 404 / 500 / ... handlers?
+  * ? Add django's automatic reloading?
+    * (see django's runserver command source)
   * Add customizable prefixes for all cache.* stuff (at least in a separate
    module)
   ...
-  * almost done: !! Make it a separate module/app! 
+  * [mostly done] registration-related XMPP workflow?
+  * [mostly done] Make it a separate module/app!
+    * Testing?.. Woul need *users* of it, perhaps.
+  ...
+  * put run_... stuff into management commands
+   * Done, perhaps?
+  * ?? Should it be usable without django settings? Or
+   django-dummy-settings-mechanisms are good enough to not care?
 
 -- ?
   * Add various triggers for forced grabbing of the JID's avatar?
 
 -- snapbase:
+  ? new_thread: what if there's no allowed categories?
+  * After registration w/o e-mail, log in automatically.
   * Add Messages to the base template!
   * Allow censoring own posts?
-  * Check if user has the permission to add new thread / new post for
-   showing the new_thread / reply links.
   * Fix abusereport admin: it should point to Post editing but points to the
    abusereport editing instead.
   * Decide on sortlatest post sorting in the thread.
     ? If it is good enough — store latest_answer in the db (updating it the
      same way as numchildren) and sort by it (descending) everywhere?
-  * ! Decide what to do with avatar_url templatetag caching (it is NOT
-   cached as a templatetag in the latest django-avatar revision!)
-   * https://github.com/ericflo/django-avatar/issues/19 
+    * Might be unnecessary after all.
+    * Quite problematic to implement with current fetching.
+      * Can do somehing like "query their IDs sorted by lastanswers, then
+       process retreived full trees (associating them with those IDs and
+       then re-combining back into a list).
   * [done] fix / implement post revisions. Problem is:
    http://stackoverflow.com/questions/4870802/
     * ! rework related javascript to grab all revisions (RPC 'getrevisions')
      and then display them as asked?
+    * It could be better if all revisions (in Post_revisions) pointed (FK)
+     back to the in-tree Post (so they can easily be fetched).  At the same
+     time, Post -> Post_revisions FK is still very (more) useful for
+     optimization.
   ...
   * Review CSRF protection stuff. References:
    http://djangobook.com/en/2.0/chapter16/
   * Review AJAXy stuff. References:
    http://stackoverflow.com/questions/4740569/ajax-views-with-django
    / django-piston?
+    * RPC dispatcher seems quite unnecessary.
   * Try to DRY the settings view regarding Avatar.  If impossible - move
    the avatar settings away after all.
-   * ! Problem: combined select-default & delete form is used, which
-    requires some copied code after all. But still might be able to
-    minimize.
+    * ! Problem: combined select-default & delete form is used, which
+     requires some copied code after all. But still might be able to
+     minimize.
   * Try to DRY notification XMPP support. Looks like might have to find out
    what django-notification developer meant for such stuff. (Unanswered
    question at http://stackoverflow.com/questions/2562492/ ).
+    * Seems very problematic;  a "proper" solution would be to fork
+     django-notification adding all the necessaty hooks for custom delivery
+     mediums.
 
-  * Move Anonymous support into a separate app?
+
+-- anon:
+  (Anonymous support in a separate app)
+  * Perhaps not everything were moved (*far* from everything).
+
+
+------- Done / Not important anymore:
+  * (-) Decide what to do with avatar_url templatetag caching (it is NOT
+   cached as a templatetag in the latest django-avatar revision!)
+   * https://github.com/ericflo/django-avatar/issues/19
+   * Overrode avatar templatetag, not an issue anymore.
+  * Check if user has the permission to add new thread / new post for
+   showing the new_thread / reply links.
+    * Done with a warning if user cannot post in the category that user came
+     from.
+  -- xmppface
+  * ! move xmpp_... views into this package.
+  * !! move sb_usersettings__jid into some more general place.
