@@ -44,7 +44,8 @@
 .apc>div>.v{outline:2px solid red;outline-offset:-2px}
 
 div.rm{text-align:center}
-.w .t,p.rm{border:1px solid #D0D0D0;background-color:#F9F9F9;border-bottom:none}
-.w .t,.pc.fp>.v>.t{padding:2px 5px 3px;border-top:none}
-.pc>div>.v>.t,.pc>.v>.t{border-top:1px solid #D0D0D0}
+.w .t,p.rm{border:1px solid #D0D0D0;background-color:#F9F9F9;border-bottom:none;border-top:none}
+.w .t,.pc.fp>.v>.t{padding:2px 5px 3px}
+.pc>.v>.t{border-top:1px solid #D0D0D0}
+.fp.pc>.v>.t{border-top-color:#ECECEC}
 .w>div>.v>.t,.l>div>.v>.t{border-bottom:1px solid #D0D0D0}
