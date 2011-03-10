@@ -7,12 +7,12 @@
 {% else %}
 {% if warn %}<span class="warn">{{ warn }}</span>{% endif %}
 <form action="" method="POST">
-  <table class="aef">
+  <table class="f">
     {{ threadform.as_table }}
     {% ifequal SNAP_POST_FILTER "bbcode" %}
     <tr>
       <th></th>
-      <td class="tb">
+      <td class="fb">
         <button onclick="return surround('[b]','[/b]');"><b>{% trans "B" %}</b></button>
         <button onclick="return surround('[i]','[/i]');"><i>{% trans "I" %}</i></button>
         <button onclick="return surround('[quote]','[/quote]');"><span>{% trans "quote" %}</span></button>
@@ -26,7 +26,7 @@
     {{ postform.as_table }}
     <tr>
       <th></th>
-      <td class="fc"><input type="submit" value="{% trans "Start Subject" %}" /> <input type="reset" value="{% trans "Reset" %}" /></td>
+      <td class="fb"><input type="submit" value="{% trans "Start Subject" %}" /> <input type="reset" value="{% trans "Reset" %}" /></td>
     </tr>
   </table>
 </form>

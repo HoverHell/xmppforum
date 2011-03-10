@@ -1,0 +1,17 @@
+{% extends "registration/base.html" %}
+{% load i18n %}
+
+{% block registration_content %}
+<form action="" method="post">
+  <table>
+    <tbody>
+      {{ form }}
+      <tr>
+        <th></th>
+        <td><input type="submit" value="{% trans "Submit" %}" /></td>
+      </tr>
+    </tbody>
+  </table>
+</form>
+{% endblock %}
+

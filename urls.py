@@ -40,7 +40,6 @@ import snapboard.forms
 urlpatterns += patterns('',
     (r'^accounts/register/$', 'registration.views.register', 
       {'form_class': snapboard.forms.RegistrationFormEmailFree,
-       'template_name': 'snapboard/register.html',
        },
       'registration_register'),
     (r'^accounts/password/$', 'django.views.generic.simple.redirect_to',

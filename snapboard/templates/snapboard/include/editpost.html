@@ -1,14 +1,14 @@
 {% load i18n %}
 {% spaceless %}
 <form action="{% url snapboard_edit_post post.id %}" method="POST">
-  <table class="aef">
+  <table class="f">
     <tr>
       <td class="fm">{% trans "All revisions of this post are stored and publicly viewable." %}</td>
     </tr>
     <tr>
       <td><textarea name="text">{{ post.text }}</textarea></td>
     </tr>
-    <tr class="fc">
+    <tr class="fb">
       <td><input type="submit" value="{% trans "Update" %}" /></td>
     </tr>
   </table>

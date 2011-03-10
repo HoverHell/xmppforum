@@ -1,15 +1,12 @@
 {% load i18n %}
 {% load pagination_tags %}
 {% load extras %}
-
-<div class="index_title">
-  <span>{{ title }}</span>
-  {% autopaginate threads user_settings.tpp %}
-  {% paginate %}
-</div>
+<div class="thr">
+<h3>{{ title }}</h3>
+{% autopaginate threads user_settings.tpp %}{% paginate %}
 {% if threads %}
 {% for thread in threads %}
-<div class="thread">
+<div>
   <span>{{ thread.post_count }} posts</span>
   <span>started by {{ thread.starter }}</span>
   <span>{% if thread.gsticky %}STICKY{% else %}{% if category and thread.csticky %}STICKY{% endif %}{% endif %}
@@ -21,7 +18,6 @@
   {% endblock %}
 </div>
 {% endfor %}
-{% paginate %}{# XXX It's inefficient calling that twice for the same result #}
 {% else %}
   <p>{% trans "No threads are available." %}</p>
 {% endif %}

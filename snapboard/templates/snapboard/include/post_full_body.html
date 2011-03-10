@@ -2,9 +2,9 @@
 {% load extras %}
 {% load avatar_tags %}
 
-<div id="spv{{ post.id }}" class="pv">
+<div id="spv{{ post.id }}" class="v">
   <div id="prf{{ post.id }}" class="rm"></div>
-  <div style="display:block" class="pt" id="spt{{ post.id }}">{{ post.texth|safe }}</div>
+  <div style="display:block" class="t" id="spt{{ post.id }}">{{ post.texth|safe }}</div>
   {% if not user.really_anonymous %}{% ifequal post.user_id user.id %}
     <div style="display:none" id="spe{{ post.id }}"></div>
   {% endifequal %}{% endif %}
