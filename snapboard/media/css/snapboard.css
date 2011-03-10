@@ -48,4 +48,4 @@ div.rm{text-align:center}
 .w .t>div,.pc.fp>.v>.t>div{padding:2px 5px 3px}
 .pc>.v>.t>div{border-top:1px solid #D0D0D0}
 .fp.pc>.v>.t>div{border-top-color:#ECECEC}
-.w>div>.v>.t>div,.l>div>.v>.t>div{border-bottom:1px solid #D0D0D0}
+.w>div>.v>.t>div,.w>div>div>.v>.t>div,.l>.v>.t>div,.l>div>.v>.t>div{border-bottom:1px solid #D0D0D0}
