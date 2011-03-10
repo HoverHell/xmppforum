@@ -30,11 +30,13 @@
 .ep>.pp{height:8px;border-left:2px black solid}
 
 .h,.v,.f{max-width:900px}
-.w .h>div{border:1px solid #D0D0D0;background-color:#D0D0D0}
-.fp>.h>div{border:1px solid #ECECEC;background-color:#ECECEC}
-.h>div>div{display:table-row}
-.h>div>div>*{display:table-cell;vertical-align:top}
-.hm{padding-left:5px}
+
+.h>div>div{display:table;width:100%}
+.w .h>div{border-right:1px solid #D0D0D0;border-left:1px solid #D0D0D0;}
+.w .h>div>div{border-top:1px solid #D0D0D0;border-bottom:1px solid #D0D0D0;background-color:#D0D0D0}
+.fp>.h>div>div{border-color:#ECECEC;background-color:#ECECEC}
+.h>div>div>img{float:left;margin-right:5px}
+.hm{display:block;padding:0 5px}
 .tp .hm{padding:0}
 .un{font-weight:bold}
 .ti{white-space:nowrap}
@@ -44,5 +46,6 @@
 div.rm{text-align:center}
 .w .t,p.rm{border:1px solid #D0D0D0;background-color:#F9F9F9}
 .w .t,.pc.fp>.v>.t{padding:2px 5px 3px;border-top:none}
+.fp>div>.v>.t,.pc.fp>.v>.t,.pc.fp>.v>.t{border-bottom:none}
 .pc>div>.v>.t,.pc>.v>.t{border-top:1px solid #D0D0D0}
-.fp>div>.v>.t,.pc.fp>.v>.t{border-color:#ECECEC}
+.lf>div>.v>.t{border-bottom:1px solid #D0D0D0}
