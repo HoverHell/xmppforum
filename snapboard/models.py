@@ -238,6 +238,8 @@ signals.pre_delete.connect(Invitation.notify_cancelled, sender=Invitation)
 class Category(models.Model):
 
     label = models.CharField(max_length=32, verbose_name=_('label'))
+    description = models.CharField(max_length=255, blank=True,
+      verbose_name=_('description'))
 
     view_perms = models.PositiveSmallIntegerField(_('view permission'),
         choices=PERM_CHOICES, default=ALL,
@@ -387,7 +389,7 @@ class Post_base(models.Model):
     #, related_name='sb_created_posts_set')
     thread = models.ForeignKey(Thread, verbose_name=_('thread'))
     text = models.TextField(verbose_name=_('text'))
-    texth = models.TextField(blank=True, null=True,
+    texth = models.TextField(blank=True, # null=True,
       verbose_name=_('cached rendered text'))
     date = models.DateTimeField(editable=False, auto_now_add=True,
       verbose_name=_('date'))
@@ -676,7 +678,7 @@ class WatchList(models.Model):
     post = models.ForeignKey(Post, verbose_name=_('post'),
       related_name='sb_watchinglist')
     # This can be implemented for all notification types, though:
-    xmppresource = models.CharField(max_length=80, null=True, blank=True,
+    xmppresource = models.CharField(max_length=80, blank=True,
       verbose_name=_('xmpp resource'))
 
     class Meta:
