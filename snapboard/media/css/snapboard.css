@@ -32,7 +32,7 @@
 .h,.v,.f{max-width:900px}
 
 .h>div>div{display:table;width:100%}
-.w .h>div{border-right:1px solid #D0D0D0;border-left:1px solid #D0D0D0;}
+.w .h>div,.w .t,p.rm{border-right:1px solid #D0D0D0;border-left:1px solid #D0D0D0;}
 .w .h>div>div{border-top:1px solid #D0D0D0;border-bottom:1px solid #D0D0D0;background-color:#D0D0D0}
 .fp>.h>div>div{border-color:#ECECEC;background-color:#ECECEC}
 .h>div>div>img{float:left;margin-right:5px}
@@ -44,9 +44,8 @@
 .apc>div>.v{outline:2px solid red;outline-offset:-2px}
 
 div.rm{text-align:center}
-.w .t,p.rm{border:1px solid #D0D0D0;background-color:#F9F9F9;border-bottom:none;border-top:none}
-.w .t,.pc.fp>.v>.t{padding:2px 5px 3px}
-.pc>.v>.t{border-top:1px solid #D0D0D0}
-.fp.pc>.v{border-right:1px solid #D0D0D0;border-left:1px solid #D0D0D0}
-.fp.pc>.v>.t{border:none;border-top:1px solid #ECECEC}
-.w>div>.v>.t,.l>div>.v>.t{border-bottom:1px solid #D0D0D0}
+.w .t,p.rm{background-color:#F9F9F9}
+.w .t>div,.pc.fp>.v>.t>div{padding:2px 5px 3px}
+.pc>.v>.t>div{border-top:1px solid #D0D0D0}
+.fp.pc>.v>.t>div{border-top-color:#ECECEC}
+.w>div>.v>.t>div,.l>div>.v>.t>div{border-bottom:1px solid #D0D0D0}

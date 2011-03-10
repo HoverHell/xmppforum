@@ -6,7 +6,7 @@
   {% if user.is_authenticated and not user.really_anonymous %}
     <div id="prf{{ post.id }}" class="rm"></div>
   {% endif %}
-  <div style="display:block" class="t" id="spt{{ post.id }}">{{ post.texth|safe }}</div>
+  <div style="display:block" class="t" id="spt{{ post.id }}"><div>{{ post.texth|safe }}</div></div>
   {% if user.is_authenticated %}
     {% if not user.really_anonymous %}{% ifequal post.user_id user.id %}
       <div style="display:none" id="spe{{ post.id }}"></div>
