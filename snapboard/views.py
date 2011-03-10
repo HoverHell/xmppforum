@@ -335,7 +335,7 @@ def thread_post(request, post_id=None, post=None, depth="v", subtopic=True):
     
     ## Helper for retreiving int values from request.GET
     def l_getintparam(param, default=''):
-        prm = request.GET.get('param', '')
+        prm = request.GET.get(param, '')
         ## callable is allower for slight optimization.
         return int(prm) if prm.isdigit() \
           else (default() if callable(default) else default)
