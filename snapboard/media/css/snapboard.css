@@ -35,7 +35,7 @@
 .w .h>div,.w .t,p.rm{border-right:1px solid #D0D0D0;border-left:1px solid #D0D0D0;}
 .w .h>div>div{border-top:1px solid #D0D0D0;border-bottom:1px solid #D0D0D0;background-color:#D0D0D0}
 .fp>.h>div>div{border-color:#ECECEC;background-color:#ECECEC}
-.h>div>div>img{float:left;margin-right:5px}
+.h img{float:left;margin-right:5px}
 .hm{display:block;padding:0 5px}
 .tp .hm{padding:0}
 .un{font-weight:bold}
