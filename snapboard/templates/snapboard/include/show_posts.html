@@ -3,12 +3,11 @@
 {% load pagination_tags %}
 
 {% load cache %}
-
-<div class="tp">
 {% if subtopic %}
   <p>{% trans "You are viewing part of the topic" %}</p>
 {% else %}
 {% with top_post as post %}
+<div class="tp">
   <div id="sp{{ post.id }}">
       <div class="h"><div><div>
         {% avatar_opt post.user %}
@@ -26,21 +25,23 @@
         <span class="ti">{% reltime post.date %}</span>
       </div></div></div>
       <div id="spv{{ post.id }}" class="v">
-        <div id="prf{{ post.id }}" class="rm"></div>
+        {% if user.is_authenticated and not user.really_anonymous %}
+          <div id="prf{{ post.id }}" class="rm"></div>
+        {% endif %}
         <div class="t" id="spt{{ post.id }}">{{ post.texth|safe }}</div>
-        {% ifequal post.user_id user.id %}
-          <div style="display:none" id="spe{{ post.id }}"></div>
-        {% endifequal %}
-        <div style="display:none" id="spr{{ post.id }}" ></div>
+        {% if user.is_authenticated %}
+          {% if not user.really_anonymous %}{% ifequal post.user_id user.id %}
+            <div style="display:none" id="spe{{ post.id }}"></div>
+          {% endifequal %}{% endif %}
+          <div style="display:none" id="spr{{ post.id }}" ></div>
+        {% endif %}
       </div>
   </div>
+</div>
 {% endwith %}
 {% endif %}
-</div>
-
 
 {# autopaginate post_list user_settings.ppp #}
-
 <div class="pm">{% paginate %}
 {% if top_post.nav %}
 {% if top_post.n_left %}<a href="{% url snapboard_thread_post top_post.n_left.id %}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}">←</a>{% else %}←{% endif %}
@@ -49,12 +50,11 @@
 {% if top_post.n_right %}<a href="{% url snapboard_thread_post top_post.n_right.id %}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}">→</a>{% else %}→{% endif %}
 {% endif %}
 </div>
-<div class="tw{% if subtopic %} st{% endif %}">
-
+<div class="w{% if subtopic %} st{% endif %}">
 {% for post, post_info in post_list %}
   {% if not post_info.open %}</div></div>{% endif %}
   <div id="sp{{ post.id }}" {% if not post.is_flat %}{% ifnotequal post.depth listdepth %}{% if post.next_sibling %}class="np{% if post.censor %}{% if not user.is_staff %} pc{% else %} apc{% endif %}{% else %}{% ifnotequal post.abuse 0 %}{% if not user.is_staff %} pr{% else %} apr{% endif %}{% endifnotequal %}{% endif %}"{% else %}class="ep{% if post.censor %}{% if not user.is_staff %} pc{% else %} apc{% endif %}{% else %}{% ifnotequal post.abuse 0 %}{% if not user.is_staff %} pr{% else %} apr{% endif %}{% endifnotequal %}{% endif %}"{% endif %}{% else %}{% if post.censor %}{% if not user.is_staff %}class="pc"{% else %}class="apc"{% endif %}{% else %}{% ifnotequal post.abuse 0 %}{% if not user.is_staff %}class="pr"{% else %}class="apr"{% endif %}{% endifnotequal %}{% endif %}{% endifnotequal %}{% else %}class="fp{% if post.censor %}{% if not user.is_staff %} pc{% else %} apc{% endif %}{% else %}{% ifnotequal post.abuse 0 %}{% if not user.is_staff %} pr{% else %} apr{% endif %}{% endifnotequal %}{% endif %}"{% endif %}>
-    {% if not post.is_flat %}{% ifnotequal post.depth listdepth %}{% if not post.next_sibling %}<div></div>{% endif %}<div class="hw"><div class="tc"></div>{% endifnotequal %}{% endif %}
+    {% if not post.is_flat %}{% ifnotequal post.depth listdepth %}{% if not post.next_sibling %}<div></div>{% endif %}<div class="hw"><div></div>{% endifnotequal %}{% endif %}
       {% if post.censor and not user.is_staff %}
         <div id="spv{{ post.id }}" class="v"><div id="spt{{ post.id }}" class="t">Censored post <a href="{% url snapboard_thread_post post.id %}">#{{ post.id_form_a }}</a>.</div></div>
       {% else %}
@@ -75,6 +75,5 @@
       {% endif %}{# post.censor and not user.is_staff  else #}
   {% for close in post_info.close %}</div></div>{% endfor %} 
 {% endfor %}
-
 </div>
 <div class="pm">{% paginate %}</div>

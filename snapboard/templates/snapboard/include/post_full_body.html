@@ -3,11 +3,15 @@
 {% load avatar_tags %}
 
 <div id="spv{{ post.id }}" class="v">
-  <div id="prf{{ post.id }}" class="rm"></div>
+  {% if user.is_authenticated and not user.really_anonymous %}
+    <div id="prf{{ post.id }}" class="rm"></div>
+  {% endif %}
   <div style="display:block" class="t" id="spt{{ post.id }}">{{ post.texth|safe }}</div>
-  {% if not user.really_anonymous %}{% ifequal post.user_id user.id %}
-    <div style="display:none" id="spe{{ post.id }}"></div>
-  {% endifequal %}{% endif %}
-  <div style="display:none" id="spr{{ post.id }}"></div>
+  {% if user.is_authenticated %}
+    {% if not user.really_anonymous %}{% ifequal post.user_id user.id %}
+      <div style="display:none" id="spe{{ post.id }}"></div>
+    {% endifequal %}{% endif %}
+    <div style="display:none" id="spr{{ post.id }}"></div>
+  {% endif %}
   <div style="display:none" id="sps{{ post.id }}"></div>
 </div>

@@ -3,7 +3,7 @@
 
 {% block snapboard_main %}
 {% if not user.is_authenticated %}
-<div class="fe">{% blocktrans with request.path|urlencode as reqpath %}You need to <a href="{{ LOGIN_URL }}?next={{ reqpath }}">sign in</a> to post messages.{% endblocktrans %}</div>
+<div class="e">{% blocktrans with request.path|urlencode as reqpath %}You need to <a href="{{ LOGIN_URL }}?next={{ reqpath }}">sign in</a> to post messages.{% endblocktrans %}</div>
 {% else %}
 <form action="" method="POST">
   <table class="f">
@@ -11,21 +11,21 @@
     {% ifequal SNAP_POST_FILTER "bbcode" %}
     <tr>
       <th></th>
-      <td class="fb">
-        <button onclick="return surround('[b]','[/b]');"><b>{% trans "B" %}</b></button>
-        <button onclick="return surround('[i]','[/i]');"><i>{% trans "I" %}</i></button>
-        <button onclick="return surround('[quote]','[/quote]');"><span>{% trans "quote" %}</span></button>
-        <button onclick="return surround('[code]','[/code]');"><span>{% trans "code" %}</span></button>
-        <button onclick="return do_prefix('[*]');"><span>{% trans "list" %}</span></button>
-        <button onclick="return insert_img();"><span>{% trans "img" %}</span></button>
-        <button onclick="return insert_link();"><u>{% trans "link" %}</u></button>
+      <td>
+        <button class="b" onclick="return surround('[b]','[/b]');"><b>{% trans "B" %}</b></button>
+        <button class="b" onclick="return surround('[i]','[/i]');"><i>{% trans "I" %}</i></button>
+        <button class="b" onclick="return surround('[quote]','[/quote]');"><span>{% trans "quote" %}</span></button>
+        <button class="b" onclick="return surround('[code]','[/code]');"><span>{% trans "code" %}</span></button>
+        <button class="b" onclick="return do_prefix('[*]');"><span>{% trans "list" %}</span></button>
+        <button class="b" onclick="return insert_img();"><span>{% trans "img" %}</span></button>
+        <button class="b" onclick="return insert_link();"><u>{% trans "link" %}</u></button>
       </td>
     </tr>
     {% endifequal %}
     {{ postform.as_table }}
     <tr>
       <th></th>
-      <td class="fb"><input type="submit" value="{% trans "Start Subject" %}" /> <input type="reset" value="{% trans "Reset" %}" /></td>
+      <td><input class="b" type="submit" value="{% trans "Start Subject" %}" /> <input class="b" type="reset" value="{% trans "Reset" %}" /></td>
     </tr>
   </table>
 </form>

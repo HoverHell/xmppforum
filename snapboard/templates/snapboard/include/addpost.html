@@ -1,24 +1,24 @@
 {% load i18n %}
 {% spaceless %}
 {% if thr.closed %}
-<div class="fe">{% trans "This discussion has been closed by the staff.  You can no longer add posts." %}</div>
+<div class="e">{% trans "This discussion has been closed by the staff.  You can no longer add posts." %}</div>
 {% else %}
 {% if not user.is_authenticated %}
-<div class="fe">{% blocktrans with request.path|urlencode as reqpath %}You need to <a href="{{ LOGIN_URL }}?next={{ reqpath }}">sign in</a> to post messages.{% endblocktrans %}</div>
+<div class="e">{% blocktrans with request.path|urlencode as reqpath %}You need to <a href="{{ LOGIN_URL }}?next={{ reqpath }}">sign in</a> to post messages.{% endblocktrans %}</div>
 {% else %}
 <div>{{ postform.errors }}</div>
 <form action="{% url snapboard_post_reply parent_post.id %}" method="POST">
   <table class="f">
     {% ifequal SNAP_POST_FILTER "bbcode" %}
     <tr>
-      <td class="fb">
-        <button onclick="return surround('[b]','[/b]');"><b>{% trans "B" %}</b></button>
-        <button onclick="return surround('[i]','[/i]');"><i>{% trans "i" %}</i></button>
-        <button onclick="return surround('[quote]','[/quote]');"><span>{% trans "quote" %}</span></button>
-        <button onclick="return surround('[code]','[/code]');"><span>{% trans "code" %}</span></button>
-        <button onclick="return do_prefix('[*]');"><span>{% trans "list" %}</span></button>
-        <button onclick="return insert_img();"><span>{% trans "img" %}</span></button>
-        <button onclick="return insert_link();"><u>{% trans "link" %}</u></button>
+      <td>
+        <button class="b" onclick="return surround('[b]','[/b]');"><b>{% trans "B" %}</b></button>
+        <button class="b" onclick="return surround('[i]','[/i]');"><i>{% trans "i" %}</i></button>
+        <button class="b" onclick="return surround('[quote]','[/quote]');"><span>{% trans "quote" %}</span></button>
+        <button class="b" onclick="return surround('[code]','[/code]');"><span>{% trans "code" %}</span></button>
+        <button class="b" onclick="return do_prefix('[*]');"><span>{% trans "list" %}</span></button>
+        <button class="b" onclick="return insert_img();"><span>{% trans "img" %}</span></button>
+        <button class="b" onclick="return insert_link();"><u>{% trans "link" %}</u></button>
       </td>
     </tr>
     {% endifequal %}
@@ -26,13 +26,13 @@
       <td><textarea name="text"></textarea></td>
     </tr>
     <tr>
-      <td class="fb"><input type="submit" value="{% trans "Post" %}" /><input type="button" value="{% trans "Preview" %}" onclick="preview('add_post_div')" /></td>
+      <td><input class="b" type="submit" value="{% trans "Post" %}" /><input class="b" type="button" value="{% trans "Preview" %}" onclick="preview('add_post_div')" /></td>
     </tr>
   </table>
 </form>
 <div style="display: none">
   <p>{% trans "Post Preview:" %}</p>
-  <div id="snap_preview_addpost" class="post_text">
+  <div id="snap_preview_addpost" class="t">
 </div>
 {% endif %}
 {% endif %}

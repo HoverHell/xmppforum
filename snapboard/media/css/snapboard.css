@@ -1,20 +1,20 @@
 table{border-spacing:0}
-body{font-size:13px;margin:0}
+#x{font-size:13px;margin:0}
 
-body>p,body>form,.tw,.tp,.ta,.tm{margin-left:10px;margin-right:10px}
-.ta,.pm,.tp,.tw>*,.tw.st,.tp .v,.f{margin-top:8px}
+#x>p,#x>form,.w,.tp,.ta,.tm{margin-left:10px;margin-right:10px}
+.ta,.pm,.tp,.w>*,.w.st,.tp .v,.f{margin-top:8px}
 
 .f{border-collapse:collapse}
 .f,.f textarea,.f input[type="text"]{width:100%}
-.f textarea,.f input[type="text"],.f select,.fb input,.fb button{border:none;margin:0}
+.f textarea,.f input[type="text"],.f select,.b{border:none;margin:0}
 .f th{padding-right:5px;text-align:right;font-weight:normal}
 .f td{border:1px #D0D0D0 solid;padding:0}
 .f textarea{height:144px}
 .fm{text-align:center;font-weight:bold}
-.fb input,.fb button{background-color:#fff;padding:1px 3px 2px;border-right:1px #D0D0D0 solid}
+.b{background-color:#fff;padding:1px 3px 2px;border-right:1px #D0D0D0 solid}
 
-.topbar,.pm{background-color:#DCDCDC;padding:0 10px 2px}
-.red{color:#d00}
+.tb,.pm{background-color:#DCDCDC;padding:0 10px 2px}
+.r{color:#d00}
 
 .tm{float:right}
 .tm a{margin:0 3px}
@@ -25,13 +25,13 @@ body>p,body>form,.tw,.tp,.ta,.tm{margin-left:10px;margin-right:10px}
 .np>.pp,.pc.np>div>.v,.np>div>.h{margin:0 0 0 6px}
 .ep>.pp,.pc.ep>div>.v,.ep>div>.h{margin:0 0 0 8px}
 .hw{position:relative;overflow:hidden}
-.tc{position:absolute;bottom:50%}
-.ep>.hw>.tc{height:200px;width:6px;border-bottom:2px #000 solid;border-left:2px #000 solid}
-.np>.hw>.tc{height:2px;width:6px;background-color:#000;}
+.ep>.hw>:first-child,.np>.hw>:first-child{position:absolute;bottom:50%}
+.ep>.hw>:first-child{height:200px;width:6px;border-bottom:2px solid;border-left:2px solid}
+.np>.hw>:first-child{height:2px;width:6px;background-color:#000}
 .ep>:first-child{height:8px;border-left:2px black solid}
 
 .h,.v,.f{max-width:700px}
-.tw .h>div{border:1px solid #D0D0D0;background-color:#D0D0D0}
+.w .h>div{border:1px solid #D0D0D0;background-color:#D0D0D0}
 .fp>.h>div{border:1px solid #ECECEC;background-color:#ECECEC}
 .h>div>div{display:table}
 .h>div>div>*{float:left;margin:0 0 0 5px}
@@ -43,7 +43,7 @@ body>p,body>form,.tw,.tp,.ta,.tm{margin-left:10px;margin-right:10px}
 .apc>div>.v{outline:2px solid red;outline-offset:-2px}
 
 div.rm{text-align:center}
-.tw .t,p.rm{border:1px solid #D0D0D0;background-color:#F9F9F9}
-.tw .t,.pc.fp>.v>.t{padding:2px 5px 3px;border-top:none}
+.w .t,p.rm{border:1px solid #D0D0D0;background-color:#F9F9F9}
+.w .t,.pc.fp>.v>.t{padding:2px 5px 3px;border-top:none}
 .pc>div>.v>.t,.pc>.v>.t{border-top:1px solid #D0D0D0}
 .fp>div>.v>.t,.pc.fp>.v>.t{border-color:#ECECEC}
