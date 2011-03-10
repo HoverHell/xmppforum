@@ -9,33 +9,8 @@
 {% with top_post as post %}
 <div class="tp">
   <div id="sp{{ post.id }}">
-      <div class="h"><div><div>
-        {% avatar_opt post.user %}
-        <span class="un">{{ post.user }}</span>
-        {% if user.is_authenticated %}
-          {% if not user.really_anonymous %}{% ifequal post.user_id user.id %}
-            <a href="{% url snapboard_edit_post post.id %}?next={{ request.get_full_path|urlencode }}#sp{{ post.id }}" onclick="return t_e('{{ post.id }}')">{% trans "edit" %}</a>
-          {% endifequal %}{% endif %}
-          <a href="{% url snapboard_post_reply post.id %}" onclick="return t_r('{{ post.id }}');">{% trans "reply" %}</a>
-          {% if not user.really_anonymous %}<a target="_blank" href="{% url snapboard_watch_post post.id %}" onclick="s_w('{{ post.id }}'); return false;">{% trans "watch" %}</a>{% endif %}
-          {% if not post.freespeech and not user.really_anonymous and not user.is_staff %}<a href="" onclick="s_a('{{ post.id }}');">{% trans "abuse" %}</a>{% endif %}
-          {% if user.is_staff %}<a href="" onclick="s_c('{{ post.id }}');">{{ post.censor|yesno:_("uncensor,censor") }}</a>{% endif %}
-        {% endif %}
-        {% if post.previous_id %}<a href="{% url snapboard_show_revisions post.id %}">{% trans "history" %}</a>{% endif %}
-        <span class="ti">{% reltime post.date %}</span>
-      </div></div></div>
-      <div id="spv{{ post.id }}" class="v">
-        {% if user.is_authenticated and not user.really_anonymous %}
-          <div id="prf{{ post.id }}" class="rm"></div>
-        {% endif %}
-        <div class="t" id="spt{{ post.id }}">{{ post.texth|safe }}</div>
-        {% if user.is_authenticated %}
-          {% if not user.really_anonymous %}{% ifequal post.user_id user.id %}
-            <div style="display:none" id="spe{{ post.id }}"></div>
-          {% endifequal %}{% endif %}
-          <div style="display:none" id="spr{{ post.id }}" ></div>
-        {% endif %}
-      </div>
+    {% include "snapboard/include/post_full_header.html" %}
+    {% include "snapboard/include/post_full_body.html" %}
   </div>
 </div>
 {% endwith %}
@@ -54,7 +29,7 @@
 {% for post, post_info in post_list %}
   {% if not post_info.open %}</div></div>{% endif %}
   <div id="sp{{ post.id }}" {% if not post.is_flat %}{% ifnotequal post.depth listdepth %}{% if post.next_sibling %}class="np{% if post.censor %}{% if not user.is_staff %} pc{% else %} apc{% endif %}{% else %}{% ifnotequal post.abuse 0 %}{% if not user.is_staff %} pr{% else %} apr{% endif %}{% endifnotequal %}{% endif %}"{% else %}class="ep{% if post.censor %}{% if not user.is_staff %} pc{% else %} apc{% endif %}{% else %}{% ifnotequal post.abuse 0 %}{% if not user.is_staff %} pr{% else %} apr{% endif %}{% endifnotequal %}{% endif %}"{% endif %}{% else %}{% if post.censor %}{% if not user.is_staff %}class="pc"{% else %}class="apc"{% endif %}{% else %}{% ifnotequal post.abuse 0 %}{% if not user.is_staff %}class="pr"{% else %}class="apr"{% endif %}{% endifnotequal %}{% endif %}{% endifnotequal %}{% else %}class="fp{% if post.censor %}{% if not user.is_staff %} pc{% else %} apc{% endif %}{% else %}{% ifnotequal post.abuse 0 %}{% if not user.is_staff %} pr{% else %} apr{% endif %}{% endifnotequal %}{% endif %}"{% endif %}>
-    {% if not post.is_flat %}{% ifnotequal post.depth listdepth %}{% if not post.next_sibling %}<div></div>{% endif %}<div class="hw"><div></div>{% endifnotequal %}{% endif %}
+    {% if not post.is_flat %}{% ifnotequal post.depth listdepth %}{% if not post.next_sibling %}<div class="pp"></div>{% endif %}<div class="hw"><div class="pt"></div>{% endifnotequal %}{% endif %}
       {% if post.censor and not user.is_staff %}
         <div id="spv{{ post.id }}" class="v"><div id="spt{{ post.id }}" class="t">Censored post <a href="{% url snapboard_thread_post post.id %}">#{{ post.id_form_t }}</a>.</div></div>
       {% else %}
@@ -65,7 +40,7 @@
         {% endif %}
       {% endif %}
     {% if not post.is_flat %}{% ifnotequal post.depth listdepth %}</div>{% endifnotequal %}{% endif %}
-    {% if post.is_flat %}<div>{% else %}{% ifequal post.depth listdepth %}<div>{% else %}<div class="pp">{% endifequal %}{% endif %}
+    {% if post.is_flat %}<div>{% else %}{% ifequal post.depth listdepth %}<div>{% else %}<div class="pw">{% endifequal %}{% endif %}
       {% if post.censor and not user.is_staff %}{% else %}
         {% if not post.numanswers or post.nsib %}
           {% include "snapboard/include/post_full_body.html" %}

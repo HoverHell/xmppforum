@@ -1,4 +1,4 @@
-#x{font-size:13px;margin:0}
+#x{font-family:arial;margin:0}
 
 #x>p,#x>form,.w,.tp,.ta,.tm{margin-left:10px;margin-right:10px}
 .ta,.pm,.tp,.w>*,.w.st,.tp .v,.f{margin-top:8px}
@@ -21,21 +21,21 @@
 
 .np{padding-top:8px;border-left:2px #000 solid}
 .np,.ep{margin:0 0 0 2px}
-.np>.pp,.pc.np>div>.v,.np>div>.h{margin:0 0 0 6px}
-.ep>.pp,.pc.ep>div>.v,.ep>div>.h{margin:0 0 0 8px}
+.np>.pw,.pc.np>div>.v,.np>div>.h{padding:0 0 0 6px}
+.ep>.pw,.pc.ep>div>.v,.ep>div>.h{padding:0 0 0 8px}
 .hw{position:relative;overflow:hidden}
-.ep>.hw>:first-child,.np>.hw>:first-child{position:absolute;bottom:50%}
-.ep>.hw>:first-child{height:200px;width:6px;border-bottom:2px solid;border-left:2px solid}
-.np>.hw>:first-child{height:2px;width:6px;background-color:#000}
-.ep>:first-child{height:8px;border-left:2px black solid}
+.ep>.hw>.pt,.np>.hw>.pt{position:absolute;bottom:50%}
+.ep>.hw>.pt{height:200px;width:6px;border-bottom:2px solid;border-left:2px solid}
+.np>.hw>.pt{height:2px;width:6px;background-color:#000}
+.ep>.pp{height:8px;border-left:2px black solid}
 
-.h,.v,.f{max-width:700px}
+.h,.v,.f{max-width:900px}
 .w .h>div{border:1px solid #D0D0D0;background-color:#D0D0D0}
 .fp>.h>div{border:1px solid #ECECEC;background-color:#ECECEC}
-.h>div>div{display:table}
-.h>div>div>*{float:left;margin:0 0 0 5px}
-.h>div>div>img,.tp .h .un{margin:0}
-.tp .h img{margin:0 5px 0 0}
+.h>div>div{display:table-row}
+.h>div>div>*{display:table-cell;vertical-align:top}
+.hm{padding-left:5px}
+.tp .hm{padding:0}
 .un{font-weight:bold}
 .ti{white-space:nowrap}
 .apr>div>.v{outline: 1px solid #D050D0;outline-offset:-1px}
