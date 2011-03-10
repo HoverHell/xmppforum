@@ -1,10 +1,9 @@
-table{border-spacing:0}
 #x{font-size:13px;margin:0}
 
 #x>p,#x>form,.w,.tp,.ta,.tm{margin-left:10px;margin-right:10px}
 .ta,.pm,.tp,.w>*,.w.st,.tp .v,.f{margin-top:8px}
 
-.f{border-collapse:collapse}
+.f{border-collapse:collapse;border-spacing:0}
 .f,.f textarea,.f input[type="text"]{width:100%}
 .f textarea,.f input[type="text"],.f select,.b{border:none;margin:0}
 .f th{padding-right:5px;text-align:right;font-weight:normal}
