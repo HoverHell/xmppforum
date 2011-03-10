@@ -468,6 +468,7 @@ def thread_post(request, post_id=None, post=None, depth="v", subtopic=True):
         if nsib:
             res = res + list(sibqs)
         post_list = get_flathelper_list(qs=res)
+        top_post.is_flat = False  # fixit.
         #top_post = None  # there ain't no top_post in here!..  But not a problem, okay.
         # (and actually can show it; but probably don't need)
     else:
