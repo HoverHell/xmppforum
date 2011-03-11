@@ -17,13 +17,15 @@ def staff_required(view_func):
             # The user is valid. Continue to the admin page.
             return view_func(request, *args, **kwargs)
         # Only users with staves are allowed to do that!
-        raise PermissionDenied, "You should be an admin to do that."
+        raise PermissionDenied("You should be an admin to do that.")
     from functools import wraps
     return wraps(view_func)(_checklogin)
 
 
 ## Other RPC stuff.
 from xmppface.xmppbase import success_or_reverse_redirect
+
+
 def r_getreturn(request, rpc=False, rpcdata={}, successtext=None,
   nextr=None, postid=None):
     """ Common function for RPCable views to easily return some appropriate
@@ -40,7 +42,7 @@ def r_getreturn(request, rpc=False, rpcdata={}, successtext=None,
         nextr = nextr or request.GET.get('next')
         if nextr:  # know where should return to.
             return HttpResponseRedirect(nextr)
-        else:  # explicitly return 
+        else:  # explicitly return
             if postid:  # we have a post to return to.
                 # msg isn't going to be used, though.
                 return success_or_reverse_redirect('snapboard_thread_post',
@@ -64,6 +66,8 @@ TIMEDELTA_UNITS = zip(TIMEDELTA_NAMES, TIMEDELTA_SIZES)
 
 
 from datetime import timedelta
+
+
 def format_timedelta(delta, maxlen=TIMEDELTA_MAXLEN):
     """ Return a time delta (seconds or timedelta) as human-readable.  """
     if isinstance(delta, timedelta):
@@ -90,13 +94,15 @@ def format_timedelta(delta, maxlen=TIMEDELTA_MAXLEN):
 ## Diff stuff.
 import re
 import difflib
+
+
 def diff_processtext(text):
     """ Prepares the supplied post text to be diff'ed.  """
     from snapboard.templatetags.extras import render_filter
     texth = render_filter(text)  # -> html
     textl = re.findall(r'<[^>]*?>|[^<]+', texth)  # -> tags&text
     out = []
-    for item in textl: # -> tags & words.
+    for item in textl:  # -> tags & words.
         if item.startswith("<"):
             out.append(item)
         else:

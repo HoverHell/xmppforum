@@ -1,4 +1,4 @@
 {% load extras %}
 {% load plaintexttags %}
-#{{ thr.id }}/{{ post.id_form_b }} | <a href="{{ SITE_DOMAIN }}{% url snapboard_thread_post %}">{{ post.id }}</a>
-{%ws%}by {{ post.user }}, {% reltime post.date %}{% if post.previous %} (REVISED){% endif %}
+<a href="{{ SITE_DOMAIN }}{% url snapboard_thread_post post.id %}">#{{ post.id_form_m }}</a>
+{%ws%}by {{ post.user }}, {% reltime post.date %}{% if post.previous_id %} (REVISED){% endif %}

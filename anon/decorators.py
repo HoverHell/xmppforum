@@ -17,7 +17,7 @@ if ANONYMOUS_NAME:
         User for particular views.  Sets user.really_anonymous if replaced. 
         Configurable by ANONYMOUS_NAME in the settings.  """
         def anon_decorate(request, *args, **kwargs):
-            """ Internal wrapper of anonymous_login_rquired.  """
+            """ Internal wrapper of anonymous_login_required.  """
             if request.user.is_authenticated():
                 return function(request, *args, **kwargs)
             else:  # Use Anonymous! Just for this request, of course.

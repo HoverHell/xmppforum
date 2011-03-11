@@ -27,7 +27,7 @@ cmdpatterns = patterns('',
     (r'^(?i)who(?:ami)?$',
       direct_to_template,
       {'template': 'snapboard/whoami.xmpp'}),
-    
+
     ## Main indexes.
     (r'^[#!](?P<thread_id>\d+)$', thread, {}, 'snapboard_thread'),
     # TODO: thread_post?
@@ -39,13 +39,13 @@ cmdpatterns = patterns('',
     (r'^[#!]c(?P<cat_id>\d+)$',
       category_thread_index, {}, 'category_thread_index'),
 
-    (r'^[#!]c(?P<cat_id>\d+) (?P<POST_subject>.+?)\n(?P<POST_post>.(.*\n?)+)',
+    (r'^[#!]c(?P<cat_id>\d+) (?P<POST_subject>.+?)\n(?P<POST_text>.(.*\n?)+)',
       new_thread, {}, 'snapboard_new_thread'),
     # TODO: edit_settings?
 
-    (r'^[#!]' + post_id_re_f + r'? (?P<POST_post>(.*\n?)+)',
+    (r'^[#!]' + post_id_re_f + r'? (?P<POST_text>(.*\n?)+)',
       post_reply, {}, 'snapboard_post_reply'),
-    (r'^[#!]e' + post_id_re_f + r'? (?P<POST_post>(.*\n?)+)',
+    (r'^[#!]e' + post_id_re_f + r'? (?P<POST_text>(.*\n?)+)',
       edit_post, {}, 'snapboard_edit_post'),
     (r'^r( ' + post_id_re_f + r'?( (?P<resource>.+)?)?)?$',
       xmppresourcify, {}, 'snapboard_xmppresourcify'),  # XMPP-specific.

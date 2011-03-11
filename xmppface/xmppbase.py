@@ -139,30 +139,24 @@ class XmppResponse(dict):
               django.utils.html.strip_tags(self.imgfix(html))).rstrip()
 
     def imgfix(self, htmlsource):
-        """
-        Replaces all <img> tags in htmlsource with some more
-        plaintext-representative form.
-        """
+        """ Replaces all <img> tags in htmlsource with some more
+        plaintext-representative form.  """
+        # Horrible but complete.
         img_tag_re = re.compile(r"</?img((\s+(\w|\w[\w-]*\w)(\s*=\s*" \
-          "(?:\".*?\"|'.*?'|[^'\">\s]+))?)+\s*|\s*)/?>")  # Horrible but proper.
-        # ? Where should be all those compiled regexes stored?
+          "(?:\".*?\"|'.*?'|[^'\">\s]+))?)+\s*|\s*)/?>")
+
         def img_repr(imgstr):
             """
             Converts an HTML img tag string into informative plaintext:
             [image: http://some/img.png alt:"..." title:"..."]
             """
             img_param_re = r"(%s)\s*=\s*(\".*?\"|'.*?'|[^'\">\s]+)"
-            img_src_re = re.compile(img_param_re%"src")  # More special for us.
-            repr_params = ["alt", "title"] # Generic interesting params.
+            img_src_re = re.compile(img_param_re % "src")  # More special for us.
+            #repr_params = ["alt", "title"]  # Generic interesting params.
+            repr_params = []
             srcmatch = img_src_re.search(imgstr)
             if srcmatch:
-                result = '[img: ' + srcmatch.groups()[1]
-                for param in repr_params:
-                    parammatch = re.search(img_param_re%param, imgstr)
-                    if parammatch:
-                        result += ' %s: %s' % (param,
-                          parammatch.groups()[1])
-                result += '] '
+                result = '[img: ' + srcmatch.groups()[1] + ']'
                 return result
             else:  # No src? Not a proper image (or a closing tag)
                 return ''
@@ -198,7 +192,7 @@ class XmppIq(dict):
     """
     Example:
     <iq type="get" to="hell@hell.orts.ru">
-    <vCard xmlns="vcard-temp" version="2.0" 
+    <vCard xmlns="vcard-temp" version="2.0"
      prodid="-//HandGen//NONSGML vGen v1.0//EN"/></iq>
     """
     def __init__(self, iqtype='get', **kwargs):
@@ -242,10 +236,12 @@ class XmppPresence(dict):
         return simplejson.dumps(selfrepr)
 
 
-# XXX: Not very good to do that, but it works.
+# ! XXX: Not very good to do that, but it works.
 xmppoutqueue = None
 connecting = True
 unsent = []
+
+
 def connkeeper():
     """
     A function that periodically tries to connect to the specifiet socket
@@ -289,12 +285,13 @@ def connkeeper():
 #start_new_thread(connkeeper, ())
 connecting = False
 
+
 def send_xmpp_message(msg):
     """
     Common function to send a XMPP message through running XMPP connection
     provider. Should generally be called with XmppResponse argument with all
     necessary fields set.
-    
+
     Starts a connkeeper thread if necessary.
     """
     global xmppoutqueue
@@ -317,15 +314,15 @@ def send_xmpp_message(msg):
                 pass  # (probably it was None)
             _log.debug("    Starting the reconnector... ")
             start_new_thread(connkeeper, ())
-        
 
-def render_to_response(template_name, xrargs=None, *args, **kwargs):
+
+def render_to_response(template_name, *args, **kwargs):
     """ A render_to_response wrapper that allows using it for both
     HttpRequest and XmppRequest.  `template_name` is explicit since it is
     modified to end with '.xmpp' or '.html' depending on the request.
     XMPP response rendering can only be used with RequestContext. """
     from django.shortcuts import render_to_response as render_to_response_orig
-    xrargs = xrargs if xrargs is not None else {}
+    xrargs = kwargs.pop('xrargs', {})
     # There should be other ways to determine an Xmpp request, no?
     # Or it would be 'other function'.
     # Also, may args[0] not possibly contain template name?
@@ -341,7 +338,7 @@ def render_to_response(template_name, xrargs=None, *args, **kwargs):
         return XmppResponse(
           django.template.loader.render_to_string(
             re.sub(r'(\.html|\.xmpp)?$', '.xmpp', template_name),
-            *args, **kwargs), 
+            *args, **kwargs),
           user=request.user, **xrargs)
     else:  # Not Xmpp. Not our business.
         ## Can even require using '.html' in calls, but likely should not.
@@ -357,9 +354,14 @@ def xmpp_loginreq_handler(request, function, *args, **kwargs):
 
 
 def get_login_required_wrapper(xmpp_unreg_view=xmpp_loginreq_handler):
+    """ Generates a login_required wrapper with the specified view handling
+    the XMPP unregistered requests.  """
     def login_required_towrap(function=None):
+        """ login_required variation with a custom xmpp_unreg_view.  """
         http_login_required = login_required_orig(function)
+
         def decorate(request, *args, **kwargs):  # request is explicit here.
+            """ Decorated with login_required function.  """
             if isinstance(request, XmppRequest):  # ! XXX: request.is_xmpp()
                 if request.user.is_authenticated():
                     return function(request, *args, **kwargs)

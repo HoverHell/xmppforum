@@ -64,6 +64,7 @@ except Exception:  # whatever.  XMPP links won't work though.
     SITE_NAME = ""
     SITE_DOMAIN = ""
 
+
 def snapboard_default_context(request):
     """ Provides some default information for all templates.
 
@@ -78,13 +79,16 @@ def snapboard_default_context(request):
       'SITE_DOMAIN': SITE_DOMAIN,
       }
 
+
 def user_settings_context(request):
     return {'user_settings': request.user.get_user_settings()}
+
 
 def timedelta_now_context(request):
     """ A somewhat weird context processor that adds now() into the context
     so it can be called exactly once per request.  """
     return {'now': time.mktime(datetime.datetime.now().timetuple())}
+
 
 extra_processors = [user_settings_context, snapboard_default_context,
   timedelta_now_context]
@@ -93,7 +97,7 @@ extra_processors = [user_settings_context, snapboard_default_context,
 def _get_that_post(request, post_form_id=None, post_id=None):
     """ Helper function for allowing post-related commands unto unspecified
     "last notified" post.  Raises Http404 if cannot.
-    
+
     Depends on django cache database."""
     if post_form_id:
         return Post.get_post_or_404(post_form_id)
@@ -113,13 +117,9 @@ def _get_that_post(request, post_form_id=None, post_id=None):
         try:
             post = Post.objects.get(pk=postid)
         except Post.DoesNotExist:
-            raise Http404, "Dunno such. Must've vanished. Specify precise post."
+            raise Http404("Dunno such. Must've vanished. Specify precise post.")
     else:
-        raise Http404, "Dunno any. Specify precise post."
-
-
-
-
+        raise Http404("Dunno any. Specify precise post.")
 
 
 ## RPC/similar stuff:
@@ -170,7 +170,7 @@ def r_watch_post(request, post_form_id=None, post_id=None, resource=None,
     # ^ 'auto' fetching should only be done from XMPP.
     thr = post.thread
     if not thr.category.can_read(request.user):
-        raise PermissionError, "You are not allowed to do that"
+        raise PermissionError("You are not allowed to do that")
     try:
         ## ! XXX: This doesn't look very good.
         ## ? Check if user's already subscribed to that branch?
@@ -195,15 +195,16 @@ def r_watch_post(request, post_form_id=None, post_id=None, resource=None,
           'msg':_('This thread has been added to your favorites.')},
           "Watch added.", postid=post.id)
 
+
 #@userbannable
 @login_required
 def r_abusereport(request, post_id=None, rpc=False):
-    """ Report some inappropriate post for the admins to consider censoring. 
+    """ Report some inappropriate post for the admins to consider censoring.
     """
     post = get_object_or_404(Post, pk=post_id)
     thr = post.thread
     if not thr.category.can_read(request.user):
-        raise PermissionError, "You are not allowed to do that"
+        raise PermissionError("You are not allowed to do that")
     abuse, created = AbuseReport.objects.get_or_create(
       submitter = request.user,
       post = post,
@@ -249,7 +250,7 @@ def rpc_gettoggler(objclass, field, wrap_with=staff_required,
   rpcreturn=None, xmppreturn=None):
     """ A generator function which creates a view for toggling some field
     over http/rpc/xmpp.  Uses staff_required by default.
-    
+
     rpcreturn is function of state that returns data to be JSONed to the RPC
     client.  """
     def _toggle_that(request, oid=None, rpc=False, state=None):
@@ -317,10 +318,10 @@ def thread(request, thread_id):
 @anonymous_login_required
 def thread_post(request, post_id=None, post_form_id=None, post=None,
   depth="v", subtopic=True):
-    """ Renders (part of) the thread starting from the specified post. 
+    """ Renders (part of) the thread starting from the specified post.
     Passes the `subtopic` parameter to the template, which annotates it with
-    "Showing a part of the thread" message. """ 
-    
+    "Showing a part of the thread" message. """
+
     if post is not None:
         top_post = post
     elif post_id is not None or post_form_id is not None:
@@ -333,10 +334,10 @@ def thread_post(request, post_id=None, post_form_id=None, post=None,
 
     thr = top_post.thread
     if not thr.category.can_read(request.user):
-        raise PermissionError, "You are not allowed to read this thread"
+        raise PermissionError("You are not allowed to read this thread")
 
     render_dict = {}
-    
+
     ## Helper for retreiving int values from request.GET
     def l_getintparam(param, default=''):
         prm = request.GET.get(param, '')
@@ -365,7 +366,7 @@ def thread_post(request, post_id=None, post_form_id=None, post=None,
     slice = page_obj.object_list.slice
     # -1 because last gets included too this way.
     pinterval = l_getinterval(top_post.path, slice.start, slice.stop - 1)
-    
+
     maxdepthd = l_getintparam('md', 28)
     nfsib = l_getintparam('nfsib', None)  # full next siblings
 
@@ -413,7 +414,7 @@ def thread_post(request, post_id=None, post_form_id=None, post=None,
       #  'text', 'path', 'thread', 'ip',
       #).select_related(depth=1)
       )
-      
+
     # ! XXX: temporary hack?
     top_post.abuse = top_post.sb_abusereport_set.count()
 
@@ -439,7 +440,7 @@ def thread_post(request, post_id=None, post_form_id=None, post=None,
           ).select_related(depth=1
           )
         sibqs = sibqs[:nsib]
-        
+
     ## Only enable pagination filtering if a page is specified.
     ## (Can grab a specific page if willing.)
     if request.GET.get('page', ''):
@@ -506,14 +507,14 @@ def thread_post(request, post_id=None, post_form_id=None, post=None,
         listdepth = 2
 
     # Additional note: annotating watched posts in the tree can be done, for
-    # example, by using 
+    # example, by using
     # WatchList.objects.filter(post__in=pl, user=request.user),
     # and, in the template, "{% post.id in watched_list %}".
     # (select related, '[wi.post.id for wi in ...]' and etc. might also be
     # needed).
     # This, of course, requires that post lists are retreived here in view,
     # rather than in the template.
-    
+
     render_dict.update({
       'top_post': top_post,
       'post_list': post_list,
@@ -524,7 +525,7 @@ def thread_post(request, post_id=None, post_form_id=None, post=None,
       'listdepth': listdepth,  # at which depth the post_list is.
       'maxdepth': maxdepth,
     })
-    
+
     return render_to_response('snapboard/thread',
       render_dict,
       context_instance=RequestContext(request, processors=extra_processors))
@@ -534,7 +535,7 @@ def thread_latest(request, thread_id, num_posts=10):
     """ Show last (newest) posts in the specified thread.  """
     thr = get_object_or_404(Thread, pk=thread_id)
     if not thr.category.can_read(request.user):
-        raise PermissionError, "You are not allowed to read this thread"
+        raise PermissionError("You are not allowed to read this thread")
 
     post_list = Post.objects.filter(thread=thread_id).order_by("-odate"
       ).select_related(depth=2)
@@ -568,7 +569,7 @@ def _redirect_to_posts(target1, target2=None):
     res = reverse('snapboard_thread_post',
       args=(target1.id,),)
     if target2:
-      res += u'#sp%s' % target2.id  # ? XXX: Use id_form_t?
+        res += u'#%s' % target2.id_form_m
     return res
 
 
@@ -588,15 +589,16 @@ def post_reply(request, post_form_id=None, post_id=None, rpc=False):
             postobj = parent_post.add_child(
               thread=thr,
               user=request.user,
-              **(postform.cleaned_data)  # text and whatnot.
-            )
+              **(postform.cleaned_data))  # text and whatnot.
             postobj.save()
             postobj.notify()
             return success_or_redirect(request,
               _redirect_to_posts(parent_post, postobj),
-              u"Posted successfully: %s." % postobj.id_form_t())
+              u"Posted successfully.")
+        else:
+            pass  # ???
     else:
-        context = {'postform': PostForm(), 
+        context = {'postform': PostForm(),
           "parent_post": parent_post}
         if rpc:  # get form, not page.
             return {
@@ -617,13 +619,13 @@ def edit_post(request, post_form_id=None, post_id=None, rpc=False):
     """ Edit an existing post.  """
     # with rpc=true returns dict with full form HTML.
     orig_post = _get_that_post(request, post_form_id, post_id)
-        
+
     if orig_post.user != request.user \
      or not orig_post.thread.category.can_post(request.user) \
      or not orig_post.thread.category.can_read(request.user) \
      or orig_post.thread.closed:
         # Might be not in sync with the interface in thread.
-        raise PermissionError, "You are not allowed to edit that."
+        raise PermissionError("You are not allowed to edit that.")
 
     if request.POST and not rpc:
         # For editing: we modify the post in-place and save the previous
@@ -670,14 +672,14 @@ def show_revisions(request, post_form_id=None, post_id=None, rpc=False):
         post = post.previous
         posts.append(post)
     posts = posts[::-1]  # up->down -- old->new
-    
+
     ## Diff v2:
     prev_post = None
     for post in posts:
         if prev_post is not None:
             post.difflist = diff_posts(prev_post, post)
         prev_post = post
-    
+
     if rpc:  # return JSONed data of all revisions.
         data = [{
           'text': post.text,
@@ -708,25 +710,26 @@ def new_thread(request, cat_id):
             cat_id = threadform.cleaned_data.pop('category')
             category = get_object_or_404(Category, pk=cat_id)
             if not category.can_create_thread(request.user):
-                raise PermissionError, "You cannost post in this category"
+                raise PermissionError("You cannost post in this category")
+
             ## To make sure no postless threads remain.
             #with transaction.commit_on_success():  ## django1.3 required :(
+
             @transaction.commit_on_success
             def make_thread():
                 nthread = Thread(
                   category=category,
                   #subject=threadform.cleaned_data['subject'],
-                  **(threadform.cleaned_data)
-                  )
+                  **(threadform.cleaned_data))
                 nthread.save()
                 # create the post
                 rpost = Post.add_root(
                   user=request.user,
                   thread=nthread,
-                  **(postform.cleaned_data)
-                  )
+                  **(postform.cleaned_data))
                 rpost.save()
                 return nthread, rpost
+
             nthread, rpost = make_thread()
             # redirect to new thread / return success message
             return success_or_reverse_redirect('snapboard_thread',
@@ -758,8 +761,7 @@ def watchlist(request):
     post_list = [
        w.post for w in
         WatchList.objects.select_related(depth=3).filter(user=request.user)
-       if w.post.thread.category.can_view(request.user)
-    ]
+       if w.post.thread.category.can_view(request.user)]
     # Pagination? Looks nice to allow in-url parameter like "?ppp=100".
 
     return render_to_response('snapboard/watchlist',
@@ -771,7 +773,7 @@ def watchlist(request):
 def category_thread_index(request, cat_id):
     cat = get_object_or_404(Category, pk=cat_id)
     if not cat.can_read(request.user):
-        raise PermissionError, "You cannot list this category"
+        raise PermissionError("You cannot list this category")
     thread_list = Thread.view_manager.get_category(cat_id)
     render_dict = ({'title': ''.join((_("Category: "), cat.label)),
       'category': cat, 'threads': thread_list})
@@ -793,9 +795,9 @@ def thread_index(request, num_limit=None, num_start=None,
     # ! This should be common with few more views, probably.
     if request.is_xmpp():  # Apply Xmpp-specific limits
         # ? int() failure would mean programming error... or not?
-        num_start = int(num_start or 1)- 1  # Starting from humanized '1'.
+        num_start = int(num_start or 1) - 1  # Starting from humanized '1'.
         num_limit = int(num_limit or 20)
-        thread_list = thread_list[num_start:num_start+num_limit]
+        thread_list = thread_list[num_start:num_start + num_limit]
     render_dict = {'title': _("Recent Discussions"), 'threads': thread_list}
     return render_to_response(template_name,
       render_dict,
@@ -918,7 +920,7 @@ def edit_settings(request):
 def manage_group(request, group_id):
     group = get_object_or_404(Group, pk=group_id)
     if not group.has_admin(request.user):
-        raise PermissionError, "What?"
+        raise PermissionError("What?")
     render_dict = {'group': group, 'invitation_form': InviteForm()}
     if request.GET.get('manage_users', False):
         render_dict['users'] = group.users.all()
@@ -940,7 +942,7 @@ def manage_group(request, group_id):
 def invite_user_to_group(request, group_id):
     group = get_object_or_404(Group, pk=group_id)
     if not group.has_admin(request.user):
-        raise PermissionError, "What?"
+        raise PermissionError("What?")
     if request.method == 'POST':
         form = InviteForm(request.POST)
         if form.is_valid():
@@ -970,7 +972,7 @@ def invite_user_to_group(request, group_id):
 def remove_user_from_group(request, group_id):
     group = get_object_or_404(Group, pk=group_id)
     if not group.has_admin(request.user):
-        raise PermissionError, "What?"
+        raise PermissionError("What?")
     if request.method == 'POST':
         done = False
         user = User.objects.get(pk=int(request.POST.get('user_id', 0)))
@@ -995,7 +997,7 @@ def remove_user_from_group(request, group_id):
             request.user.message_set.create(
               message=_('There was nothing to do for user %s.') % user)
     else:
-        raise Http404, "Ain't here!"  # ?
+        raise Http404("Ain't here!")  # ?
     return HttpResponse('ok')
 
 
@@ -1006,7 +1008,7 @@ def grant_group_admin_rights(request, group_id):
     won"t let it.  """
     group = get_object_or_404(Group, pk=group_id)
     if not group.has_admin(request.user):
-        raise PermissionError, "What?"
+        raise PermissionError("What?")
     if request.method == 'POST':
         user = User.objects.get(pk=int(request.POST.get('user_id', 0)))
         if not group.has_user(user):
@@ -1024,17 +1026,17 @@ def grant_group_admin_rights(request, group_id):
             send_notifications(list(group.admins.all()), 'new_group_admin',
               {'new_admin': user, 'group': group})
     else:
-        raise Http404, "Ain't here!"
+        raise Http404("Ain't here!")
     return HttpResponse('ok')
 
 
 @login_required
 def discard_invitation(request, invitation_id):
     if not request.method == 'POST':
-        raise Http404, "Ain't here!"
+        raise Http404("Ain't here!")
     invitation = get_object_or_404(Invitation, pk=invitation_id)
     if not invitation.group.has_admin(request.user):
-        raise PermissionError, "You can't!"
+        raise PermissionError("You can't!")
     was_pending = invitation.accepted is not None
     invitation.delete()
     if was_pending:
@@ -1049,7 +1051,7 @@ def discard_invitation(request, invitation_id):
 @login_required
 def answer_invitation(request, invitation_id):
     invitation = get_object_or_404(Invitation, pk=invitation_id,
-      sent_to=request.user) # requires testing!
+      sent_to=request.user)  # requires testing!
     form = None
     if request.method == 'POST':
         if invitation.accepted is not None:
@@ -1061,7 +1063,7 @@ def answer_invitation(request, invitation_id):
                 invitation.accepted = True
                 request.user.message_set.create(message=_('You are now '
                   'a member of the group %s.') % invitation.group.name)
-                send_notifications( list(invitation.group.admins.all()),
+                send_notifications(list(invitation.group.admins.all()),
                   'new_group_member', {'new_member': request.user,
                   'group': invitation.group})
             else:
@@ -1096,13 +1098,13 @@ def xmpp_get_help(request, subject=None):
     Can theoretically be used in the web view as well.  """
     subject = subject or "main"
     try:
-        return render_to_response('snapboard/xmpp_help/%s'%subject, 
+        return render_to_response('snapboard/xmpp_help/%s' % subject,
           None,
           context_instance=RequestContext(request,
             processors=extra_processors),
           xrargs={'pttype': 'st'})
     except TemplateDoesNotExist:
-        raise Http404, "No such help subject"
+        raise Http404("No such help subject")
 
 
 RPC_ACTION_MAP = {
@@ -1117,4 +1119,3 @@ RPC_ACTION_MAP = {
   "getreplyform": post_reply,
   "getrevisions": show_revisions,
   }
-

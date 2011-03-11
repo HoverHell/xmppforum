@@ -21,7 +21,7 @@ from django.views.generic.simple import direct_to_template
 from snapboard.models import Post
 post_id_re = Post.id_m_re_f
 # dual id regex.
-post_id_re_d = r'(?:(?P<post_id>\d+)|(?P<post_form_id>' + post_id_re + r'))'
+post_id_re_d = r'((?P<post_id>\d+)|(?P<post_form_id>' + post_id_re + r'))'
 
 feeds = {'latest': LatestPosts}
 
@@ -106,7 +106,7 @@ urlpatterns = patterns('',
         js_info_dict, 'snapboard_js_i18n'),
 
     (r'^mv/volatile.css',
-      cache_page(direct_to_template, 3600*24*7),
+      cache_page(direct_to_template, 3600 * 24 * 7),
       {'template': 'snapboard/volatile.css'},
       'snapboard_vcss'),
 )
