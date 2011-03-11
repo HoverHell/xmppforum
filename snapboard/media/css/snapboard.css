@@ -33,7 +33,6 @@ form>table th{text-align:right}
 .ep>.pp{height:8px;border-left:2px black solid}
 
 .h,.v,.f{max-width:900px}
-
 .h>div>div{display:table;width:100%}
 .w .h>div,.w .t,p.rm{border-right:1px solid #D0D0D0;border-left:1px solid #D0D0D0;}
 .w .h>div>div{border-top:1px solid #D0D0D0;border-bottom:1px solid #D0D0D0;background-color:#D0D0D0}
@@ -49,6 +48,6 @@ form>table th{text-align:right}
 div.rm{text-align:center}
 .w .t,p.rm{background-color:#F9F9F9}
 .w .t>div,.pc.fp>.v>.t>div{padding:2px 5px 3px}
-.pc>.v>.t>div{border-top:1px solid #D0D0D0}
-.fp.pc>.v>.t>div{border-top-color:#ECECEC}
+.pc>.v>.t>div,.pc>div>.v>.t>div{border-top:1px solid #D0D0D0}
+.fp.pc>.v>.t>div{border-color:#ECECEC}
 .l>.v>.t>div,.l>div>.v>.t>div{border-bottom:1px solid #D0D0D0}
