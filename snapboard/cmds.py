@@ -27,7 +27,7 @@ cmdpatterns = patterns('',
     (r'^(?i)who(?:ami)?$',
       direct_to_template,
       {'template': 'snapboard/whoami.xmpp'}),
-    
+
     ## Main indexes.
     (r'^[#!](?P<thread_id>\d+)$', thread, {}, 'snapboard_thread'),
     # TODO: thread_post?

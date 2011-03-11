@@ -106,7 +106,7 @@ urlpatterns = patterns('',
         js_info_dict, 'snapboard_js_i18n'),
 
     (r'^mv/volatile.css',
-      cache_page(direct_to_template, 3600*24*7),
+      cache_page(direct_to_template, 3600 * 24 * 7),
       {'template': 'snapboard/volatile.css'},
       'snapboard_vcss'),
 )

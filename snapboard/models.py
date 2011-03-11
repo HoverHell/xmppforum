@@ -34,7 +34,7 @@ def get_adv_annotated_list(self=None, qs=None):
 
     if qs is None:
         qs = self.get_tree(self)
-    
+
     for node in qs:
         depth = node.get_depth()
         if start_depth is None:
@@ -48,7 +48,7 @@ def get_adv_annotated_list(self=None, qs=None):
                 prev_siblings.append(None)
         # shouldn't be needed, but can:
         #prev_siblings += [None] * (rdepth - len(prev_siblings) + 1)
-        
+
         if prev_siblings[rdepth] == None:  # it's first here.
             prev_siblings[rdepth] = node
         else:  # ... that one wasn't last.
@@ -57,7 +57,7 @@ def get_adv_annotated_list(self=None, qs=None):
 
         # Slightly inappropriate, but might be better than to use info.
         node.next_sibling = None  # might be reassigned later.
-        
+
         if ddepth < 0:  # depth < prev_depth:
             info['close'] = range(0, -ddepth)
             # previous *deeper* nodes are not possible siblings.
@@ -76,9 +76,9 @@ def get_adv_annotated_list(self=None, qs=None):
 def get_flathelper_list(self=None, qs=None):
     """ Adds few more information to annotated list (retreived from
     specified node) to display "straight" branches as flat.
-    
+
     Can be used on a queryset as a function.
-    
+
     Can be made obsolete in the current form.  """
     # hack-helper for extra data. Will probably be removed later.
     if qs is None:
@@ -397,7 +397,7 @@ class Post_base(models.Model):
       verbose_name=_('date'))
     ip = models.IPAddressField(verbose_name=_('ip address'),
       blank=True, null=True)
-    
+
     class Meta:
         abstract = True
 
@@ -430,7 +430,7 @@ class Post_revisions(Post_base):
 
     # Related names here look somewhat confusing.
     # AFAIU, 'prev' points to the next newer edit of the post same as
-    # 'revision', and 'rev' - to the next older version, same as 'previous'. 
+    # 'revision', and 'rev' - to the next older version, same as 'previous'.
     ## But actually, is 'revision' necessary?
     previous = models.ForeignKey("self", related_name="prev",
       editable=False, null=True, blank=True)
@@ -464,23 +464,23 @@ class Post(Post_base, mp_tree.MP_Node):
     ## Revisions are in a different model here.
     previous = models.ForeignKey(Post_revisions, related_name="prev_last",
       editable=False, null=True, blank=True)
-    
+
     tlid = models.IntegerField(null=True, blank=True, verbose_name=_('thread-local id'))
     #objects = models.Manager()  # needs to be explicit due to below
     #view_manager = managers.PostManager()
-    
+
     # ! Tree
     # ! Incompatible with date.auto_now_add=True
     #node_order_by = ['date']
-    
+
     # ! get_descendants_group_count could be useful.
-    
+
     # IDs. id_form_X <-> from_id_X
     #      ( String  <-> Post  )
     def id_form_a(self):
         # Simple post number.
         return str(self.id)
-    
+
     @classmethod
     def from_id_a(cls, ida):
         # throws ValueError if int() fails.
@@ -567,7 +567,7 @@ class Post(Post_base, mp_tree.MP_Node):
 
         # disregard any modifications to ip address
         self.ip = threadlocals.get_current_ip()
-        
+
         # ! XXX: Not really appropriate to do it here?..
         from snapboard.templatetags.extras import render_filter
         self.texth = render_filter(self.text)
@@ -584,7 +584,7 @@ class Post(Post_base, mp_tree.MP_Node):
         #from django.db import models, connection, transaction
         from django.db import connection, transaction
         lid_s = "tlid"
-        
+
         if getattr(self, lid_s, None) and not force:
             return  # do not replace it with higher.
 
@@ -593,7 +593,7 @@ class Post(Post_base, mp_tree.MP_Node):
         local_fields = ('thread',)  # fields that define 'local'.
         # ! It is also possible to include a filtered QS (i.e. with `WHERE`)
         #  for defining 'local' (or even replace a list of fields with it)
-        
+
         local_sql_l = []
         local_values = []
         for field_name in local_fields:
@@ -618,7 +618,7 @@ class Post(Post_base, mp_tree.MP_Node):
         connection.cursor().execute(sql, values)
         transaction.commit_unless_managed()
     update_lid.alters_data = True
-    
+
     def update_fields(self, **kwargs):
         """ A small helper function for slightly more neat code.   """
         return self.__class__.objects.filter(pk=self.pk).update(**kwargs)
@@ -769,7 +769,7 @@ def get_user_settings(user):
 User.get_user_settings = get_user_settings
 AnonymousUser.get_user_settings = get_user_settings
 
-   
+
 class UserBan(models.Model):
     '''
     This bans the user from posting messages on the forum. He can still log in.
@@ -813,7 +813,7 @@ class IPBan(models.Model):
     class Meta:
         verbose_name = _('banned IP address')
         verbose_name_plural = _('banned IP addresses')
-   
+
     def __unicode__(self):
         return _('Banned IP: %s') % self.address
 
