@@ -1,7 +1,7 @@
 #x{font-family:arial;margin:0}
 
-#x>p,#x>form,.w,.tp,.ta,.tm{margin-left:10px;margin-right:10px}
-#x>form>table,.ta,.pm,.tp,.w>*,.w.st,.tp .v,.f{margin-top:8px}
+#x>p,#x>form,.w,.tp,.ta,.tm,.cat>h3,.thr>h3,.tb,.sp>.ba{padding-left:10px;padding-right:10px}
+#x>form>table,.ta,.sp>.ba,.tp,.w>*,.w.st,.tp .v,.f{margin-top:8px}
 .thr>.w,.cat>.w{margin-bottom:8px}
 
 .f{border-collapse:collapse;border-spacing:0}
@@ -14,17 +14,18 @@
 .b{background-color:#fff;padding:1px 3px 2px;border-right:1px #D0D0D0 solid}
 form>table th{text-align:right}
 
-.cat>h3,.thr>h3,.tb,.pm{background-color:#DCDCDC;padding:0 10px 2px}
+.ba{background-color:#DCDCDC}
+.sp>.ba,.tb,.hm{padding-bottom:2px}
 .r{color:#d00}
 
 .tm{float:right}
 .tm a{margin:0 3px}
-.pagination>*{padding:0 4px 0 0}
+.pagination>*{padding-right:4px}
 
 .np{padding-top:8px;border-left:2px #000 solid}
-.np,.ep{margin:0 0 0 2px}
-.np>.pw,.pc.np>div>.v,.np>div>.h{padding:0 0 0 6px}
-.ep>.pw,.pc.ep>div>.v,.ep>div>.h{padding:0 0 0 8px}
+.np,.ep{margin-left:2px}
+.np>.pw,.pc.np>div>.v,.np>div>.h{padding-left:6px}
+.ep>.pw,.pc.ep>div>.v,.ep>div>.h{padding-left:8px}
 .hw{position:relative;overflow:hidden}
 .ep>.hw>.pt,.np>.hw>.pt{position:absolute;bottom:50%}
 .ep>.hw>.pt{height:200px;width:6px;border-bottom:2px solid;border-left:2px solid}
@@ -38,7 +39,7 @@ form>table th{text-align:right}
 .w .h>div>div{border-top:1px solid #D0D0D0;border-bottom:1px solid #D0D0D0;background-color:#D0D0D0}
 .fp>.h>div>div{border-color:#ECECEC;background-color:#ECECEC}
 .h img{float:left;margin-right:5px}
-.hm{display:block;padding:0 5px}
+.hm{display:block;padding-right:5px;padding-left:5px}
 .tp .hm{padding:0}
 .un{font-weight:bold}
 .ti{white-space:nowrap}

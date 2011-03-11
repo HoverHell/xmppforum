@@ -2,12 +2,12 @@
 {% load pagination_tags %}
 {% load extras %}
 <div class="thr">
-<h3>{{ title }}</h3>
+<h3 class="ba">{{ title }}</h3>
 {% autopaginate threads user_settings.tpp %}{% paginate %}
 <div class="w">
 {% if threads %}
 {% for thread in threads %}
-<div{% if thread.gsticky %}{% else %}{% if category and thread.csticky %}{% endif %}{% endif %}{% if thread.closed %}{% endif %}>
+<div{% if thread.gsticky %} class="gs{% if thread.closed %} cl{% endif %}"{% else %}{% if category and thread.csticky %} class="cs{% if thread.closed %} cl{% endif %}"{% endif %}{% endif %}>
   <div class="h"><div><div>
     <span class="hm">
       <span>{% if not category %}<a href="{% url snapboard_category_thread_index thread.category.id %}">{{ thread.category }}</a> / {% endif %}<a href="{% url snapboard_thread thread.id %}">{{ thread.subject }}</a></span>
