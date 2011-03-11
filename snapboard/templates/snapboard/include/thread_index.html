@@ -1,7 +1,7 @@
 {% load i18n %}
 {% load pagination_tags %}
 {% load extras %}
-<div class="thr">
+<div class="thr w">
 <h3>{{ title }}</h3>
 {% autopaginate threads user_settings.tpp %}{% paginate %}
 {% if threads %}
