@@ -1,12 +1,16 @@
 {% load i18n %}
-<div class="cat w">
-<h3>Topics Category List</h3>
-{% if cat_list %}
-  {% for category in cat_list %}
-    <p class="thread"><a href="{% url snapboard_category_thread_index category.id %}">{{ category.label }}</a></p>
-  {% endfor %}
-{% else %}
-  <p>{% trans "No categories are available." %}</p>
-{% endif %}
+
+<div class="cat">
+  <h3>Topics Category List</h3>
+  <div class="w">
+  {% if cat_list %}
+    {% for category in cat_list %}
+      <div class="l pc"><div class="v"><div class="t"><div><a href="{% url snapboard_category_thread_index category.id %}">{{ category.label }}</a>{% if cathegory.description %} - <span class="cd">{{cathegory.description}}<span>{% endif %}</div></div></div></div>
+    {% endfor %}
+  {% else %}
+    <p>{% trans "No categories are available." %}</p>
+  {% endif %}
+</div>
+</div>
 {# {% if category.moderators %}moderators: {{ category.moderators }}{% endif %} #}
 {# {% blocktrans count category.thread_count as cnt %}{{ cnt }} discussion{% plural %}{{ cnt }} discussions{% endblocktrans %} #}

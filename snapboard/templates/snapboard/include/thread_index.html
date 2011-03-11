@@ -1,24 +1,38 @@
 {% load i18n %}
 {% load pagination_tags %}
 {% load extras %}
-<div class="thr w">
+<div class="thr">
 <h3>{{ title }}</h3>
 {% autopaginate threads user_settings.tpp %}{% paginate %}
+<div class="w">
 {% if threads %}
 {% for thread in threads %}
-<div>
-  <span>{{ thread.post_count }} posts</span>
-  <span>started by {{ thread.starter }}</span>
-  <span>{% if thread.gsticky %}STICKY{% else %}{% if category and thread.csticky %}STICKY{% endif %}{% endif %}
-    {% if thread.closed %}CLOSED{% endif %} <a href="{% url snapboard_thread thread.id %}">{{ thread.subject }}</a></span>
-  <span class="ti">last updated {% reltime thread.date %}</span>
-  <span>by {{ thread.last_poster }}</span>
-  {% block thread_category_optional %}
-    <span>category:<a href="{% url snapboard_category_thread_index thread.category.id %}">{{ thread.category }}</a></span>
-  {% endblock %}
+<div{% if thread.gsticky %}{% else %}{% if category and thread.csticky %}{% endif %}{% endif %}{% if thread.closed %}{% endif %}>
+  <div class="h"><div><div>
+    <span class="hm">
+      <span>{% if not category %}<a href="{% url snapboard_category_thread_index thread.category.id %}">{{ thread.category }}</a> / {% endif %}<a href="{% url snapboard_thread thread.id %}">{{ thread.subject }}</a></span>
+      <span>{{ thread.post_count }} posts</span>
+      <span>started by <span class="un">{{ thread.starter }}</span></span>
+    </span>
+  </div></div></div>
+  <div class="v">
+    <div class="t"><div>POST TEXT</div></div>
+  </div>
+  <div class="fp l">
+    <div class="h"><div><div>
+      <span class="hm">
+        <span class="ti">last updated {% reltime thread.date %}</span>
+        <span>by <span class="un">{{ thread.last_poster }}</span></span>
+      </span>
+    </div></div></div>
+    <div class="v">
+      <div class="t"><div>POST TEXT</div></div>
+    </div>
+  </div>
 </div>
 {% endfor %}
 {% else %}
   <p>{% trans "No threads are available." %}</p>
 {% endif %}
+</div>
 </div>
