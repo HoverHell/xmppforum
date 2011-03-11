@@ -186,3 +186,17 @@ class SliceHack(object):
         """ Saves the slice.  Does not make a copy.  """
         self.slice = slice
         return self
+
+
+## postid helpers.
+def postid_to_id(view, paramname='post_id', postparamname=None):
+    """ Decorator that replaces post_form_id with usual post id.  """
+    def _inner_postid_to_id(request, post_form_id=None, *args, **kwargs):
+        # 404 assumed anyway.
+        post = Post.get_post_or_404(post_form_id)
+        if paramname:
+            kwargs[paramname] = post.id
+            return view(request, *args, **kwargs)
+        else:
+            return view(request, post.id, *args, **kwargs)
+    return _inner_postid_to_id
