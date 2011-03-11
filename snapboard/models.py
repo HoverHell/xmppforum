@@ -516,10 +516,21 @@ class Post(Post_base, mp_tree.MP_Node):
 
     @classmethod
     def from_id_t(cls, idt):
-        m = re.match(r'^#(\d+/\d+$', idt)
+        m = re.match(r'^#(\d+)/(\d+)$', idt)
         assert bool(m), "idt %r is malformed" % idt
         thr, tlid = m.groups()
         return cls.objects.get(thread=int(thr), tlid=int(tlid))
+
+    def id_form_x(self):
+        """ Thread-local number + hex.  """
+        return u"%s/%s" % (hex(self.thread_id)[2:], hex(self.tlid)[2:])
+
+    @classmethod
+    def from_id_x(cls, idx):
+        m = re.match(r'^#([0-9A-Fa-f]+)/([0-9A-Fa-f]+)$', idx)
+        assert bool(m), "idx %r is malformed" % idx
+        thr, tlid = m.groups()
+        return cls.objects.get(thread=int(thr, 16), tlid=int(tlid, 16))
 
     # for (possibly) better maxwidth/maxdepth ratio.
     # *might* run out of root posts, though!

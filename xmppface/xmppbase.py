@@ -134,7 +134,7 @@ class XmppResponse(dict):
                 html2text.html2text(html).rstrip()
               )
             )
-        elif self.pttype = 'st':
+        elif self.pttype == 'st':
             self['body'] = django.utils.encoding.force_unicode(
               django.utils.html.strip_tags(self.imgfix(html))).rstrip()
 
