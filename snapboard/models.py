@@ -519,19 +519,20 @@ class Post(Post_base, mp_tree.MP_Node):
         return u"%s/%s" % (self.thread_id, self.tlid)
     @classmethod
     def from_id_t(cls, idt):
-        m = re.match(r'^' + id_t_re + r'$', idt)
+        m = re.match(r'^' + cls.id_t_re + r'$', idt)
         assert bool(m), u"idt %r is malformed" % idt
         thr, tlid = m.groups()
         return cls.objects.get(thread=int(thr), tlid=int(tlid))
 
     id_x_re = r'(?:[#!])?(?P<thread_id>[0-9A-Fa-f]+)/(?P<post_tlid>[0-9A-Fa-f]+)'
+    id_x_re_c = re.compile(r'^' + id_x_re + r'$')
     id_x_re_f = r'(?:[#!])?[0-9A-Fa-f]+/[0-9A-Fa-f]+'
     def id_form_x(self):
         """ Thread-local number + hex.  """
         return u"%s/%s" % (hex(self.thread_id)[2:], hex(self.tlid)[2:])
     @classmethod
     def from_id_x(cls, idx):
-        m = re.match(r'^' + id_x_re + r'$', idx)
+        m = cls.id_x_re_c.match(idx)
         assert bool(m), u"idx %r is malformed" % idx
         thr, tlid = m.groups()
         return cls.objects.get(thread=int(thr, 16), tlid=int(tlid, 16))

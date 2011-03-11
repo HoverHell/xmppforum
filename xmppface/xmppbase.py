@@ -316,13 +316,13 @@ def send_xmpp_message(msg):
             start_new_thread(connkeeper, ())
 
 
-def render_to_response(template_name, xrargs=None, *args, **kwargs):
+def render_to_response(template_name, *args, **kwargs):
     """ A render_to_response wrapper that allows using it for both
     HttpRequest and XmppRequest.  `template_name` is explicit since it is
     modified to end with '.xmpp' or '.html' depending on the request.
     XMPP response rendering can only be used with RequestContext. """
     from django.shortcuts import render_to_response as render_to_response_orig
-    xrargs = xrargs if xrargs is not None else {}
+    xrargs = kwargs.pop('xrargs', {})
     # There should be other ways to determine an Xmpp request, no?
     # Or it would be 'other function'.
     # Also, may args[0] not possibly contain template name?

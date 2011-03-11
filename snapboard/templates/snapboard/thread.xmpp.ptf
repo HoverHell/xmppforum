@@ -6,25 +6,31 @@
 #c{{ thr.category.id }} {{ thr.category }}:
 {%ws%}{%ws%}{%ws%}{%ws%}{{ thr.subject }}
 
-    {%br%}{%br%}
+{%br%}{%br%}
 
-    <a href="{{ SITE_DOMAIN }}{% url snapboard_thread thr.id %}">#{{ thr.id }}/{{ top_post.id }}</a>
-    {%ws%}by {{ top_post.user }}
-    {%ws%}at {{ top_post.date|date:"r T" }} 
-    {% if top_post.previous %}{%ws%}(REVISED){% endif %}
+{% with top_post as post %}
+<a href="{{ SITE_DOMAIN }}{% url snapboard_thread thr.id %}">#{{ thr.id }}</a>
+{%ws%}by {{ post.user }}
+{%ws%}at {{ post.date|date:"r T" }} 
+{% if post.previous_id %}{%ws%}(REVISED){% endif %}
 
-    {%br%}
-    
-    {% if post.censor %}Censored post{% else %}
-    {{ top_post.text|striptags|render_post|safe }}{% endif %}
+{%br%}
+
+{% if post.censor %}Censored post{% else %}
+{{ post.texth|safe }}{% endif %}
+
+{% endwith %}
 
 {% for post, info in post_list %}
 
-    {%br%} {%br%} {% include "snapboard/include/post_header.xmpp" %}
+{%br%} {%br%} {% include "snapboard/include/post_header.xmpp" %}
 
-    {%br%}
-    
-    {% if post.censor %}Censored post{% else %}
-    {{ post.text|render_post|safe }}{% endif %}
+{%br%}
+
+{% if post.censor %}
+  Censored post
+{% else %}
+  {{ post.texth|safe }}
+{% endif %}
         
 {% endfor %}            

@@ -589,13 +589,14 @@ def post_reply(request, post_form_id=None, post_id=None, rpc=False):
             postobj = parent_post.add_child(
               thread=thr,
               user=request.user,
-              **(postform.cleaned_data)  # text and whatnot.
-            )
+              **(postform.cleaned_data))  # text and whatnot.
             postobj.save()
             postobj.notify()
             return success_or_redirect(request,
               _redirect_to_posts(parent_post, postobj),
-              u"Posted successfully: %s." % postobj.id_form_t())
+              u"Posted successfully.")
+        else:
+            pass  # ???
     else:
         context = {'postform': PostForm(),
           "parent_post": parent_post}
@@ -719,15 +720,13 @@ def new_thread(request, cat_id):
                 nthread = Thread(
                   category=category,
                   #subject=threadform.cleaned_data['subject'],
-                  **(threadform.cleaned_data),
-                  )
+                  **(threadform.cleaned_data))
                 nthread.save()
                 # create the post
                 rpost = Post.add_root(
                   user=request.user,
                   thread=nthread,
-                  **(postform.cleaned_data),
-                  )
+                  **(postform.cleaned_data))
                 rpost.save()
                 return nthread, rpost
 
