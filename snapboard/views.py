@@ -336,7 +336,7 @@ def thread_post(request, post_id=None, post=None, depth="v", subtopic=True):
     ## Helper for retreiving int values from request.GET
     def l_getintparam(param, default=''):
         prm = request.GET.get(param, '')
-        ## callable is allower for slight optimization.
+        ## callable is allowed for slight optimization.
         return int(prm) if prm.isdigit() \
           else (default() if callable(default) else default)
 
@@ -373,10 +373,10 @@ def thread_post(request, post_id=None, post=None, depth="v", subtopic=True):
         parentpath = top_post.path[:-Post.steplen]
         tpnum = l_str2int(top_post.path[-Post.steplen:])
         fsibpath = parentpath + l_int2str(tpnum + nfsib)  # some further sibling.
-        qs = qs.filter(
+        qs = Post.objects.filter(
           path__range=(
             top_post.path,
-            tppath
+            fsibpath
             )
           )
     else:
