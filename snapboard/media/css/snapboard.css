@@ -1,16 +1,17 @@
 #x{font-family:arial;margin:0}
 
 #x>p,#x>form,.w,.tp,.ta,.tm{margin-left:10px;margin-right:10px}
-.ta,.pm,.tp,.w>*,.w.st,.tp .v,.f{margin-top:8px}
+#x>form>table,.ta,.pm,.tp,.w>*,.w.st,.tp .v,.f{margin-top:8px}
 
 .f{border-collapse:collapse;border-spacing:0}
 .f,.f textarea,.f input[type="text"]{width:100%}
 .f textarea,.f input[type="text"],.f select,.b{border:none;margin:0}
-.f th{padding-right:5px;text-align:right;font-weight:normal}
+.f th{padding-right:5px;font-weight:normal;font-size:13px}
 .f td{border:1px #D0D0D0 solid;padding:0}
 .f textarea{height:144px}
 .fm{text-align:center;font-weight:bold}
 .b{background-color:#fff;padding:1px 3px 2px;border-right:1px #D0D0D0 solid}
+form>table th{text-align:right}
 
 .tb,.pm{background-color:#DCDCDC;padding:0 10px 2px}
 .r{color:#d00}
