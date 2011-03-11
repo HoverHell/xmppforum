@@ -17,26 +17,46 @@ from django.views.decorators.cache import cache_page
 from django.views.generic.simple import direct_to_template
 
 
+# post_id_re = '[#!][0-9A-Fa-f]+/[0-9A-Fa-f]+'
+from snapboard.models import Post
+post_id_re = Post.id_m_re_f
+# dual id regex.
+post_id_re_d = r'(?:(?P<post_id>\d+)|(?P<post_form_id>' + post_id_re + r'))'
+
 feeds = {'latest': LatestPosts}
+
 
 js_info_dict = {
     'packages': ('snapboard',),
 }
 
+
 urlpatterns = patterns('',
     (r'^$', merged_index, {}, 'snapboard_index'),
-    (r'^watchlist/$', watchlist, {}, 'snapboard_watchlist'),
-    # Please note that next two have to end with post id (required for
-    #  javascript features)
-    (r'^r/(?P<parent_id>\d+)/$',
-         post_reply, {}, 'snapboard_post_reply'),
-    (r'^e/(?P<original>\d+)/$',
-         edit_post, {}, 'snapboard_edit_post'),
-    (r'^rv/(?P<post_id>\d+)/$',
-         show_revisions, {}, 'snapboard_show_revisions'),
 
+    ## Main indexes.
+    (r'^t/(?P<thread_id>\d+)/$', thread, {}, 'snapboard_thread'),
+    (r'^p/' + post_id_re_d + r'/$',
+      thread_post, {}, 'snapboard_thread_post'),
+    # TODO: thread_latest (+rss?)
+    (r'^ti/$', thread_index, {}, 'snapboard_thread_index'),
+    (r'^ci/$', category_index, {}, 'snapboard_category_index'),
+    (r'^c/(?P<cat_id>\d+)/$',
+      category_thread_index, {}, 'snapboard_category_thread_index'),
+
+    (r'^tn/(?:(?P<cat_id>\d+)/)?$',
+      new_thread, {}, 'snapboard_new_thread'),
+    (r'^settings/$', edit_settings, {}, 'snapboard_edit_settings'),
+
+    (r'^r/' + post_id_re_d + r'/$',
+      post_reply, {}, 'snapboard_post_reply'),
+    (r'^e/' + post_id_re_d + r'/$',
+      edit_post, {}, 'snapboard_edit_post'),
+    (r'^rv/' + post_id_re_d + r'/$',
+      show_revisions, {}, 'snapboard_show_revisions'),
+    (r'^watchlist/$', watchlist, {}, 'snapboard_watchlist'),
     ## RPCable views.
-    (r'^w/(?P<post_id>\d+)/$',
+    (r'^w/' + post_id_re_d + r'/$',
       r_watch_post, {}, 'snapboard_watch_post'),
     (r'^r_removethread/(?P<thread_id>\d+)/$',
       r_removethread, {}, 'snapboard_remove_thread'),
@@ -50,17 +70,6 @@ urlpatterns = patterns('',
       r_set_close, {}, 'snapboard_set_close'),
     (r'^scen/(?P<oid>\d+)/(?: (?P<state>1|0))?$',
       r_set_censor, {}, 'snapboard_set_censor'),
-
-    (r'^ti/$', thread_index, {}, 'snapboard_thread_index'),
-    (r'^ci/$', category_index, {}, 'snapboard_category_index'),
-    (r'^t/(?P<thread_id>\d+)/$', thread, {}, 'snapboard_thread'),
-    (r'^c/(?P<cat_id>\d+)/$',
-         category_thread_index, {}, 'snapboard_category_thread_index'),
-    (r'^tn/(?:(?P<cat_id>\d+)/)?$',
-         new_thread, {}, 'snapboard_new_thread'),
-    (r'^p/(?P<post_id>\d+)/$',
-         thread_post, {}, 'snapboard_thread_post'),
-    (r'^settings/$', edit_settings, {}, 'snapboard_edit_settings'),
 
     ## Groups
     (r'^groups/(?P<group_id>\d+)/manage/$',

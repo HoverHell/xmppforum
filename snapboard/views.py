@@ -90,15 +90,17 @@ extra_processors = [user_settings_context, snapboard_default_context,
   timedelta_now_context]
 
 
-def _get_that_post(request, post_id=None):
+def _get_that_post(request, post_form_id=None, post_id=None):
     """ Helper function for allowing post-related commands unto unspecified
     "last notified" post.  Raises Http404 if cannot.
     
     Depends on django cache database."""
-    if post_id:
-        post = get_object_or_404(Post, pk=post_id)
-        return post
-    # otherwise - find one!
+    if post_form_id:
+        return Post.get_post_or_404(post_form_id)
+    elif post_id:
+        return get_object_or_404(Post, pk=post_id)
+
+    # otherwise - find one!  (should not happen with HTTP though)
     # TODO: include the user full jid into the search!..
     # (that will allow to make one-to-one conversations basically
     # seamlessly.
@@ -162,8 +164,9 @@ def rpc_dispatch(request):
 
 
 @login_required
-def r_watch_post(request, post_id=None, resource=None, rpc=False):
-    post = _get_that_post(request, post_id)
+def r_watch_post(request, post_form_id=None, post_id=None, resource=None,
+  rpc=False):
+    post = _get_that_post(request, post_form_id, post_id)
     # ^ 'auto' fetching should only be done from XMPP.
     thr = post.thread
     if not thr.category.can_read(request.user):
@@ -312,16 +315,17 @@ def thread(request, thread_id):
 
 
 @anonymous_login_required
-def thread_post(request, post_id=None, post=None, depth="v", subtopic=True):
+def thread_post(request, post_id=None, post_form_id=None, post=None,
+  depth="v", subtopic=True):
     """ Renders (part of) the thread starting from the specified post. 
     Passes the `subtopic` parameter to the template, which annotates it with
     "Showing a part of the thread" message. """ 
     
     if post is not None:
         top_post = post
-    elif post_id is not None:
-        top_post = get_object_or_404(Post, pk=post_id)
-    else:
+    elif post_id is not None or post_form_id is not None:
+        top_post = _get_that_post(post_form_id, post_id)
+    else:  # should not ever happen.
         _log.error("Invalid invocation of the thread_post.")
         import traceback
         _log.debug("".join(traceback.print_stack()))
@@ -336,7 +340,7 @@ def thread_post(request, post_id=None, post=None, depth="v", subtopic=True):
     ## Helper for retreiving int values from request.GET
     def l_getintparam(param, default=''):
         prm = request.GET.get(param, '')
-        ## callable is allower for slight optimization.
+        ## callable is allowed for slight optimization.
         return int(prm) if prm.isdigit() \
           else (default() if callable(default) else default)
 
@@ -373,10 +377,10 @@ def thread_post(request, post_id=None, post=None, depth="v", subtopic=True):
         parentpath = top_post.path[:-Post.steplen]
         tpnum = l_str2int(top_post.path[-Post.steplen:])
         fsibpath = parentpath + l_int2str(tpnum + nfsib)  # some further sibling.
-        qs = qs.filter(
+        qs = Post.objects.filter(
           path__range=(
             top_post.path,
-            tppath
+            fsibpath
             )
           )
     else:
@@ -570,20 +574,15 @@ def _redirect_to_posts(target1, target2=None):
 
 #@userbannable
 @anonymous_login_required
-def post_reply(request, parent_id, thread_id=None, rpc=False):
-    # thread_id paremeter was considered unnecessary here.
-    # Although, '#thread_id/post_id_in_thread' might be preferrable to using
-    # global post id.
-    
+def post_reply(request, post_form_id=None, post_id=None, rpc=False):
     # with rpc=true returns dict with full form HTML.
-    
-    parent_post = get_object_or_404(Post, pk=int(parent_id))
-    
+    parent_post = _get_that_post(request, post_form_id, post_id)
+
     if request.POST and not rpc:  # POST HERE.
         thr = parent_post.thread
         if not thr.category.can_post(request.user) or thr.closed:
-            raise PermissionError("You are not allowed to post "
-              "in this thread")
+            raise PermissionError(u"You are not allowed to post "
+              u"in this thread")
         postform = PostForm(request.POST)
         if postform.is_valid():
             postobj = parent_post.add_child(
@@ -614,9 +613,10 @@ def post_reply(request, parent_id, thread_id=None, rpc=False):
 
 #@userbannable
 @login_required
-def edit_post(request, original, rpc=False):
+def edit_post(request, post_form_id=None, post_id=None, rpc=False):
     """ Edit an existing post.  """
-    orig_post = get_object_or_404(Post, pk=int(original))
+    # with rpc=true returns dict with full form HTML.
+    orig_post = _get_that_post(request, post_form_id, post_id)
         
     if orig_post.user != request.user \
      or not orig_post.thread.category.can_post(request.user) \
@@ -658,9 +658,9 @@ def edit_post(request, original, rpc=False):
                 request, processors=extra_processors))
 
 
-def show_revisions(request, post_id, rpc=False):
+def show_revisions(request, post_form_id=None, post_id=None, rpc=False):
     """ Get all revisions of a specific post.  """
-    orig_post = get_object_or_404(Post, pk=int(post_id))
+    orig_post = _get_that_post(request, post_form_id, post_id)
 
     post = orig_post
     posts = [post]
@@ -1099,7 +1099,8 @@ def xmpp_get_help(request, subject=None):
         return render_to_response('snapboard/xmpp_help/%s'%subject, 
           None,
           context_instance=RequestContext(request,
-            processors=extra_processors))
+            processors=extra_processors),
+          xrargs={'pttype': 'st'})
     except TemplateDoesNotExist:
         raise Http404, "No such help subject"
 

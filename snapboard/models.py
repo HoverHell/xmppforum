@@ -12,6 +12,8 @@ from django.dispatch import dispatcher
 from django.utils.translation import ugettext_lazy as _
 from django.core.cache import cache
 
+from django.http import Http404  # for get_post_or_404
+
 import re
 
 from treebeard import mp_tree
@@ -510,16 +512,41 @@ class Post(Post_base, mp_tree.MP_Node):
         tpath = "".join([l_int2str(int(i)) for i in anpath])
         return cls.objects.get(path=tpath)
 
+    id_t_re = r'(?:[#!])?(?P<thread_id>\d+)/(?P<post_tlid>\d+)'
+    id_t_re_f = r'(?:[#!])?\d+/\d+'
     def id_form_t(self):
         """ Thread-local number.  """
         return u"%s/%s" % (self.thread_id, self.tlid)
-
     @classmethod
     def from_id_t(cls, idt):
-        m = re.match(r'^#(\d+/\d+$', idt)
-        assert bool(m), "idt %r is malformed" % idt
+        m = re.match(r'^' + id_t_re + r'$', idt)
+        assert bool(m), u"idt %r is malformed" % idt
         thr, tlid = m.groups()
         return cls.objects.get(thread=int(thr), tlid=int(tlid))
+
+    id_x_re = r'(?:[#!])?(?P<thread_id>[0-9A-Fa-f]+)/(?P<post_tlid>[0-9A-Fa-f]+)'
+    id_x_re_f = r'(?:[#!])?[0-9A-Fa-f]+/[0-9A-Fa-f]+'
+    def id_form_x(self):
+        """ Thread-local number + hex.  """
+        return u"%s/%s" % (hex(self.thread_id)[2:], hex(self.tlid)[2:])
+    @classmethod
+    def from_id_x(cls, idx):
+        m = re.match(r'^' + id_x_re + r'$', idx)
+        assert bool(m), u"idx %r is malformed" % idx
+        thr, tlid = m.groups()
+        return cls.objects.get(thread=int(thr, 16), tlid=int(tlid, 16))
+
+    id_form_m = id_form_x
+    from_id_m = from_id_x
+    id_m_re = id_x_re
+    id_m_re_f = id_x_re_f
+
+    @classmethod
+    def get_post_or_404(cls, id_m):
+        try:
+            return cls.from_id_m(id_m)
+        except cls.DoesNotExist:
+            raise Http404('No post %s found.' % id_m)
 
     # for (possibly) better maxwidth/maxdepth ratio.
     # *might* run out of root posts, though!

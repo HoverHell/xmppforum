@@ -216,6 +216,8 @@ def processcmd(indata):
 
         try:
             response = callback(request, *callback_args, **callback_kwargs)
+            
+            _log.debug(" ... response: %r" % response)
 
             # ! We do expect an XmppResponse here. May construct one, but...
             if not isinstance(response, XmppResponse):

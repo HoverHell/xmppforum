@@ -79,11 +79,12 @@ class XmppResponse(dict):
 
     Currently it is a subclass of dict with few extras.  """
     def __init__(self, html=None, body=None, src=None, dst=None, id=None,
-      user=None):
+      user=None, pttype='h2t'):
         self['class'] = 'message'
         # Current default is to create XHTML-message and construct plaintext
         # message from it.
         self.setuser(user)
+        self.pttype = pttype
         if html is not None:
             self.setxhtml(html)
             # ! Don't usually allow to set both body and html.
@@ -91,7 +92,7 @@ class XmppResponse(dict):
             # ! Is rstrip certainly not problematic?
             self['body'] = body.rstrip()
         else:
-            self['body'] = '(something went wrong?)'
+            self['body'] = '(something went wrong!)'
         # ! Source address to use has to be in XMPP server's domain, at
         # least.  Should usually be created from request message's
         # destination or some default value.
@@ -126,13 +127,17 @@ class XmppResponse(dict):
         # Remove formatting. Also, it should be XML-compatible.
         # ! Probably should replace <a> tags with some link representation.
         # ! Or even always add actual link to the tag.
-        # ! See above on rstrip.
-        #self['body'] = django.utils.encoding.force_unicode(
-        #  django.utils.html.strip_tags(self.imgfix(html))).rstrip()
-        import html2text
-        self['body'] = django.utils.encoding.force_unicode(
-          html2text.html2text(html)).rstrip()
-    
+        if self.pttype == 'h2t':
+            import html2text
+            self['body'] = django.utils.encoding.force_unicode(
+              django.utils.html.escape(
+                html2text.html2text(html).rstrip()
+              )
+            )
+        elif self.pttype == 'st':
+            self['body'] = django.utils.encoding.force_unicode(
+              django.utils.html.strip_tags(self.imgfix(html))).rstrip()
+
     def imgfix(self, htmlsource):
         """
         Replaces all <img> tags in htmlsource with some more
@@ -314,12 +319,13 @@ def send_xmpp_message(msg):
             start_new_thread(connkeeper, ())
         
 
-def render_to_response(template_name, *args, **kwargs):
+def render_to_response(template_name, xrargs=None, *args, **kwargs):
     """ A render_to_response wrapper that allows using it for both
     HttpRequest and XmppRequest.  `template_name` is explicit since it is
     modified to end with '.xmpp' or '.html' depending on the request.
     XMPP response rendering can only be used with RequestContext. """
     from django.shortcuts import render_to_response as render_to_response_orig
+    xrargs = xrargs if xrargs is not None else {}
     # There should be other ways to determine an Xmpp request, no?
     # Or it would be 'other function'.
     # Also, may args[0] not possibly contain template name?
@@ -336,7 +342,7 @@ def render_to_response(template_name, *args, **kwargs):
           django.template.loader.render_to_string(
             re.sub(r'(\.html|\.xmpp)?$', '.xmpp', template_name),
             *args, **kwargs), 
-          user=request.user)
+          user=request.user, **xrargs)
     else:  # Not Xmpp. Not our business.
         ## Can even require using '.html' in calls, but likely should not.
         return render_to_response_orig(
