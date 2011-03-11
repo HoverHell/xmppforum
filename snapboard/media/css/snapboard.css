@@ -22,7 +22,7 @@ form>table th{text-align:right}
 .tm a{margin:0 3px}
 .pagination>*{padding-right:4px}
 
-.np{padding-top:8px;border-left:2px #000 solid}
+.np{padding-top:8px;border-left:2px solid}
 .np,.ep{margin-left:2px}
 .np>.pw,.pc.np>div>.v,.np>div>.h{padding-left:6px}
 .ep>.pw,.pc.ep>div>.v,.ep>div>.h{padding-left:8px}
@@ -30,7 +30,7 @@ form>table th{text-align:right}
 .ep>.hw>.pt,.np>.hw>.pt{position:absolute;bottom:50%}
 .ep>.hw>.pt{height:200px;width:6px;border-bottom:2px solid;border-left:2px solid}
 .np>.hw>.pt{height:2px;width:6px;background-color:#000}
-.ep>.pp{height:8px;border-left:2px black solid}
+.ep>.pp{height:8px;border-left:2px solid}
 
 .h,.v,.f{max-width:900px}
 .h>div>div{display:table;width:100%}
