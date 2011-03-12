@@ -12,21 +12,21 @@
     <span class="hm">
       <span>{% if not category %}<a href="{% url snapboard_category_thread_index thread.category.id %}">{{ thread.category }}</a> / {% endif %}<a href="{% url snapboard_thread thread.id %}">{{ thread.subject }}</a></span>
       <span>{{ thread.post_count }} posts</span>
-      <span>started by <span class="un">{{ thread.starter }}</span></span>
+      <span>started by <span class="un">{{ thread.first_post.user.username }}</span></span>
     </span>
   </div></div></div>
   <div class="v">
-    <div class="t"><div>POST TEXT</div></div>
+    <div class="t"><div>{{ thread.first_post.texth|truncatewords_html:8|safe }}</div></div>
   </div>
   <div class="fp l">
     <div class="h"><div><div>
       <span class="hm">
         <span class="ti">last updated {% reltime thread.date %}</span>
-        <span>by <span class="un">{{ thread.last_poster }}</span></span>
+        <span>by <span class="un">{{ thread.last_post.user.username }}</span></span>
       </span>
     </div></div></div>
     <div class="v">
-      <div class="t"><div>POST TEXT</div></div>
+      <div class="t"><div>{{ thread.last_post.texth|truncatewords_html:8|safe }}</div></div>
     </div>
   </div>
 </div>

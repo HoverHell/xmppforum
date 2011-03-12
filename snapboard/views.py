@@ -792,6 +792,15 @@ def thread_index(request, num_limit=None, num_start=None,
         thread_list = Thread.view_manager.get_query_set()
     thread_list = [t for t in thread_list
       if t.category.can_view(request.user)]
+    # Extra annotations.
+    last_posts = [t.last_post for t in thread_list]
+    first_posts = [t.first_post for t in thread_list]
+    posts = Post.objects.filter(pk__in=(last_posts+first_posts)
+      ).select_related()
+    postsd = dict([(p.id, p) for p in posts])
+    for t in thread_list:
+        t.last_post = postsd.get(t.last_post, None)
+        t.first_post = postsd.get(t.first_post, None)
     # ! This should be common with few more views, probably.
     if request.is_xmpp():  # Apply Xmpp-specific limits
         # ? int() failure would mean programming error... or not?
