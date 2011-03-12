@@ -325,7 +325,7 @@ def thread_post(request, post_id=None, post_form_id=None, post=None,
     if post is not None:
         top_post = post
     elif post_id is not None or post_form_id is not None:
-        top_post = _get_that_post(post_form_id, post_id)
+        top_post = _get_that_post(request, post_form_id, post_id)
     else:  # should not ever happen.
         _log.error("Invalid invocation of the thread_post.")
         import traceback
