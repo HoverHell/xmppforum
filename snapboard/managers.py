@@ -30,13 +30,15 @@ class ThreadManager(models.Manager):
         returned.
         '''
         # number of posts in thread
-        # censored threads don't count toward the total
+        # ? XXX: censored threads don't count toward the total, even though
+        # they are visible (but not their contents).
         extra_post_count = """
             SELECT COUNT(*) FROM snapboard_post
                 WHERE snapboard_post.thread_id = snapboard_thread.id
-                AND NOT snapboard_post.censor
+                  AND NOT snapboard_post.censor
             """
         # figure out who started the discussion
+        ## -
         extra_starter = """
             SELECT username FROM auth_user
                 WHERE auth_user.id = (SELECT user_id
@@ -44,6 +46,7 @@ class ThreadManager(models.Manager):
                     ORDER BY snapboard_post.date ASC
                     LIMIT 1)
             """
+        ## -
         extra_last_poster = """
             SELECT username FROM auth_user
                 WHERE auth_user.id = (SELECT user_id
@@ -51,22 +54,39 @@ class ThreadManager(models.Manager):
                     ORDER BY snapboard_post.date DESC
                     LIMIT 1)
             """
+        ## For sorting, especially.
         extra_last_updated = """
-            SELECT date FROM snapboard_post
-                WHERE snapboard_post.thread_id = snapboard_thread.id
-                ORDER BY date DESC LIMIT 1
-            """
-
+          SELECT date FROM snapboard_post
+          WHERE snapboard_post.thread_id = snapboard_thread.id
+          ORDER BY date DESC LIMIT 1
+          """
+        ## Extra info.
+        extra_last_update = """
+          SELECT id FROM snapboard_post
+          WHERE snapboard_post.thread_id = snapboard_thread.id
+          ORDER BY snapboard_post.date DESC LIMIT 1
+          """
+        # ! Might be better to use 'depth=1' here.
+        extra_start = """
+          SELECT id FROM snapboard_post
+          WHERE snapboard_post.thread_id = snapboard_thread.id
+          ORDER BY snapboard_post.date ASC LIMIT 1
+          """
         return super(ThreadManager, self).get_query_set().extra(
             select={
                 'post_count': extra_post_count,
-                'starter': extra_starter,
-                #'last_updated': extra_last_updated,  # bug: http://code.djangoproject.com/ticket/2210
-                # the bug is that any extra columns must match their names
-                # TODO: sorting on boolean fields is undefined in SQL theory
+                #'last_updated': extra_last_updated,
+                ## bug: http://code.djangoproject.com/ticket/2210
+                ## the bug is that any extra columns must match their names
+                ## TODO: sorting on boolean fields is undefined in SQL theory
                 'date': extra_last_updated,
+                'last_post': extra_last_update,
+                'first_post': extra_start,
+                # ... -
+                'starter': extra_starter,
                 'last_poster': extra_last_poster,
-            },).order_by('-gsticky', '-date')
+            },).order_by('-gsticky', '-date'
+            ).select_related()
 
     def get_user_query_set(self, user):
         try:
