@@ -5,36 +5,63 @@ import re
 import sys  # Debug
 
 from django.template import TemplateDoesNotExist
-from django.template.loader import BaseLoader
+from django.template.loader import (BaseLoader, get_template_from_string,
+  find_template_loader, make_origin)
 
-# Not very good but should works.
-from django.template.loader import find_template_source
-
+## Start templates with this to actually ptf them:
+PTFTAG = u'{#ptfable#}'
+PTFTAGLEN = len(PTFTAG)
 # Another way:
 #tagspacere = re.compile('}\s\s+{')
-spacere = re.compile('\s\s+')
-newlinere = re.compile('\n')
+SPACERE = re.compile('\s\s+')
+NEWLINERE = re.compile('\n')
 
 class Loader(BaseLoader):
     is_usable = True
+    
+    ## Stuff grabbed from django cache loader.
+    def __init__(self, loaders):
+        self._loaders = loaders
+        self._cached_loaders = []
+    
+    # loaders = django.template.loaders.cached.Loader.loaders
+    @property
+    def loaders(self):
+        # Resolve loaders on demand to avoid circular imports
+        if not self._cached_loaders:
+            for loader in self._loaders:
+                self._cached_loaders.append(find_template_loader(loader))
+        return self._cached_loaders
+
+    # find_template = django.template.loaders.cached.Loader.find_template
+    def find_template(self, name, dirs=None):
+        for loader in self.loaders:
+            try:
+                template, display_name = loader.load_template_source(name, dirs)
+                return (template, make_origin(display_name, loader, name, dirs))
+            except TemplateDoesNotExist:
+                pass
+        raise TemplateDoesNotExist(name)
 
     def load_template_source(self, template_name, template_dirs=None):
-        try:
-            # ! XXX / TODO / FIXME: invert this check to use this loader
-            #  only for template names that explicitly end with '.ptf'!
-            if template_name.endswith(".ptf"):
-                # Really not neat hack. Avoid recursion...
-                raise TemplateDoesNotExist, "Already ptf requested."
-            s, f = find_template_source(template_name+".ptf", template_dirs)
-        except Exception, e:
-            raise TemplateDoesNotExist, str(e)
-        return (spacere.sub(u'', newlinere.sub(u'', s)), f)
+        template, origin = self.find_template(template_name, template_dirs)
+        ## Hack it up only if tagged.
+        if template.startswith(PTFTAG):
+            template = SPACERE.sub(u'',
+              NEWLINERE.sub(u'', template[PTFTAGLEN:]))
+            # Removing tag is optional if it's valid template, though.
+        return (template, origin)
     load_template_source.is_usable = True
 
 
-_loader = Loader()
+## compatibility impossible?
+#_loader = Loader()
+## Or can make some hack like
+#_loader = Loader(settings.TEMPLATE_LOADERS
+## ?  Perhaps just unnecessary.
+## But, also, can return the previous form of this loader mayhaps.
 
-def load_template_source(template_name, template_dirs=None):
-    # For backwards compatibility
-    return _loader.load_template_source(template_name, template_dirs)
-load_template_source.is_usable = True
+#def load_template_source(template_name, template_dirs=None):
+#    # For backwards compatibility
+#    return _loader.load_template_source(template_name, template_dirs)
+#load_template_source.is_usable = True

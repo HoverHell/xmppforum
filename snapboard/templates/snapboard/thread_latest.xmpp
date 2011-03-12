@@ -1,3 +1,4 @@
+{#ptfable#}
 
 {% load i18n %}
 {% load plaintexttags %}

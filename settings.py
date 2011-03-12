@@ -198,16 +198,17 @@ AUTHENTICATION_BACKENDS = (
         
 
 # List of callables that know how to import templates from various sources.
-# In django 1.2 cached loader can be used:
-#  ('django.template.loaders.cached.Loader', (...)),
-## ptftemplateloader is *almost* a must-have for XMPP(-XHTML) templates.
-## And current templates are meant for it.
+# * At least something in here requires django 1.2 at least.
+lp = lambda lo, *ar: (lo, ar,)  # loader, arguments
 TEMPLATE_LOADERS = (
-    'snapboard.template.ptftemplateloader.load_template_source',
-    'django.template.loaders.filesystem.load_template_source',
-    'django.template.loaders.app_directories.load_template_source',
-#     'django.template.loaders.eggs.load_template_source',
+  lp('django.template.loaders.cached.Loader',
+    lp('snapboard.template.ptftemplateloader.Loader',
+     'django.template.loaders.filesystem.Loader',
+     'django.template.loaders.app_directories.Loader',
+     #'django.template.loaders.eggs.load_template_source'
+     )),
 )
+
 
 TEMPLATE_CONTEXT_PROCESSORS = (
     "django.core.context_processors.auth",
