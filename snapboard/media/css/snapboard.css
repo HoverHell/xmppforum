@@ -50,5 +50,5 @@ div.rm{text-align:center}
 .w .t,p.rm{background-color:#F9F9F9}
 .w .t>div,.pc.fp>.v>.t>div{padding:2px 5px 3px}
 .pc>.v>.t>div,.pc>div>.v>.t>div{border-top:1px solid #D0D0D0}
-.fp.pc>.v>.t>div{border-color:#ECECEC}
+.fp.pc>.v>.t>div{border-top-color:#ECECEC}
 .l>.v>.t>div,.l>div>.v>.t>div{border-bottom:1px solid #D0D0D0}
