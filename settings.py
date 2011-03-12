@@ -201,12 +201,13 @@ AUTHENTICATION_BACKENDS = (
 # * At least something in here requires django 1.2 at least.
 lp = lambda lo, *ar: (lo, ar,)  # loader, arguments
 TEMPLATE_LOADERS = (
-  lp('django.template.loaders.cached.Loader',
-    lp('snapboard.template.ptftemplateloader.Loader',
+  lp('django.template.loaders.cached.Loader',  # cache
+    lp('snapboard.template.ptftemplateloader.Loader',  # ptf
      'django.template.loaders.filesystem.Loader',
      'django.template.loaders.app_directories.Loader',
      #'django.template.loaders.eggs.load_template_source'
-     )),
+    ),  # ptf
+  ),  # cache
 )
 
 
