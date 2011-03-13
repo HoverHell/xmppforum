@@ -2,16 +2,16 @@
 {% load extras %}
 {% load avatar_tags %}
 
-<div id="spv{{ post.id }}" class="v">
+<div id="pv{{ post.id_form_m }}" class="v">
   {% if user.is_authenticated and not user.really_anonymous %}
-    <div id="prf{{ post.id }}" class="rm"></div>
+    <div id="prf{{ post.id_form_m }}" class="rm"></div>
   {% endif %}
-  <div style="display:block" class="t" id="spt{{ post.id }}"><div>{{ post.texth|safe }}</div></div>
+  <div style="display:block" class="t" id="pt{{ post.id_form_m }}"><div>{{ post.texth|safe }}</div></div>
   {% if user.is_authenticated %}
     {% if not user.really_anonymous %}{% ifequal post.user_id user.id %}
-      <div style="display:none" id="spe{{ post.id }}"></div>
+      <div style="display:none" id="pe{{ post.id_form_m }}"></div>
     {% endifequal %}{% endif %}
-    <div style="display:none" id="spr{{ post.id }}"></div>
+    <div style="display:none" id="pr{{ post.id_form_m }}"></div>
   {% endif %}
-  <div style="display:none" id="sps{{ post.id }}"></div>
+  <div style="display:none" id="ps{{ post.id_form_m }}"></div>
 </div>
