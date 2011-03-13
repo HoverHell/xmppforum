@@ -1,16 +1,16 @@
 function t_p(id) {
- toggle('sps'+id, 'inline');
- toggle('spv'+id, 'block');}
+ toggle('ps'+id, 'inline');
+ toggle('pv'+id, 'block');}
 
 function t_e(id) {
- toggle('spt'+id, 'block');
- exttoggle('spe'+id, 
+ toggle('pt'+id, 'block');
+ exttoggle('pe'+id, 
   'block',
   'action=geteditform&oid='+id);
  return false;}
  
 function t_r(id) {
- exttoggle('spr'+id, 'block',
+ exttoggle('pr'+id, 'block',
   'action=getreplyform&oid='+id);
  return false;}
 
@@ -68,7 +68,7 @@ function preview(form_id) {
 
 function rev(orig_id, show_id) {
  urlq = SNAPBOARD_URLS.rpc_postrev + '?orig=' + orig_id + '&show=' + show_id;
- div_text = document.getElementById('spt' + orig_id);
+ div_text = document.getElementById('pt' + orig_id);
  div_links = document.getElementById('prl' + orig_id);
  var handleSuccess = function(o) {
   if(o.responseText !== undefined) {
