@@ -769,12 +769,28 @@ def watchlist(request):
       context_instance=RequestContext(request, processors=extra_processors))
 
 
+def _thread_annotate_posts(thread_list):
+    """ Requests threads' first and last posts and puts them under the same
+    names.  Mutates thread_list.  """
+    ## Not sovery optimal, but don't know a much better way.
+    last_posts = [t.last_post for t in thread_list]
+    first_posts = [t.first_post for t in thread_list]
+    posts = Post.objects.filter(pk__in=(last_posts+first_posts)
+      ).select_related()
+    postsd = dict([(p.id, p) for p in posts])
+    for t in thread_list:
+        t.last_post = postsd.get(t.last_post, None)
+        t.first_post = postsd.get(t.first_post, None)
+    return thread_list
+
+
 @anonymous_login_required
 def category_thread_index(request, cat_id):
     cat = get_object_or_404(Category, pk=cat_id)
     if not cat.can_read(request.user):
         raise PermissionError("You cannot list this category")
     thread_list = Thread.view_manager.get_category(cat_id)
+    thread_list = _thread_annotate_posts(thread_list)
     render_dict = ({'title': ''.join((_("Category: "), cat.label)),
       'category': cat, 'threads': thread_list})
     return render_to_response('snapboard/thread_index_categoryless',
@@ -793,14 +809,7 @@ def thread_index(request, num_limit=None, num_start=None,
     thread_list = [t for t in thread_list
       if t.category.can_view(request.user)]
     # Extra annotations.
-    last_posts = [t.last_post for t in thread_list]
-    first_posts = [t.first_post for t in thread_list]
-    posts = Post.objects.filter(pk__in=(last_posts+first_posts)
-      ).select_related()
-    postsd = dict([(p.id, p) for p in posts])
-    for t in thread_list:
-        t.last_post = postsd.get(t.last_post, None)
-        t.first_post = postsd.get(t.first_post, None)
+    thread_list = _thread_annotate_posts(thread_list)
     # ! This should be common with few more views, probably.
     if request.is_xmpp():  # Apply Xmpp-specific limits
         # ? int() failure would mean programming error... or not?
