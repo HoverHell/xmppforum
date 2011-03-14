@@ -23,7 +23,7 @@ form>table th{text-align:right}
 .np>.pw,.pc.np>div>.v,.np>div>.h{padding-left:6px}
 .ep>.pw,.pc.ep>div>.v,.ep>div>.h{padding-left:8px}
 .nf>.hw>.pt{width:6px}
-.nf>.hw>.pt.e2{padding-left:2px}
+.ep>.hw>.pt.e2{padding-left:2px}
 .nf>.hw>.pt.e1{bottom:50%;border-bottom:1px solid}
 .nf>.hw>.pt.e2{top:50%;border-top:1px solid}
 .ep>.hw>.pt.e1{height:200px}
