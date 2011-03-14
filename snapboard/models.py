@@ -451,6 +451,27 @@ class Post_revisions(Post_base):
         verbose_name_plural = _('post revisions')
 
 
+def _make_id_n(alphabet="0123456789abcdefghijklmnopqrstuvwxyz"):
+    """ class: ... """
+    from treebeard.numconv import NumConv    
+    id_n_re = r'(?:[#!])?(?P<thread_id>[' + alphabet + \
+      r']+)/(?P<post_tlid>[' + alphabet + r']+)'
+    id_n_re_c = re.compile(r'^' + id_n_re + r'$')
+    id_n_re_f = r'(?:[#!])?[' + alphabet + r']+/[' + alphabet + ']+'
+    id_n_numconv = NumConv(len(alphabet), alphabet)
+    def id_form_n(self):
+        """ Thread-local number + numconv alphabet.  """
+        return u"%s/%s" % (
+          id_n_numconv.int2str(self.thread_id),
+          id_n_numconv.int2str(self.tlid))
+    @classmethod
+    def from_id_n(cls, idn):
+        m = id_n_re_c.match(idn)
+        assert bool(m), u"idn %r is malformed" % idn
+        thr, tlid = m.groups()
+        return cls.objects.get(thread=int(thr, 16), tlid=int(tlid, 16))
+    return id_n_re, id_n_re_f, id_form_n, from_id_n
+
 
 class Post(Post_base, mp_tree.MP_Node):
     """ Tree-aligned set of posts (of latest versions). """
@@ -524,12 +545,14 @@ class Post(Post_base, mp_tree.MP_Node):
         thr, tlid = m.groups()
         return cls.objects.get(thread=int(thr), tlid=int(tlid))
 
+    id_z_re, id_z_re_f, id_form_z, from_id_z = _make_id_n()
+
     id_x_re = r'(?:[#!])?(?P<thread_id>[0-9A-Fa-f]+)/(?P<post_tlid>[0-9A-Fa-f]+)'
     id_x_re_c = re.compile(r'^' + id_x_re + r'$')
     id_x_re_f = r'(?:[#!])?[0-9A-Fa-f]+/[0-9A-Fa-f]+'
     def id_form_x(self):
         """ Thread-local number + hex.  """
-        return u"%s/%s" % (hex(self.thread_id)[2:], hex(self.tlid)[2:])
+        return u"%x/%x" % (self.thread_id, self.tlid)
     @classmethod
     def from_id_x(cls, idx):
         m = cls.id_x_re_c.match(idx)
