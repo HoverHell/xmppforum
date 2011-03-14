@@ -3,43 +3,39 @@
 #x>p,#x>form,.w,.tp,.ta,.tm,.cat>h3,.thr>h3,.tb,.sp>.ba{padding-left:10px;padding-right:10px}
 #x>form>table,.ta,.sp>.ba,.tp,.w>*,.w.st,.tp .v,.f{margin-top:8px}
 .thr>.w,.cat>.w{padding-bottom:8px}
+.sp>.ba,.tb,.hm{padding-bottom:2px}
 
 .f{border-collapse:collapse;border-spacing:0}
-.f,.f textarea,.f input[type="text"]{width:100%}
-.f textarea,.f input[type="text"],.f select,.b{border:none;margin:0}
-.f select{float:left}
+.f,.ar,.f input[type="text"]{width:100%}
+.ar,.f input[type="text"],.f select,.b{border:none;margin:0;display:block}
 .f th{padding-right:5px;font-weight:normal;font-size:13px}
-.f td{border:1px #D0D0D0 solid;padding:0}
-.f textarea{height:144px}
+.f td{border:1px solid;padding:0}
+.ar{height:144px}
 .fm{text-align:center;font-weight:bold}
-.b{background-color:#fff;padding:1px 3px 2px;border-right:1px #D0D0D0 solid;float:left}
+.b{padding:1px 3px 2px;border-right:1px solid;float:left}
 form>table th{text-align:right}
 
-.ba{background-color:#DCDCDC}
-.sp>.ba,.tb,.hm{padding-bottom:2px}
-.r{color:#d00}
-
-.tm{float:right}
-.tm a{margin:0 3px}
-.pagination>*{padding-right:4px}
-
-.np{padding-top:8px;border-left:2px solid}
+.np,.ep>.pp{padding-top:8px}
+.np,.ep>.hw>.pt.e1,.ep>.pp{border-left:2px solid}
 .np,.ep{margin-left:2px}
+.hw{position:relative;overflow:hidden}
+.nf>.hw>.pt{position:absolute}
 .np>.pw,.pc.np>div>.v,.np>div>.h{padding-left:6px}
 .ep>.pw,.pc.ep>div>.v,.ep>div>.h{padding-left:8px}
-.hw{position:relative;overflow:hidden}
-.ep>.hw>.pt,.np>.hw>.pt{position:absolute;bottom:50%}
-.ep>.hw>.pt{height:200px;width:6px;border-bottom:2px solid;border-left:2px solid}
-.np>.hw>.pt{height:2px;width:6px;background-color:#000}
-.ep>.pp{height:8px;border-left:2px solid}
+.nf>.hw>.pt{width:6px}
+.nf>.hw>.pt.e2{padding-left:2px}
+.nf>.hw>.pt.e1{bottom:50%;border-bottom:1px solid}
+.nf>.hw>.pt.e2{top:50%;border-top:1px solid}
+.ep>.hw>.pt.e1{height:200px}
+
+
 
 .h,.v,.f{max-width:900px}
 .h>div>div{display:table;width:100%}
-.w .h>div,.w .t,p.rm{border-right:1px solid #D0D0D0;border-left:1px solid #D0D0D0;}
-.w .h>div>div{border-top:1px solid #D0D0D0;border-bottom:1px solid #D0D0D0;background-color:#D0D0D0}
-.fp>.h>div>div{border-color:#ECECEC;background-color:#ECECEC}
+.w .h>div,.w .t,p.rm{border-right:1px solid;border-left:1px solid}
+.w .h>div>div{border-top:1px solid;border-bottom:1px solid}
 .h img{float:left;margin-right:5px}
-.hm{display:block;padding-right:5px;padding-left:5px}
+.hm{padding-right:5px;padding-left:5px}
 .tp .hm{padding:0}
 .un{font-weight:bold}
 .ti{white-space:nowrap}
@@ -47,8 +43,16 @@ form>table th{text-align:right}
 .apc>div>.v{outline:2px solid red;outline-offset:-2px}
 
 div.rm{text-align:center}
-.w .t,p.rm{background-color:#F9F9F9}
 .w .t>div,.pc.fp>.v>.t>div{padding:2px 5px 3px}
-.pc>.v>.t>div,.pc>div>.v>.t>div{border-top:1px solid #D0D0D0}
+.pc>.v>.t>div,.pc>div>.v>.t>div{border-top:1px solid}
+.l>.v>.t>div,.l>div>.v>.t>div{border-bottom:1px solid}
+
+.f td,.b,.w .h>div,.w .t,p.rm,.w .h>div>div,.pc>.v>.t>div,.pc>div>.v>.t>div,
+.l>.v>.t>div,.l>div>.v>.t>div{border-color:#D0D0D0}
+.ba,.w .h>div>div{background-color:#D0D0D0}
+.fp>.h>div>div{border-color:#ECECEC}
 .fp.pc>.v>.t>div{border-top-color:#ECECEC}
-.l>.v>.t>div,.l>div>.v>.t>div{border-bottom:1px solid #D0D0D0}
+.fp>.h>div>div{background-color:#ECECEC}
+.w .t,p.rm{background-color:#F9F9F9}
+.r{color:#d00}
+.b{background-color:#fff}

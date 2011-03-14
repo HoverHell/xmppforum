@@ -9,14 +9,14 @@
 {% for thread in threads %}
 <div{% if thread.post_count == 1 %} class="l{% if thread.gsticky %} gs{% else %}{% if category and thread.csticky %} cs{% endif %}{% endif %}{% if thread.closed %} cl{% endif %}"{% else %}{% if thread.gsticky %} class="gs{% if thread.closed %} cl{% endif %}"{% else %}{% if category and thread.csticky %} class="cs{% if thread.closed %} cl{% endif %}"{% endif %}{% endif %}{% endif %}>
   <div class="h"><div><div>
-    <span class="hm">
+    <div class="hm">
       <span>{% if not category %}<a href="{% url snapboard_category_thread_index thread.category.id %}">{{ thread.category }}</a> / {% endif %}<a href="{% url snapboard_thread thread.id %}">{{ thread.subject }}</a></span>
       <span>{{ thread.post_count }} posts</span>
       <span>started by <span class="un">{{ thread.first_post.user.username }}</span></span>
-    </span>
+    </div>
   </div></div></div>
   <div class="v">
-    <div class="t"><div>{{ thread.first_post.texth|truncatewords_html:8|safe }}</div></div>
+    <div class="t"><div>{{ thread.first_post.texth|truncatewords_html:15|safe }}</div></div>
   </div>
   {% if thread.post_count > 1 %}
   <div class="fp l">
@@ -27,7 +27,7 @@
       </span>
     </div></div></div>
     <div class="v">
-      <div class="t"><div>{{ thread.last_post.texth|truncatewords_html:8|safe }}</div></div>
+      <div class="t"><div>{{ thread.last_post.texth|truncatewords_html:15|safe }}</div></div>
     </div>
   </div>
   {% endif %}

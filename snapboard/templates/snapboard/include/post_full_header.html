@@ -5,7 +5,7 @@
 
 <div class="h"><div><div>
   {% avatar_opt post.user %}
-  <span class="hm">
+  <div class="hm">
     <a href="{% url snapboard_thread_post post.id_form_m %}">#{{ post.id_form_m }}</a>
     <a class="un" href="" onclick="t_p('{{ post.id_form_m }}'); return false;">{{ post.user }}</a>
     {% if user.is_authenticated %}
@@ -19,5 +19,5 @@
     {% endif %}
     {% if post.previous_id %}<a href="{% url snapboard_show_revisions post.id_form_m %}">{% trans "history" %}</a>{% endif %}
     <span class="ti">{% reltime post.date %}</span>{% if post.numanswers %} | <span>{{ post.numanswers }} answers. </span>{% endif %}
-  </span>
+  </div>
 </div></div></div>
