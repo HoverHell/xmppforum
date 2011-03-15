@@ -81,9 +81,11 @@ MEDIA_ROOT = os.path.join(os.path.dirname(__file__), 'snapboard/media')
 SOCKET_ADDRESS = 'var/xmppoutqueue'
 
 
-## sort-of optional KV storage. Read django documentation (for now) on what
-## can be used here.
+## Sort-of optional KV storage. Read django documentation (for now) on what
+##  can be used here.
 ## Read the wiki to see what will not work without it.
+## ! This one changed in django 1.3
+## If running on localhost, using unix file-socket is advised.
 #CACHE_BACKEND = 'memcached://unix:var/memcached?timeout=0'
 
 ## Simple sqlite database.
@@ -93,6 +95,15 @@ DATABASE_USER = ''
 DATABASE_PASSWORD = ''
 DATABASE_HOST = ''
 DATABASE_PORT = ''
+
+## Sample postgres database:
+## ! Not sure what defaults and when are acceptable.
+#DATABASE_ENGINE = 'postgresql_psycopg2'
+#DATABASE_NAME = 'xmppforum'
+#DATABASE_USER = ''
+#DATABASE_PASSWORD = ''
+#DATABASE_HOST = '/path/to/datadir'
+#DATABASE_PORT = '5443'
 
 
 # -------   -------   -------   General config.  Defaults can be used, but tune to your likings.
