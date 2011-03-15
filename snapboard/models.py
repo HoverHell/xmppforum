@@ -486,7 +486,8 @@ class Post(Post_base, mp_tree.MP_Node):
     previous = models.ForeignKey(Post_revisions, related_name="prev_last",
       editable=False, null=True, blank=True)
 
-    tlid = models.IntegerField(null=True, blank=True, verbose_name=_('thread-local id'))
+    tlid = models.IntegerField(null=True, blank=True, default=None,
+      verbose_name=_('thread-local id'))
     #objects = models.Manager()  # needs to be explicit due to below
     #view_manager = managers.PostManager()
 
@@ -629,12 +630,15 @@ class Post(Post_base, mp_tree.MP_Node):
             local_sql_l.append(
               ' '.join([connection.ops.quote_name(field.column), '=', '%s'])
               )
+        local_sql_l.append(
+          ' '.join([lid_n, "IS NOT NULL"])
+          )
         local_sql = ' AND '.join(local_sql_l)  # combine them.
 
         # Written as space-joined lists for convenience (avoiding the
         #   escaping hell, even if not much of it).
         # Note: starting from 0.
-        subsql = ' '.join(['SELECT', lid_n, '+ 1', 'FROM', table_n, 'WHERE',
+        subsql = ' '.join(['SELECT (', lid_n, '+ 1 )', 'FROM', table_n, 'WHERE',
          local_sql, 'ORDER BY', lid_n, 'DESC LIMIT 1'])
         sql = ' '.join(['UPDATE', table_n, 'SET', lid_n, '=', 'COALESCE((',
           subsql, '), 0)', 'WHERE', self._meta.pk.column, '=', '%s'])
