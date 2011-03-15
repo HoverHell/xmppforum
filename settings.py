@@ -5,6 +5,16 @@
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
 
+# Make this unique, and don't share it with anybody.
+# `pwgen -sy 50 1`, yet beware of single quotes in there.
+SECRET_KEY = 'L0[qNV"V/oC,Kf.8+eHc`T}`BO8h-mR1uZpv;?MSc3B0>1x">b'
+## Security cookie for XMPP-to-django-over-HTTP-POST-JSON transport.
+## * NOTE: if not defined (empty), multiprocessing workers are used.
+POSTCOOKIE = ''
+
+## URL for POSTing the JSON from XMPP.
+POSTURL = 'http://127.0.0.1:8000/_xmpp/postdata'
+
 LOGGING_INITIATED = False
 # logging setup (copy to settings_local and change there, if needed)
 import logging
@@ -48,10 +58,6 @@ MEDIA_URL = '/m/'
 # Examples: "http://foo.com/media/", "/media/".
 ADMIN_MEDIA_PREFIX = '/media/admin/'
 
-# Make this unique, and don't share it with anybody.
-# `pwgen -sy 50 1`, yet beware of single quotes in there.
-SECRET_KEY = 'L0[qNV"V/oC,Kf.8+eHc`T}`BO8h-mR1uZpv;?MSc3B0>1x">b'
-
 ## -------   -------  XMPP server configuration.
 S2S_PORT = 'tcp:5269:interface=0.0.0.0'
 SECRET = 'secret'
@@ -81,9 +87,11 @@ MEDIA_ROOT = os.path.join(os.path.dirname(__file__), 'snapboard/media')
 SOCKET_ADDRESS = 'var/xmppoutqueue'
 
 
-## sort-of optional KV storage. Read django documentation (for now) on what
-## can be used here.
+## Sort-of optional KV storage. Read django documentation (for now) on what
+##  can be used here.
 ## Read the wiki to see what will not work without it.
+## ! This one changed in django 1.3
+## If running on localhost, using unix file-socket is advised.
 #CACHE_BACKEND = 'memcached://unix:var/memcached?timeout=0'
 
 ## Simple sqlite database.
@@ -93,6 +101,15 @@ DATABASE_USER = ''
 DATABASE_PASSWORD = ''
 DATABASE_HOST = ''
 DATABASE_PORT = ''
+
+## Sample postgres database:
+## ! Not sure what defaults and when are acceptable.
+#DATABASE_ENGINE = 'postgresql_psycopg2'
+#DATABASE_NAME = 'xmppforum'
+#DATABASE_USER = ''
+#DATABASE_PASSWORD = ''
+#DATABASE_HOST = '/path/to/datadir'
+#DATABASE_PORT = '5443'
 
 
 # -------   -------   -------   General config.  Defaults can be used, but tune to your likings.
@@ -199,10 +216,10 @@ AUTHENTICATION_BACKENDS = (
 
 # List of callables that know how to import templates from various sources.
 # * At least something in here requires django 1.2 at least.
-lp = lambda lo, *ar: (lo, ar,)  # loader, arguments
+_lp = lambda lo, *ar: (lo, ar,)  # loader, arguments
 TEMPLATE_LOADERS = (
-  lp('django.template.loaders.cached.Loader',  # cache
-    lp('snapboard.template.ptftemplateloader.Loader',  # ptf
+  _lp('django.template.loaders.cached.Loader',  # cache
+    _lp('snapboard.template.ptftemplateloader.Loader',  # ptf
      'django.template.loaders.filesystem.Loader',
      'django.template.loaders.app_directories.Loader',
      #'django.template.loaders.eggs.load_template_source'

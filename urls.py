@@ -68,7 +68,9 @@ urlpatterns += patterns('',
 ## Easy-set-up static
 if settings.DEBUG:
     urlpatterns += patterns('',
-        (r'^m/(?P<path>.*)$', 'django.views.static.serve', {'document_root': settings.MEDIA_ROOT}),
+        (r'^m/(?P<path>.*)$',
+          'django.views.static.serve',
+          {'document_root': settings.MEDIA_ROOT}),
     )
 
 
@@ -84,14 +86,20 @@ try:
 except ImportError:
     pass
 else:  # do our scary things!..
-    pl1 = [rep for rep in loginurl.urls.urlpatterns if
+    ## (can just use `reverse('loginurl.urls.login', ...)`, though.
+    _pl1 = [rep for rep in loginurl.urls.urlpatterns if
       rep.callback == loginurl.urls.login]
-    if pl1:  # force a proper name unto it.
-        pl1[0].name = 'loginurl_login'
+    if _pl1:  # force a proper name unto it.
+        _pl1[0].name = 'loginurl_login'
     urlpatterns += patterns('',
         (r'^loginurl/', include('loginurl.urls'), {}, 'loginurl'),
     )
 
+
+## XMPP over POST.
+urlpatterns += patterns('',
+    (r'', include('xmppface.urls')),
+)
 
 ## "home" - can be at the root.
 urlpatterns += patterns('',

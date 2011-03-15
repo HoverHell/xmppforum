@@ -5,6 +5,7 @@
 
 from twisted.application import service, strports
 from twisted.internet import protocol
+from twisted.internet import reactor
 from twisted.words.xish import domish  # For creating messages to send.
 from wokkel import component, server, xmppim
 import sys
@@ -24,7 +25,92 @@ from thread import start_new_thread  # used only in reload_workers
 #import signal  # Sig handlers.
 import time  # Old processes killing timeout.
 
-# ! XXX: can use django.utils.autoreload in here.
+
+## RelayData stuff.
+def _make_RelayData_mp(inqueue):
+    """ Makes a RelayData_mp (multiprocessing queue) handler for the
+    provided inqueue.  """
+    
+    ## ! XXX: Can handle all the multiprocessing creation here, actually.
+    
+    def RelayData_mp(data):
+        """ Handler that gives dict data to the next layer (django) over
+        multiprocessing queue.  """
+        inqueue.put_nowait(data)
+    return RelayData_mp
+
+      
+def _make_RelayData_hp(cookie, url):
+    """ Makes a RelayData_hp (http post) handler for the provided
+    parameters.  """
+    ## ! XXX: FastCGI client is not yet supported and *is* problematic.
+    from twisted.web.client import Agent
+    from twisted.web.http_headers import Headers
+    
+    agent = Agent(reactor)  # ! XXX: Only one Agent is okay?
+    extdata = {'postcookie': cookie}
+
+    from zope.interface import implements
+    from twisted.internet.defer import succeed
+    from twisted.web.iweb import IBodyProducer
+
+    class JSONProducer(object):
+        """ Helper IBodyProducer class that JSON-dumps the provided data for a
+        body.   """
+
+        implements(IBodyProducer)
+        
+        def __init__(self, data):
+            ## Serialization can be done at startProducing if length is actually
+            ##  unnecessary.
+            self.datas = simplejson.dumps(data)
+            self.length = len(self.datas)
+            # ! XXX: tmp.
+            server.log.err('produced data: %r' % self.datas)
+
+        def startProducing(self, consumer):
+            consumer.write(self.datas)
+            return succeed(None)
+
+        def pauseProducing(self):
+            pass
+
+        def stopProducing(self):
+            pass
+    
+    def _handle_resp(resp):
+        ## resp is supposedly twisted.web._newclient.Response
+        try:  ## ... but don't be so sure of yourself.
+            if resp.code != 200:
+                server.log.err("RelayData_hp: HTTP POST processing returned "
+                  "non-success code %r:" % resp.code)
+                server.log.err("  (phrase %r, headers %r)" % (resp.phrase,
+                  resp.headers))
+        except Exception:
+            server.log.err("RelayData_hp: error processing response:")
+            traceback.print_exc()
+    
+    def _handle_fail(fail):
+        ## fail is supposedly twisted.python.failure.Failure
+        server.log.err("RelayData_hp: failure %r (%s)." % (
+          fail, fail.getErrorMessage()))
+
+    def RelayData_hp(data):
+        """ Handler that gives dict data to the next layer (django) over
+        HTTP POST.
+        
+        Alters data. """
+        data.update(extdata)
+        dresp = agent.request('POST', url,
+          None,  # Headers({'X-HPCOOKIE': cookie})
+          JSONProducer(data))
+        dresp.addCallbacks(_handle_resp, _handle_fail)
+
+    return RelayData_hp
+
+
+
+#  can use django.utils.autoreload in here.
 def worker(w_inqueue):
     """ multiprocessing worker that grabs tasks (requests) from queue and
     gives them to the xmppface layer. """
@@ -151,13 +237,13 @@ class PresenceHandler(xmppim.PresenceProtocol):
     Note that this handler does not remember any contacts, so it will not
     send presence when starting.  """
 
-    def __init__(self, inqueue, *ar, **kwar):
-        """ @param inqueue: a multiprocessing.queue for relaying new data
-        into.  """
+    def __init__(self, relayhandler, *ar, **kwar):
+        """ @param relayhandler: a function that relays the provided dict
+        data to the next layer.  """
         xmppim.PresenceProtocol.__init__(self, *ar, **kwar)
         self.statustext = u"Greetings"
         self.subscribedto = {}
-        self.inqueue = inqueue
+        self.relayhandler = relayhandler
         # semi-hack to support vCard processing.:
         self.presenceTypeParserMap['available'] = AvailabilityPresenceX
         # ? Ask django-xmppface to ask self to send presences?
@@ -165,13 +251,13 @@ class PresenceHandler(xmppim.PresenceProtocol):
     def subscribedReceived(self, presence):
         """ Subscription approval confirmation was received. """
         server.log.msg(" ------- D: A: subscribedReceived.")
-        self.inqueue.put_nowait({'auth': 'subscribed',
+        self.relayhandler({'auth': 'subscribed',
            'src': presence.sender.full(), 'dst': presence.recipient.full()})
 
     def unsubscribedReceived(self, presence):
         """ Unsubscription confirmation was received. """
         server.log.msg(" ------- D: A: unsubscribedReceived.")
-        self.inqueue.put_nowait({'auth': 'unsubscribed',
+        self.relayhandler({'auth': 'unsubscribed',
            'src': presence.sender.full(), 'dst': presence.recipient.full()})
 
     def subscribeReceived(self, presence):
@@ -188,7 +274,7 @@ class PresenceHandler(xmppim.PresenceProtocol):
         server.log.msg(" ------- D: A: Requesting mutual subscription... ")
         self.subscribe(recipient=presence.sender,
                        sender=presence.recipient)
-        self.inqueue.put_nowait({'auth': 'subscribe',
+        self.relayhandler({'auth': 'subscribe',
            'src': presence.sender.full(), 'dst': presence.recipient.full()})
 
     def unsubscribeReceived(self, presence):
@@ -197,7 +283,7 @@ class PresenceHandler(xmppim.PresenceProtocol):
         server.log.msg(" ------- D: A: unsubscribeReceived.")
         self.unsubscribed(recipient=presence.sender,
                           sender=presence.recipient)
-        self.inqueue.put_nowait({'auth': 'unsubscribe',
+        self.relayhandler({'auth': 'unsubscribe',
            'src': presence.sender.full(), 'dst': presence.recipient.full()})
 
     def availableReceived(self, presence):
@@ -205,14 +291,14 @@ class PresenceHandler(xmppim.PresenceProtocol):
         server.log.msg(" ------- D: A: availableReceived. show: %r" % (
           presence.show,))
         show = presence.show or "online"
-        self.inqueue.put_nowait({'stat': show,
+        self.relayhandler({'stat': show,
            'photo': getattr(presence, 'photo', None),
            'src': presence.sender.full(), 'dst': presence.recipient.full()})
 
     def unavailableReceived(self, presence):
         """ Unavailable presence was received. """
         server.log.msg(" ------- D: A: unavailableReceived.")
-        self.inqueue.put_nowait({'stat': 'unavail',
+        self.relayhandler({'stat': 'unavail',
            'src': presence.sender.full(), 'dst': presence.recipient.full()})
 
     def probeReceived(self, presence):
@@ -227,12 +313,10 @@ class PresenceHandler(xmppim.PresenceProtocol):
 class MessageHandler(xmppim.MessageProtocol):
     """ Message XMPP subprotocol - relay handler. """
 
-    def __init__(self, inqueue, *ar, **kwar):
-        """ @param inqueue: a multiprocessing.queue for relaying new data
-        into.  """
+    def __init__(self, relayhandler, *ar, **kwar):
         # ? XXX: Make some base class with this __init__? Possible?
         xmppim.MessageProtocol.__init__(self, *ar, **kwar)
-        self.inqueue = inqueue
+        self.relayhandler = relayhandler
 
     def onMessage(self, message):
         """ A message stanza was received. """
@@ -258,7 +342,7 @@ class MessageHandler(xmppim.MessageProtocol):
                 server.log.msg(" ------- !! D: message of type %r." % msgtype)
 
             # Dump all the interesting parts of data to the processing.
-            self.inqueue.put_nowait(
+            self.relayhandler(
               {'src': message.getAttribute('from'),
                'dst': message.getAttribute('to'),
                'body': message.body.children[0],
@@ -285,11 +369,9 @@ VCARD_RESPONSE = "/iq[@type='result']/vCard[@xmlns='vcard-temp']"
 class VCardHandler(XMPPHandler):
     """ Subprotocol handler that processes received vCard iq responses. """
 
-    def __init__(self, inqueue, *ar, **kwar):
-        """ @param inqueue: a multiprocessing.queue for relaying new data
-        into.  """
+    def __init__(self, relayhandler, *ar, **kwar):
         XMPPHandler.__init__(self, *ar, **kwar)
-        self.inqueue = inqueue
+        self.relayhandler = relayhandler
 
     def connectionInitialized(self):
         """ Called when the XML stream has been initialized.
@@ -315,7 +397,7 @@ class VCardHandler(XMPPHandler):
         server.log.msg(" ... %r" % iq.children)
         el_vcard = iq.firstChildElement()
         if el_vcard:
-            self.inqueue.put_nowait(
+            self.relayhandler(
               {'src': iq.getAttribute('from'),
                'dst': iq.getAttribute('to'),
                'vcard': _jparse(el_vcard)})
@@ -399,20 +481,28 @@ def start_workers(cfg):
     """ Creates a default multiprocessing pool of workers. """
     return createworkerpool(worker, cfg['NWORKERS'])
 
-def setup_twisted_app(cfg, workerlist=None, inqueue=None):
+def setup_twisted_app(cfg, postrelay=True, workerlist=None, inqueue=None):
     """ Sets up and returns the Twisted service application with all the
     necessary objects for programmable XMPP server working between s2s,
     workers and JSON socket.
     
-    Worker pool is started automatically if not supplied.  """
-
-    if workerlist is None and inqueue is None:
-        # * if only one is None then die sometime later, maybe.
-        workerlist, inqueue = start_workers(cfg)
+    A HTTP POST relay handler (with target URL and auth cookie from
+    settings) started by default, otherwise a worker pool is started
+    automatically (if not supplied).  """
+    
+    ## Only use HTTP POST if cookie is defined.
+    if postrelay and cfg['POSTCOOKIE']:
+        relayhandler = _make_RelayData_hp(cfg['POSTCOOKIE'], cfg['POSTURL'])
+    else:
+        if workerlist is None and inqueue is None:
+            # * if only one is None then die sometime later, maybe.
+            workerlist, inqueue = start_workers(cfg)
+        relayhandler = _make_RelayData_mp(inqueue)
 
     application = service.Application("django-xmppface s2s server")
     
     ## ? XXX: This... How?
+    ## (whatever, not really necessary anymore)
     #signal.signal(signal.SIGHUP, lambda signum, frame: reload_workers(cfg))
     #signal.signal(signal.SIGTERM, lambda signum, frame: quit_workers())
     #signal.signal(signal.SIGINT, lambda signum, frame: quit_workers())
@@ -433,22 +523,24 @@ def setup_twisted_app(cfg, workerlist=None, inqueue=None):
     internalRouterComponent.logTraffic = cfg['LOG_TRAFFIC']
     internalRouterComponent.setServiceParent(application)
 
-    presenceHandler = PresenceHandler(inqueue)
+    presenceHandler = PresenceHandler(relayhandler)
     presenceHandler.setHandlerParent(internalRouterComponent)
 
-    vcardHandler = VCardHandler(inqueue)
+    vcardHandler = VCardHandler(relayhandler)
     vcardHandler.setHandlerParent(internalRouterComponent)
 
-    msgHandler = MessageHandler(inqueue)
+    msgHandler = MessageHandler(relayhandler)
     msgHandler.setHandlerParent(internalRouterComponent)
 
     # outqueue.
     outqueueHandler = OutqueueHandler(msgHandler)
     # OutqueueHandler is hacked so it will just return self when called 'for
     # instantiation' there.
+    # (Similarly hacky way would be to give
+    #   lambda: OutqueueHandler(msgHandler)
+    # as protocol. Less hacky way would probably be a class generator)
     outFactory = protocol.Factory()
-    outFactory.protocol = outqueueHandler  # an instance, not class.
-    # into here somehow
+    outFactory.protocol = outqueueHandler  # an instance, not class!
     outService = strports.service('unix:%s:mode=770' %
       cfg['SOCKET_ADDRESS'], outFactory)
     outService.setServiceParent(application)

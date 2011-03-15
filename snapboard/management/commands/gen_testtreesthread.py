@@ -1,5 +1,4 @@
-from snapboard.views import *
-from snapboard.models import *
+from snapboard.models import User, Thread, Category, Post
 
 from optparse import make_option
 from django.core.management.base import BaseCommand
@@ -15,33 +14,33 @@ def _make_testtrees(maxdepth=512, **kwargs):
     try:
         post = top_post
         print "lin"
-        for d in xrange(2, maxdepth):
-            post = post.add_child(text="#1 at %d (lin)" % d, user=post.user, thread=post.thread)
-            print d
+        for curn in xrange(2, maxdepth):
+            post = post.add_child(text="#1 at %d (lin)" % curn, user=post.user, thread=post.thread)
+            print curn
     except Exception:
         traceback.print_exc()
 
     try:
         post = top_post
         print "dbl"
-        for d in xrange(2, maxdepth):
-            post1 = post.add_child(text="#1 at %d (dbl)" % d, user=post.user, thread=post.thread)
-            post2 = post.add_child(text="#2 at %d (dbl)" % d, user=post.user, thread=post.thread)
+        for curn in xrange(2, maxdepth):
+            post1 = post.add_child(text="#1 at %d (dbl)" % curn, user=post.user, thread=post.thread)
+            post2 = post.add_child(text="#2 at %d (dbl)" % curn, user=post.user, thread=post.thread)
             post = post1
-            print d
+            print curn
     except Exception:
         traceback.print_exc()
 
     try:
         post = top_post
         print "rnd"
-        for d in xrange(2, maxdepth):
-            post1 = post.add_child(text="#1 at %d (rnd)" % d, user=post.user, thread=post.thread)
-            post2 = post.add_child(text="#2 at %d (rnd)" % d, user=post.user, thread=post.thread)
+        for curn in xrange(2, maxdepth):
+            post1 = post.add_child(text="#1 at %d (rnd)" % curn, user=post.user, thread=post.thread)
+            post2 = post.add_child(text="#2 at %d (rnd)" % curn, user=post.user, thread=post.thread)
             post1.save()
             post2.save()
             post = post1 if random.choice([True, False]) else post2
-            print d
+            print curn
     except Exception:
         traceback.print_exc()
 
