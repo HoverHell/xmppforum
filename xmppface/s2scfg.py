@@ -9,6 +9,8 @@ CFG_DEF = {
   'S2S_PORT': 'tcp:5269:interface=0.0.0.0',
   'SECRET': 'secret',
   'SOCKET_ADDRESS': 'xmppoutqueue',
+  'POSTCOOKIE': '',
+  'POSTURL': 'http://127.0.0.1:8000/_xmpp/postdata',
 }
 
 def cfg_override(settings_module, cfg=CFG_DEF):

@@ -64,6 +64,7 @@ def set_user_jid(user, jid, forcenew=False):
     # Set new.
     UserSettings.objects.filter(user=user).update(jid=jid)
 
+
 DEFAULT_USER_XFSETTINGS = UserSettings()
 def get_user_xfsettings(user):
     """ Return xmppface UserSettings for the specified user.  Creates them
