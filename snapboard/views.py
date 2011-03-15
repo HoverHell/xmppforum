@@ -400,7 +400,7 @@ def thread_post(request, post_id=None, post_form_id=None, post=None,
             child.path LIKE (snapboard_post.path || '%%%%') AND
             child.depth > snapboard_post.depth
           ))
-          ELSE "" END
+          ELSE 0 END
         """ % maxdepth,
         # "abuse": 0,
        }
@@ -813,9 +813,11 @@ def thread_index(request, num_limit=None, num_start=None,
     # ! This should be common with few more views, probably.
     if request.is_xmpp():  # Apply Xmpp-specific limits
         # ? int() failure would mean programming error... or not?
-        num_start = int(num_start or 1) - 1  # Starting from humanized '1'.
         num_limit = int(num_limit or 20)
-        thread_list = thread_list[num_start:num_start + num_limit]
+    else:
+        num_limit = int(num_limit or 7)
+    num_start = int(num_start or 1) - 1  # Starting from humanized '1'.
+    thread_list = thread_list[num_start:num_start + num_limit]
     render_dict = {'title': _("Recent Discussions"), 'threads': thread_list}
     return render_to_response(template_name,
       render_dict,
