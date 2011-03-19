@@ -112,3 +112,8 @@ def xmpp_web_changepw(request, password=''):
         return XmppResponse("Password changed.")
     else:
         return XmppResponse("Password disabled.") 
+
+
+## ! TODO: Implement (sample) handle404 / handlecmd404 / handle403 / handle500
+##  here and use them from processcmd!
+
