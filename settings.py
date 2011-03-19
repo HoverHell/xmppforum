@@ -89,10 +89,14 @@ SOCKET_ADDRESS = 'var/xmppoutqueue'
 
 ## Sort-of optional KV storage. Read django documentation (for now) on what
 ##  can be used here.
-## Read the wiki to see what will not work without it.
+## Read the xmppforum wiki to see what will not work without it.
 ## ! This one changed in django 1.3
 ## If running on localhost, using unix file-socket is advised.
 #CACHE_BACKEND = 'memcached://unix:var/memcached?timeout=0'
+## If you're using a default system-wide installation of memcached, most
+## likely you need:
+#CACHE_BACKEND = 'memcached://127.0.0.1:11211/'
+## By default a thread-local locmem:// backend is used (most likely).
 
 ## Simple sqlite database.
 DATABASE_ENGINE = 'sqlite3'
@@ -102,20 +106,23 @@ DATABASE_PASSWORD = ''
 DATABASE_HOST = ''
 DATABASE_PORT = ''
 
-## Sample postgres database:
-## ! Not sure what defaults and when are acceptable.
+## To use postgresql in a default system-wide installation, you can simply
+## redefine:
 #DATABASE_ENGINE = 'postgresql_psycopg2'
-#DATABASE_NAME = 'xmppforum'
-#DATABASE_USER = ''
-#DATABASE_PASSWORD = ''
+#DATABASE_NAME = ''  # username is used if empty.
+## Additionally, if you're running a user-local postgresql instance, tou
+## need to specify path to its datadir:
 #DATABASE_HOST = '/path/to/datadir'
 #DATABASE_PORT = '5443'
+## Username and password are generally only needed when using postgresql
+## over network.
 
 
 # -------   -------   -------   General config.  Defaults can be used, but tune to your likings.
 
 # Select your filter, the SNAPBoard default is Markdown
 # Possible values: 'bbcode', 'markdown', 'textile'
+## ! Currently, only bbcode might be properly supported.
 SNAP_POST_FILTER = 'bbcode'
 
 ## Registration

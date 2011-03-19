@@ -66,7 +66,7 @@ def _make_RelayData_hp(cookie, url):
             self.datas = simplejson.dumps(data)
             self.length = len(self.datas)
             # ! XXX: tmp.
-            server.log.err('produced data: %r' % self.datas)
+            server.log.err('produced data: %s' % self.datas)
 
         def startProducing(self, consumer):
             consumer.write(self.datas)
@@ -340,6 +340,13 @@ class MessageHandler(xmppim.MessageProtocol):
             if not (msgtype == 'chat'):
                 # For now - log them.
                 server.log.msg(" ------- !! D: message of type %r." % msgtype)
+            try:
+                body = message.body.children[0]
+            except Exception, e:
+                server.log.err("onMessage: error retreiving body.")
+                server.log.err("onMessage:  ... message probaby was %r." % (
+                  message.toXml(),))
+                raise e
 
             # Dump all the interesting parts of data to the processing.
             self.relayhandler(

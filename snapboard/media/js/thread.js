@@ -36,7 +36,7 @@ function exttoggle(id, type, action) {
    if(o.responseText !== undefined) {
     for (var n in o) {
      if (o.hasOwnProperty(n)) {
-      e.innerHTML += o[n]+"<br>";}}}};
+      e.innerHTML += o[n]+"<br/>";}}}};
   var callback = {
    success:handleSuccess,
    failure:handleFailure,

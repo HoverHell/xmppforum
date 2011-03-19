@@ -151,7 +151,10 @@ def rpc_dispatch(request):
         return HttpResponseServerError("RPC: Unknown RPC function")
 
     try:
-        oid = int(request.POST['oid'])
+        ## int() is unnecessary: ORM can accept pk="123" anyway.
+        ## (and it conflicts with Post's custom IDs)
+        #oid = int(request.POST['oid'])
+        oid = request.POST['oid']
     except KeyError:
         return HttpResponseServerError("RPC: missing oid.")
 
@@ -558,6 +561,8 @@ def thread_latest(request, thread_id, num_posts=10):
     parent_dict = dict([(post.id, post) for post in parent_list])
     for post in post_list:
         post.parent = parent_dict.get(post.parent_id, None)
+    ### v4: TODO: try custom JOINs on the same table with those (basesub)
+    ### conditions.
     post_list = post_list[::-1]  # from older to newer.
 
     return render_to_response('snapboard/thread_latest',
@@ -772,7 +777,8 @@ def watchlist(request):
 def _thread_annotate_posts(thread_list):
     """ Requests threads' first and last posts and puts them under the same
     names.  Mutates thread_list.  """
-    ## Not sovery optimal, but don't know a much better way.
+    ## Not so very optimal...
+    ## TODO: Try doing this with custom JOINs.
     last_posts = [t.last_post for t in thread_list]
     first_posts = [t.first_post for t in thread_list]
     posts = Post.objects.filter(pk__in=(last_posts+first_posts)
@@ -809,15 +815,16 @@ def thread_index(request, num_limit=None, num_start=None,
     thread_list = [t for t in thread_list
       if t.category.can_view(request.user)]
     # Extra annotations.
+    # FIXME: It should be done *after* pagination when pagination is done.
     thread_list = _thread_annotate_posts(thread_list)
-    # ! This should be common with few more views, probably.
-    if request.is_xmpp():  # Apply Xmpp-specific limits
-        # ? int() failure would mean programming error... or not?
-        num_limit = int(num_limit or 20)
-    else:
-        num_limit = int(num_limit or 7)
-    num_start = int(num_start or 1) - 1  # Starting from humanized '1'.
-    thread_list = thread_list[num_start:num_start + num_limit]
+    # ? XXX: Should this limiting be somehow common sith few more views? 
+    # But before that, need to decide on XMPP lists limiting in the first
+    # place.
+    # ? int() failure would mean programming error... or not?
+    if request.is_xmpp() or num_limit or num_start:
+        num_limit = int(num_limit or 30)
+        num_start = int(num_start or 1) - 1  # Starting from humanized '1'.
+        thread_list = thread_list[num_start:num_start + num_limit]
     render_dict = {'title': _("Recent Discussions"), 'threads': thread_list}
     return render_to_response(template_name,
       render_dict,
@@ -841,6 +848,7 @@ def merged_index(request):
       template_name='snapboard/include/category_index')
     cathtml = getattr(catresp, 'content', '')
     thrresp = thread_index(request,
+      num_limit=5,
       template_name='snapboard/include/thread_index')
     thrhtml = getattr(thrresp, 'content', '')
     return render_to_response('snapboard/merged_index',

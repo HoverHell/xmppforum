@@ -1,4 +1,4 @@
-""" Default set of various handlers.  """
+""" Default set of various handlers.  Currently - xmpp_post handler."""
 
 from django.conf import settings
 from django.core.exceptions import PermissionDenied
@@ -7,26 +7,27 @@ from django.utils import simplejson
 
 from .xmppface import processcmd
 
+import logging
+_log = logging.getLogger(__name__)
+import traceback
+
 
 ## ! TODO: hand over cookie using HTTP headers?  Or use HTTP basic auth?
-
-
+## ? XXX: Move this to xmppface, maybe?
 def xmpp_post(request):
     """ Handles XMPP stuff handed to the django over HTTP POST.  """
-    datas = request.raw_post_data  # not encoded in there.
-    data = simplejson.loads(datas)
-    
-    ## Check simple-security-cookie:
-    rcookie = data.pop('postcookie', None)
-    if rcookie != settings.POSTCOOKIE:
-        raise PermissionDenied('No no no!')
+    try:
+        datas = request.raw_post_data  # not encoded in there.
+        if not datas:  # empty?..
+            return HttpResponse('---')
+        data = simplejson.loads(datas)
+        
+        ## Check simple-security-cookie:
+        rcookie = data.pop('postcookie', None)
+        if rcookie != settings.POSTCOOKIE:
+            raise PermissionDenied('No no no!')
 
-    processcmd(data)
+        processcmd(data)
+    except Exception:
+        _log.exception("Error on processing POSTed XMPP data.")
     return HttpResponse('.')
-
-
-## ! TODO: Implement (sample) handle404 / handlecmd404 / handle403 / handle500
-##  here and use them from processcmd?
-##  !! Perhaps not here - to avoid circular dependencies.  Or move xmpp_post
-##   somewhere else, instead.  More likely they should be in views after
-##   all.
