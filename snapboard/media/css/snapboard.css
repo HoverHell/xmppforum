@@ -1,6 +1,6 @@
 #x{font-family:arial;margin:0}
 
-#x>p,#x>form,.w,.tp,.ta,.tm,.cat>h3,.thr>h3,.sp>p,.tb,.sp>.ba,.w .t>div,.pc.fp>.v>.t>div{padding-left:10px;padding-right:10px}
+#x>p,#x>form,.w,.tp,.ta,.tm,.cat>h3,.thr>h3,.sp>p,.tb,.sp>.ba{padding-left:10px;padding-right:10px}
 #x>form>table,.ta,.sp>.ba,.tp,.w>*,.w.st,.tp .v,.f{margin-top:8px}
 .thr>.w,.cat>.w{padding-bottom:8px}
 .sp>.ba,.tb,.hm{padding-bottom:2px}
@@ -43,7 +43,7 @@ form>table th{text-align:right}
 .apc>div>.v{outline:2px solid red;outline-offset:-2px}
 
 div.rm{text-align:center}
-.w .t>div,.pc.fp>.v>.t>div{padding-top:5px;padding-bottom:5px}
+.w .t>div,.pc.fp>.v>.t>div{padding:5px}
 .pc>.v>.t>div,.pc>div>.v>.t>div{border-top:1px solid}
 .l>.v>.t>div,.l>div>.v>.t>div{border-bottom:1px solid}
 
