@@ -599,7 +599,7 @@ def post_reply(request, post_form_id=None, post_id=None, rpc=False):
             postobj.notify()
             return success_or_redirect(request,
               _redirect_to_posts(parent_post, postobj),
-              u"Posted successfully.")
+              u"Posted successfully (%s)." % Post.objects.get(pk=postobj.id).id_form_m())
         else:
             pass  # ???
     else:
@@ -625,14 +625,17 @@ def edit_post(request, post_form_id=None, post_id=None, rpc=False):
     # with rpc=true returns dict with full form HTML.
     orig_post = _get_that_post(request, post_form_id, post_id)
 
+    # TODO: Allow unauthenticated retreiving (not updating) of raw text of any post.
     if orig_post.user != request.user \
-     or not orig_post.thread.category.can_post(request.user) \
-     or not orig_post.thread.category.can_read(request.user) \
-     or orig_post.thread.closed:
+      or not orig_post.thread.category.can_post(request.user) \
+      or not orig_post.thread.category.can_read(request.user) \
+      or orig_post.thread.closed:
         # Might be not in sync with the interface in thread.
         raise PermissionError("You are not allowed to edit that.")
 
-    if request.POST and not rpc:
+    # bool(text) is necessary for retreiving raw text over XMPP (since it is
+    # None in that case, not an empty POST).
+    if request.POST and request.POST.get('text', None) and not rpc:
         # For editing: we modify the post in-place and save the previous
         # version into the separate model.
         post_rev = Post_revisions.make_from_post(orig_post)

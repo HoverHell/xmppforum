@@ -45,9 +45,9 @@ cmdpatterns = patterns('',
 
     (r'^[#!]' + post_id_re_f + r'? (?P<POST_text>(.*\n?)+)',
       post_reply, {}, 'snapboard_post_reply'),
-    (r'^[#!]e' + post_id_re_f + r'? (?P<POST_text>(.*\n?)+)',
+    (r'^[#!]e(?: ' + post_id_re_f + r'?(?: (?P<POST_text>(.*\n?)+))?)?',
       edit_post, {}, 'snapboard_edit_post'),
-    (r'^r( ' + post_id_re_f + r'?( (?P<resource>.+)?)?)?$',
+    (r'^r(?: ' + post_id_re_f + r'?(?: +(?P<resource>.+)?)?)?$',
       xmppresourcify, {}, 'snapboard_xmppresourcify'),  # XMPP-specific.
     # TODO: show_revisions?
     # TODO: watchlist?

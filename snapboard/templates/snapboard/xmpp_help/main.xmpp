@@ -9,10 +9,13 @@ You can use '!' instead of '#'.</p>
 <strong>#123l 100</strong> — show 100 latest posts in thread 123 <br/>
 <strong>#c3</strong> — show threads in category 3 <br/>
 <strong>#c2 Subj</strong> — create new thread in category 2 with subject "Subj" and remaining message as content (newline required!) <br/>
-<strong>r #9876 specresource</strong> — send notifications about specific watch (subscription) from specified XMPP resource of the bot. <br/>
+<strong>r #3/456 specresource</strong> — send notifications about specific watch (subscription) from specified XMPP resource of the bot. <br/>
 <strong>r</strong> — same as previous, omit post id to use last notified; omit resource to use automatically constructed one. <br/>
-<strong>#/5432 text</strong> — reply to post #5432. <br/>
-<strong>w #/5432</strong> — watch post #5432 (and its whole tree of replies).  Resource can be specified as well. <br/>
+<strong>#5/432 text</strong> — reply to post #5/432. <br/>
+<strong># text</strong> — reply to the last post. <br/>
+<strong>#e 5/432 text</strong> — replace (edit) text of the post #5/432. <br/>
+<strong>#e 5/432</strong> — show the raw text of the post #5/432 (for editing). <br/>
+<strong>w #5/432</strong> — watch post #5432 (and its whole tree of replies).  Resource can be specified as well. <br/>
 <strong>WHOAMI</strong> (who) — find out your username <br/>
 <strong>LOGIN</strong> (log) - get a one-time url for loging in into web. <br/>
 <strong>PASSWORD passw</strong> - set your password for logging ing through web.  Can be set to empty to disable logging in with password. <br/>

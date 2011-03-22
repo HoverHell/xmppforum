@@ -4,6 +4,9 @@
 from django.core.exceptions import PermissionDenied
 from django.conf import settings
 
+from xmppface.xmppbase import (XmppRequest, XmppResponse, render_to_response,
+ success_or_redirect, success_or_reverse_redirect)
+
 
 ## Helper wrapper, used instead of
 ## django.contrib.admin.views.decorators.staff_member_required for using it

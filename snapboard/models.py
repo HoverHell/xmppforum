@@ -596,7 +596,7 @@ class Post(Post_base, mp_tree.MP_Node):
         # ! XXX: Not really appropriate to do it here?..
         from snapboard.templatetags.extras import render_filter
         self.texth = render_filter(self.text)
-
+        
         super(Post, self).save(force_insert, force_update)
         ## Update the thread-local id afterwards.
         self.update_lid()
@@ -660,18 +660,19 @@ class Post(Post_base, mp_tree.MP_Node):
             recipients = []
             resources = {}  # Special feature, ha.
             for wl in WatchList.objects.select_related(depth=2).filter(
-             post__in=posttree).order_by("snapboard_post.depth"):
+              post__in=posttree).order_by("snapboard_post.depth"):
                 # Sorting is required to override resource requirement with
                 # the one of the deepest post.
                 if wl.user not in all_recipients:
                     # ! Actually, check post.user != wl.user.  Probably.
+                    # !! TODO: Should automatically add watches for own posts, or something like that!
                     recipients.append(wl.user)
                 if wl.xmppresource:
                     resources[wl.user] = wl.xmppresource
                 else:
                     # we're sending it to a bare jid. Allow simple
                     # resourcification without specifying post.
-                    cache.set('nt_%s'%wl.user.username, [self.id,
+                    cache.set('nt_%s' % wl.user.username, [self.id,
                       time.time()])
             recipients = set(recipients)
             if recipients:
