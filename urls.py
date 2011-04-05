@@ -66,7 +66,7 @@ urlpatterns += patterns('',
 
 
 ## Easy-set-up static
-if settings.DEBUG:
+if settings.SERVE_STATIC:
     urlpatterns += patterns('',
         (r'^m/(?P<path>.*)$',
           'django.views.static.serve',

@@ -2,8 +2,14 @@
 # Django settings for examplesite project.
 
 # Debug mode.
-DEBUG = True
+DEBUG = False
 TEMPLATE_DEBUG = DEBUG
+
+## There's not very much static, so it should be appropriate to serve it
+## over django; however, you might want to set up some other webserver to do
+## that (and disabling this option isn't very necessary afterwards, just set
+## the MEDIA_URL).
+SERVE_STATIC = True
 
 # Make this unique, and don't share it with anybody.
 # `pwgen -sy 50 1`, yet beware of single quotes in there.
@@ -32,8 +38,9 @@ MANAGERS = ADMINS
 ### Define an initial "base address" (set on first syncdb).
 ### Used in web-links in e-mail and XMPP messages.
 ### Can be changed later in admin interface in "Sites" category.
-## The domain to use to replace 'example.com'. Defaults to your machine's hostname.
-#SITE_DOMAIN = 'example.com'
+## Defaults to your machine's hostname,
+## but http:// is supposedly necessary.
+#SITE_DOMAIN = 'http://example.com'
 ## The site's name. Defaults to 'defaultsite' otherwise.
 SITE_NAME = 'xmppforum'
 

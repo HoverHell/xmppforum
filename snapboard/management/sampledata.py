@@ -21,7 +21,7 @@ def test_setup(**kwargs):
         populate = "yes"
 
     msg = """
-    You've installed SNAPboard with DEBUG=True, do you want to populate
+    You've installed xmppforum with DEBUG=True, do you want to populate
     the board with random users/threads/posts to test-drive the application?
     (yes/no):
     """  # indent is printed.

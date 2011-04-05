@@ -14,7 +14,7 @@ Or, if you're running Debian or similar distribution, you can try using
 "python inst/bootstrap.py -d" after installing some packages by running
 
   sudo aptitude install python-django python-imaging python-wokkel \
-    python-django-treebeard python-django-registration python-simplejson
+    python-django-treebeard python-django-registration python-simplejson \
     python-html2text git
 
 or just "inst/deb_apt.sh".
@@ -35,10 +35,10 @@ to create a default database (it will ask few questions). After that, you
 
 to start the django development server, and
 
-   ENV/bin/python $(which twistd) -y xmppface/jaboardxmpp.tac -n --pidfile \
-     jaboardxmpp.pid
+   ENV/bin/python manage.py run_xmppserver
 
-to run XMPP server (or you can use explicit path to twistd).
+to run XMPP server (or you can use explicit path to twistd).  Also, see
+provided run_* scripts.
 
 Note, however, that to successfully use XMPP server you will likely need a
 DNS setup with an externally accessible address.
