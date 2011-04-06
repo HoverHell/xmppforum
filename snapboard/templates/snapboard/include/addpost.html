@@ -9,19 +9,7 @@
 <div>{{ postform.errors }}</div>
 <form action="{% url snapboard_post_reply parent_post.id %}" method="POST">
   <table class="f">
-    {% ifequal SNAP_POST_FILTER "bbcode" %}
-    <tr>
-      <td>
-        <button class="b" onclick="return surround('[b]','[/b]');"><b>{% trans "B" %}</b></button>
-        <button class="b" onclick="return surround('[i]','[/i]');"><i>{% trans "i" %}</i></button>
-        <button class="b" onclick="return surround('[quote]','[/quote]');"><span>{% trans "quote" %}</span></button>
-        <button class="b" onclick="return surround('[code]','[/code]');"><span>{% trans "code" %}</span></button>
-        <button class="b" onclick="return do_prefix('[*]');"><span>{% trans "list" %}</span></button>
-        <button class="b" onclick="return insert_img();"><span>{% trans "img" %}</span></button>
-        <button class="b" onclick="return insert_link();"><u>{% trans "link" %}</u></button>
-      </td>
-    </tr>
-    {% endifequal %}
+    {% include "snapboard/include/editorhelper.html" %}
     <tr>
       <td><textarea class="ar" name="text"></textarea></td>
     </tr>
