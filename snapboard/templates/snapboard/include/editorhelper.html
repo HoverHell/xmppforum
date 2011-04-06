@@ -1,8 +1,3 @@
-    {% ifequal SNAP_POST_FILTER "bbcode" %}
-    <tr>
-      <th></th>
-      <td>
-        <a href="http://en.wikipedia.org/wiki/BBCode#BBCode_tags">Help on BBCode</a>
-      </td>
-    </tr>
-    {% endifequal %}
+{% ifequal SNAP_POST_FILTER "bbcode" %}
+    <a href="http://en.wikipedia.org/wiki/BBCode#BBCode_tags">Help on BBCode</a>
+{% endifequal %}

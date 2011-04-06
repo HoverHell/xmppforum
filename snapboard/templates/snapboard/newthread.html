@@ -9,7 +9,12 @@
 <form action="" method="POST">
   <table class="f">
     {{ threadform.as_table }}
-    {% include "snapboard/include/editorhelper.html" %}
+    <tr>
+      <th></th>
+      <td>
+        {% include "snapboard/include/editorhelper.html" %}
+      </td>
+    </tr>
     {{ postform.as_table }}
     <tr>
       <th></th>

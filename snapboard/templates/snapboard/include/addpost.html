@@ -9,7 +9,11 @@
 <div>{{ postform.errors }}</div>
 <form action="{% url snapboard_post_reply parent_post.id %}" method="POST">
   <table class="f">
-    {% include "snapboard/include/editorhelper.html" %}
+    <tr>
+      <td>
+        {% include "snapboard/include/editorhelper.html" %}
+      </td>
+    </tr>
     <tr>
       <td><textarea class="ar" name="text"></textarea></td>
     </tr>
