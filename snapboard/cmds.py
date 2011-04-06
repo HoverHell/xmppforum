@@ -39,7 +39,7 @@ cmdpatterns = patterns('',
     (r'^[#!]c(?P<cat_id>\d+)$',
       category_thread_index, {}, 'category_thread_index'),
 
-    (r'^[#!]c(?P<cat_id>\d+) (?P<POST_subject>.+?)\n(?P<POST_text>.(.*\n?)+)',
+    (r'^[#!]c(?P<POST_category>\d+) (?P<POST_subject>.+?)\n(?P<POST_text>.(.*\n?)+)',
       new_thread, {}, 'snapboard_new_thread'),
     # TODO: edit_settings?
 

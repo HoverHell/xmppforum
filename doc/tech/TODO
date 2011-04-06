@@ -6,7 +6,9 @@
 -- xmppface:
   * Reorganize:
     * allow custom 404 / 500 / ... handlers,
-    * move them (defaults) into views.
+    * move them (defaults) into views,
+    * provide default 500 handler that notifies administrators (if
+     possible) and logs full debug info.
     * !! Move the default avatar handling into views!
       * Possibly over handlers too.
   * run_xmppserver sometimes fails to quit on SIGTERM if using workers.

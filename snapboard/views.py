@@ -704,7 +704,7 @@ def show_revisions(request, post_form_id=None, post_id=None, rpc=False):
 
 #@userbannable
 @anonymous_login_required
-def new_thread(request, cat_id):
+def new_thread(request, cat_id=None):
     """ Start a new discussion.  """
     warn = None
 
