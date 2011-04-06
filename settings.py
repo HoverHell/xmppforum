@@ -116,7 +116,7 @@ DATABASE_PORT = ''
 ## To use postgresql in a default system-wide installation, you can simply
 ## redefine:
 #DATABASE_ENGINE = 'postgresql_psycopg2'
-#DATABASE_NAME = ''  # username is used if empty.
+#DATABASE_NAME = ''  # username is used if empty... maybe.
 ## Additionally, if you're running a user-local postgresql instance, tou
 ## need to specify path to its datadir:
 #DATABASE_HOST = '/path/to/datadir'

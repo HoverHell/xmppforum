@@ -1,1 +1,1 @@
-memcached -c 64 -vv -s var/memcached
+exec memcached -c 64 -vv -s var/memcached

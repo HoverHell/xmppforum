@@ -1,3 +1,7 @@
+-- xmppforum common:
+  * Add INSTALL / HOWTO on using postgresql (which requires python-psycopg2)
+   and memcached (which requires python-memache) (both in both local-user
+   and system-wide installs).
 
 -- xmppface:
   * Reorganize:
@@ -5,11 +9,13 @@
     * move them (defaults) into views.
     * !! Move the default avatar handling into views!
       * Possibly over handlers too.
+  * run_xmppserver sometimes fails to quit on SIGTERM if using workers.
   ...
   * ? Add django's automatic reloading?
     * (see django's runserver command source)
-  * Add customizable prefixes for all cache.* stuff (at least in a separate
-   module)
+    * Likely unnecessary.
+  * Add customizable prefixes (namespace?) for all cache.* stuff (at least
+   in a separate module).
   ...
   * [mostly done] registration-related XMPP workflow?
   * [mostly done] Make it a separate module/app!
