@@ -59,7 +59,7 @@ CAT_REMTHREADS_NAME = getattr(settings, 'CAT_REMTHREADS_NAME',
 try:  # (totally optional)
     CURRENT_SITE = Site.objects.get_current()
     SITE_NAME = CURRENT_SITE.name
-    SITE_DOMAIN = CURRENT_SITE.domain
+    SITE_DOMAIN = "http://" + CURRENT_SITE.domain
 except Exception:  # whatever.  XMPP links won't work though.
     SITE_NAME = ""
     SITE_DOMAIN = ""

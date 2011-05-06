@@ -39,8 +39,8 @@ MANAGERS = ADMINS
 ### Used in web-links in e-mail and XMPP messages.
 ### Can be changed later in admin interface in "Sites" category.
 ## Defaults to your machine's hostname,
-## but http:// is supposedly necessary.
-#SITE_DOMAIN = 'http://example.com'
+## no `http://` should be present.
+#SITE_DOMAIN = 'example.com'
 ## The site's name. Defaults to 'defaultsite' otherwise.
 SITE_NAME = 'xmppforum'
 
