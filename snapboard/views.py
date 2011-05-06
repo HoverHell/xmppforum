@@ -574,7 +574,7 @@ def _redirect_to_posts(target1, target2=None):
     res = reverse('snapboard_thread_post',
       args=(target1.id,),)
     if target2:
-        res += u'#%s' % target2.id_form_m
+        res += u'#%s' % target2.id_form_m()
     return res
 
 
