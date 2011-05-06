@@ -108,6 +108,7 @@ def xmpp_web_changepw(request, password=''):
     (effectively disabling logging in with pasword).  """
     # JID is supposedly trusted and can *just* change it.
     request.user.set_password(password)
+    request.user.save()
     if password:
         return XmppResponse("Password changed.")
     else:
