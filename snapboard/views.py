@@ -597,11 +597,15 @@ def post_reply(request, post_form_id=None, post_id=None, rpc=False):
               **(postform.cleaned_data))  # text and whatnot.
             postobj.save()
             postobj.notify()
+            # retreive-update the newly set tlid for the redirect.
+            postobj.tlid = \
+              Post.objects.filter(id=postobj.id).values('tlid')[0]['tlid']
             return success_or_redirect(request,
               _redirect_to_posts(parent_post, postobj),
-              u"Posted successfully (%s)." % Post.objects.get(pk=postobj.id).id_form_m())
+              u"Posted successfully (%s)." % (
+                Post.objects.get(pk=postobj.id).id_form_m()))
         else:
-            pass  # ???
+            pass  # This is a user's problem if happens somehow.
     else:
         context = {'postform': PostForm(),
           "parent_post": parent_post}

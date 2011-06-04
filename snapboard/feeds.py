@@ -10,7 +10,7 @@ SITE = Site.objects.get_current()
 
 class LatestPosts(Feed):
     title = _('%s Latest Discussions') % str(SITE)
-    link = "/snapboard/"
+    link = "/"
     description = _("The latest contributions to discussions.")
 
     title_template = "snapboard/feeds/latest_title.html"
