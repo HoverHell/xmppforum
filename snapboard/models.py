@@ -607,6 +607,7 @@ class Post(Post_base, mp_tree.MP_Node):
         Does not replace an existing lid unless `force`d; but does not
         update it on the object after setting!  """
         #from django.db import models, connection, transaction
+        # XXX: Possible TODO: set the tlid field to Deferred()?
         from django.db import connection, transaction
         lid_s = "tlid"
 
