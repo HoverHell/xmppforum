@@ -17,14 +17,18 @@ Or, if you're running Debian or similar distribution, you can try using
     python-django-treebeard python-django-registration python-simplejson \
     python-html2text git
 
-or just "inst/deb_apt.sh".
+(or just "inst/deb_apt.sh").
 
 By running bootstrap, you get the 'ENV' directory and, hopefully, all the
  requirements installed.
+
+You might also need to do "rm ENV/lib/python*/no-global-site-packages.txt".
+
 After that, add option overrides to settings_local.py (copy from settings.py
  what needs to be changed - it is organized in sections by likelihood of
  requiring overrides),
-And then run:
+
+And then run
 
    ENV/bin/python manage.py syncdb
 
