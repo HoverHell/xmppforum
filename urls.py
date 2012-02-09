@@ -51,7 +51,8 @@ urlpatterns += patterns('',
 
 ## Admin
 urlpatterns += patterns('',
-    (r'^admin/(.*)', admin.site.root),
+#    (r'^admin/(.*)', admin.site.root),
+    (r'^admin/(.*)', include(admin.site.urls)),
 )
 
 
