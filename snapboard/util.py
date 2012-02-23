@@ -60,8 +60,14 @@ def r_getreturn(request, rpc=False, rpcdata={}, successtext=None,
 ## Timedelta stuff.
 # configurable/overridable:
 TIMEDELTA_NAMES = getattr(settings, 'TIMEDELTA_NAMES',
-  ('y', 'mo', 'w', 'd', 'h', 'm', ''))
-TIMEDELTA_MAXLEN = getattr(settings, 'TIMEDELTA_MAXLEN', 0)
+#  ('y', 'mo', 'w', 'd', 'h', 'm', ''))
+  (
+    (' year', ' years'), (' month', ' months'), (' week', ' weeks'),
+    (' day', ' days'), (' hour', ' hours'), (' minute', ' minutes'),
+    (' second', ' seconds')
+  )  ## The most humanized defaults.
+)
+TIMEDELTA_MAXLEN = getattr(settings, 'TIMEDELTA_MAXLEN', 2)
 TIMEDELTA_SIZES = (
   3600 * 24 * 365, 3600 * 24 * 30, 3600 * 24 * 7, 3600 * 24, 3600, 60, 1
 )
@@ -84,8 +90,14 @@ def format_timedelta(delta, maxlen=TIMEDELTA_MAXLEN):
             continue
         value, seconds = divmod(seconds, secs_per_unit)
         if value > 0:
-            a_res.append(u"%d%s" % (value, unit))
-            if maxlen and  len(a_res) >= maxlen:
+            if isinstance(unit, tuple):
+                # XXX: "poor man's pluralize". Using i18n would be more
+                # appropriate. for everything here, even.
+                unitname = unit[0] if value == 1 else unit[1]
+            else:
+                unitname = unit
+            a_res.append(u"%d%s" % (value, unitname))
+            if maxlen and len(a_res) >= maxlen:
                 break
     if not a_res:
         return u"just now"  # nbsp!
