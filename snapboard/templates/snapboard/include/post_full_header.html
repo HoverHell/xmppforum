@@ -6,8 +6,10 @@
 <div class="h" id="pv{{ post.id_form_m }}"><div><div>
   <div class="hm">{% avatar_opt post.user %}</div>
   <div class="hm">
+	<a id="{{ post.id_form_m }}_a" class="hide">-</a>
     <a href="{% url snapboard_thread_post post.id_form_m %}" class="phl">#{{ post.id_form_m }}</a>
-    <a class="un" href="" onclick="t_p('{{ post.id_form_m }}'); return false;">{{ post.user }}</a>
+    <span class="ti">{% reltime post.date %}</span>
+	<a class="un" href="" onclick="t_p('{{ post.id_form_m }}'); return false;">{{ post.user }}</a>
     {% if user.is_authenticated %}
       {% if not user.really_anonymous %}{% ifequal post.user_id user.id %}
         <a href="{% url snapboard_edit_post post.id_form_m %}?next={{ request.get_full_path|urlencode }}#p{{ post.id_form_m }}" onclick="return t_e('{{ post.id_form_m }}')">{% trans "edit" %}</a>
@@ -18,6 +20,6 @@
       {% if user.is_staff %}<a href="" onclick="s_c('{{ post.id_form_m }}');">{{ post.censor|yesno:_("uncensor,censor") }}</a>{% endif %}
     {% endif %}
     {% if post.previous_id %}<a href="{% url snapboard_show_revisions post.id_form_m %}">{% trans "history" %}</a>{% endif %}
-    <span class="ti">{% reltime post.date %}</span>{% if post.numanswers %} | <span>{{ post.numanswers }} answers. </span>{% endif %}
+    {% if post.numanswers %} | <span>{{ post.numanswers }} answers. </span>{% endif %}
   </div>
 </div></div></div>

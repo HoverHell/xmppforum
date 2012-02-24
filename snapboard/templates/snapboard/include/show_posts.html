@@ -42,7 +42,7 @@
         {% endif %}
       {% endif %}
     {% if not post.is_flat %}{% ifnotequal post.depth listdepth %}</div>{% endifnotequal %}{% endif %}
-    {% if post.is_flat %}<div>{% else %}{% ifequal post.depth listdepth %}<div>{% else %}<div class="pw">{% endifequal %}{% endif %}
+    {% if post.is_flat %}<div id="{{ post.id_form_m }}_d">{% else %}{% ifequal post.depth listdepth %}<div id="{{ post.id_form_m }}_d">{% else %}<div class="pw" id="{{ post.id_form_m }}_d">{% endifequal %}{% endif %}
       {% if post.censor and not user.is_staff %}{% else %}
         {% if not post.numanswers or post.nsib %}
           {% include "snapboard/include/post_full_body.html" %}

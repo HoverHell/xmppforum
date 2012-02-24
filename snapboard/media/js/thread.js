@@ -210,3 +210,42 @@ function insert_link(url, name) {
  return do_insert('[url=' + url + ']' + name + '[/url]')}
 
 function find_textarea (el) { return true; }// el.tagName.toLowerCase() == 'textarea'; }
+
+/*Hide|unhide thread */
+function xpath(path, root, type) {
+    if(type)
+        return document.evaluate(path, root || document, null, 8, null).singleNodeValue;
+    else {
+        var r = document.evaluate(path, root || document, null, 6, null), a = [];
+        for(var i=0;i<r.snapshotLength;i++) 
+            a.push(r.snapshotItem(i));
+        return a;
+    }
+}
+function each(list, func) { 
+        for(var i=0;i<list.length;i++)
+            func(list[i],i);
+}
+function switchid(id) {
+    var elink = document.getElementById(id+'_a');
+    var ediv = document.getElementById(id+'_d');
+
+    if(ediv.style.display == 'none') {
+        ediv.style.display = 'block';
+        elink.innerHTML = '-';  
+    } else {
+        ediv.style.display = 'none';
+        elink.innerHTML = '+';
+    }
+}
+function build() {
+    var xp = xpath('.//a[contains(@class,"hide")]');
+    each(xp, function(e){
+        e.addEventListener('click', function(){
+            switchid(this.id.split('_')[0]);
+        }, false);
+    })
+}
+window.onload = function() {
+    build();
+}

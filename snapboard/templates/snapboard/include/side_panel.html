@@ -1,20 +1,26 @@
 {#ptfable#}
 {% load i18n %}
 
-<div class="tb ba">
-        <span><a href="/">{{ SITE_NAME }}</a></span>
+<div class="tb ba header">
+        <span class="title"><a href="/">{{ SITE_NAME }}</a></span>
     {% if user.is_authenticated %}
-      {% if user.really_anonymous %}
-        <span> || [ {{ user.username }} ]</span>
+      <div class="unt">
+	  {% if user.really_anonymous %}
+        <span>{{ user.username }} </span>
+		{% if not user.is_authenticated or user.really_anonymous %}
+			<span><a href="{% url auth_login %}">Login</a></span>
+			<span> | <a href="/accounts/register/">Register</a></span>
+		{% endif %}
       {% else %}
-        <span> || [ <a href="{% url snapboard_edit_settings %}">{{ user.username }}</a> ]</span>
-        <span> || <a href="{{ LOGOUT_URL }}">Logout</a></span>
+        <span><a href="{% url snapboard_edit_settings %}">{{ user.username }}</a> </span>
+        <span> (<a href="{{ LOGOUT_URL }}">Logout</a>)</span>
       {% endif %}
+	  </div>
         {# category id parameter is optional but useful. #}
-        <span> || <a href="{% if thr %}{% url snapboard_new_thread thr.category.id %}{% else %}{% if category %}{% url snapboard_new_thread category.id %}{% else %}{% url snapboard_new_thread %}{% endif %}{% endif %}" class="r">new thread</a>
+        <span> <a href="{% if thr %}{% url snapboard_new_thread thr.category.id %}{% else %}{% if category %}{% url snapboard_new_thread category.id %}{% else %}{% url snapboard_new_thread %}{% endif %}{% endif %}" class="r">New thread</a>
         </span>
       {% if user.is_staff %}
-        <span> [ {% trans "STAFF" %}
+        <br/><span> [ {% trans "STAFF" %}
         <span> || <a href="/admin/">AS</a></span>
         <span> || <a href="/admin/snapboard/post/?censor__exact=1">CP</a></span>
         <span> || <a href="/admin/snapboard/abusereport/">AR</a></span>
@@ -22,9 +28,5 @@
         <span> || <a href="/admin/snapboard/thread/?gsticky__exact=1">GS</a></span> ]
         </span>
       {% endif %}
-    {% endif %}
-    {% if not user.is_authenticated or user.really_anonymous %}
-        <span> || <a href="{% url auth_login %}">Login</a></span>
-        <span> || <a href="/accounts/register/">Register</a></span>
     {% endif %}
 </div>
