@@ -70,7 +70,7 @@ S2S_PORT = 'tcp:5269:interface=0.0.0.0'
 SECRET = 'secret'
 DOMAIN = 'bot.example.org'
 ## Whether to spam the console with all the XML stanzas.
-LOG_TRAFFIC = True
+LOG_TRAFFIC = False
 ## Amount of django processes to spawn for XMPP-based request processing.
 NWORKERS = 2
 

@@ -497,10 +497,11 @@ class Post(Post_base, mp_tree.MP_Node):
 
     # ! get_descendants_group_count could be useful.
 
-    # IDs. id_form_X <-> from_id_X
-    #      ( String  <-> Post  )
+    ## IDs. id_form_X <-> from_id_X
+    ##      ( String  <-> Post  )
+
+    ## Simple post number.
     def id_form_a(self):
-        # Simple post number.
         return str(self.id)
 
     @classmethod
@@ -509,6 +510,7 @@ class Post(Post_base, mp_tree.MP_Node):
         # also, it might not exist.
         return cls.objects.get(id=int(ida))
 
+    ## tree-path-id.
     def id_form_b(self):
         chunks = lambda l, n: [l[i:i+n] for i in xrange(0, len(l), n)]
         #pad = lambda x: '%s%s' % ('0' * (Post.steplen - len(x)), x)
@@ -534,6 +536,7 @@ class Post(Post_base, mp_tree.MP_Node):
         tpath = "".join([l_int2str(int(i)) for i in anpath])
         return cls.objects.get(path=tpath)
 
+    ## Numeric IDs (obsolete?).
     id_t_re = r'(?:[#!])?(?P<thread_id>\d+)/(?P<post_tlid>\d+)'
     id_t_re_f = r'(?:[#!])?\d+/\d+'
     def id_form_t(self):
@@ -546,8 +549,11 @@ class Post(Post_base, mp_tree.MP_Node):
         thr, tlid = m.groups()
         return cls.objects.get(thread=int(thr), tlid=int(tlid))
 
+    ## custom-set-of-symbols-IDs. Can be easily made into configurable (just
+    ## pass the set of characters into thid pentagr^W function)
     id_z_re, id_z_re_f, id_form_z, from_id_z = _make_id_n()
 
+    ## alphanumeric IDs (obsolete?)
     id_x_re = r'(?:[#!])?(?P<thread_id>[0-9A-Fa-f]+)/(?P<post_tlid>[0-9A-Fa-f]+)'
     id_x_re_c = re.compile(r'^' + id_x_re + r'$')
     id_x_re_f = r'(?:[#!])?[0-9A-Fa-f]+/[0-9A-Fa-f]+'
@@ -561,6 +567,7 @@ class Post(Post_base, mp_tree.MP_Node):
         thr, tlid = m.groups()
         return cls.objects.get(thread=int(thr, 16), tlid=int(tlid, 16))
 
+    ## Actually used properties
     id_form_m = id_form_x
     from_id_m = from_id_x
     id_m_re = id_x_re

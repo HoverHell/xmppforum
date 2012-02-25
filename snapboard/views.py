@@ -167,7 +167,7 @@ def rpc_dispatch(request):
 
 
 @login_required
-def r_watch_post(request, post_form_id=None, post_id=None, resource=None,
+def r_watch_post(request, post_form_id=None, post_id=None, resource='',
   rpc=False):
     post = _get_that_post(request, post_form_id, post_id)
     # ^ 'auto' fetching should only be done from XMPP.
@@ -201,10 +201,10 @@ def r_watch_post(request, post_form_id=None, post_id=None, resource=None,
 
 #@userbannable
 @login_required
-def r_abusereport(request, post_id=None, rpc=False):
+def r_abusereport(request, post_form_id=None, post_id=None, rpc=False):
     """ Report some inappropriate post for the admins to consider censoring.
-    """
-    post = get_object_or_404(Post, pk=post_id)
+    """ ## XXX: Unused?!
+    post = _get_that_post(request, post_form_id, post_id)
     thr = post.thread
     if not thr.category.can_read(request.user):
         raise PermissionError("You are not allowed to do that")
@@ -1115,9 +1115,9 @@ def answer_invitation(request, invitation_id):
 
 
 @login_required
-def xmppresourcify(request, resource=None, post_id=None):
+def xmppresourcify(request, resource=None, post_form_id=None, post_id=None):
     _log.debug("resourcify: user: %r" % request.user)
-    post = _get_that_post(request, post_id)
+    post = _get_that_post(request, post_form_id, post_id)
     if not resource:
         resource = "#%d-%d" % (post.id, post.thread.id)
     wl, created = WatchList.objects.get_or_create(user=request.user, post=post)
