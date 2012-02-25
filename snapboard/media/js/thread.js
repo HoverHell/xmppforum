@@ -229,13 +229,16 @@ function each(list, func) {
 function switchid(id) {
     var elink = document.getElementById(id+'_a');
     var ediv = document.getElementById(id+'_d');
-
+	var ehead = document.getElementById('inh'+id);
+	
     if(ediv.style.display == 'none') {
         ediv.style.display = 'block';
         elink.innerHTML = '-';  
+		ehead.style.borderBottomWidth = '0px';
     } else {
         ediv.style.display = 'none';
         elink.innerHTML = '+';
+		ehead.style.borderBottomWidth = '1px';
     }
 }
 function build() {
