@@ -1,8 +1,7 @@
 {#ptfable#}
 {% load i18n snapboard_tags extras plaintexttags avatar_tags %}
 <strong>New message</strong> <em>#/{{ post.id }}</em> in thread <em>#{{ post.thread.id }}</em>
- “<a href="http://{{ current_site.domain }}
-  {% url snapboard_locate_post post.id %}">
+ “<a href="http://{{ current_site.domain }}{% url snapboard_thread_post post.id %}">
   {{ post.thread.subject }}
   </a>”:{%br%}
 <strong>In reply to</strong> {{ post.get_parent.user }}'s message:{%br%}
