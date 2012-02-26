@@ -3,6 +3,8 @@
 
 from django.core.exceptions import PermissionDenied
 from django.conf import settings
+from django.http import (HttpResponse, HttpResponseRedirect, Http404,
+  HttpResponseServerError)
 
 from xmppface.xmppbase import (XmppRequest, XmppResponse, render_to_response,
  success_or_redirect, success_or_reverse_redirect)

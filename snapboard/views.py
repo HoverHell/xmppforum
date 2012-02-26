@@ -571,7 +571,13 @@ def thread_latest(request, thread_id, num_posts=10):
       context_instance=RequestContext(request, processors=extra_processors))
 
 
-def _redirect_to_posts(target1, target2=None):
+def _redirect_to_posts(request, target1, target2=None):
+    """ Special case: if return-url ('next') was provided - send there with
+    hash, else send to the post with context.  """
+    nextr = request.GET.get('next') or request.POST.get('next')
+    if nextr:
+      return "{0}#{1}".format(request.GET.get('next'), target1.id_form_m())
+    # otherwise target the posts.
     res = reverse('snapboard_thread_post',
       args=(target1.id,),)
     if target2:
@@ -598,23 +604,18 @@ def post_reply(request, post_form_id=None, post_id=None, rpc=False):
               **(postform.cleaned_data))  # text and whatnot.
             postobj.save()
             postobj.notify()
-            # retreive-update the newly set tlid for the redirect.
-            postobj.tlid = \
-              Post.objects.filter(id=postobj.id).values('tlid')[0]['tlid']
-            ## TODO: A possibility: return rendered post html (by a
+            ## retreive-update the newly set tlid for the redirect.
+            #postobj.tlid = \
+            #  Post.objects.filter(id=postobj.id).values('tlid')[0]['tlid']
+            ## Actually, just retreive the new post.
+            postobj = Post.objects.get(pk=postobj.id)
+            ## TODO: A possibility: in RPC, return rendered post html (by a
             ## include-template) for insertion approximately in place of the
             ## reply form by js.
-            new_id = Post.objects.get(pk=postobj.id).id_form_m()
-            ## Special stuff: if return-url ('next') was provided - send
-            ## there with hash, else send to the post with context.
-            if request.GET.get('next'):
-                nextr = "{0}#{1}".format(request.GET.get('next'), newid)
-            else:
-                nextr = _redirect_to_posts(parent_post, postobj)
             return r_getreturn(request,
-              #rpc,  ## TODO: no-no, not yet - nothing to handle it there.
-              nextr=nextr,
-              successtext = u"Posted successfully (%s)." % newid)
+              #rpc,  ## no-no, not yet - nothing to handle it there.
+              nextr=_redirect_to_posts(request, parent_post, postobj),
+              successtext = u"Posted successfully (%s)." % postobj.id_form_m())
         else:
             pass  # This is a user's problem if happens somehow.
     else:
@@ -668,6 +669,7 @@ def edit_post(request, post_form_id=None, post_id=None, rpc=False):
         div_id_num = orig_post.id
 
         return r_getreturn(request, rpc=False,
+          nextr=_redirect_to_posts(request, orig_post),
           successtext="Message updated.", postid=orig_post.id)
     else:  # get a form for editing.
         context = {'post': orig_post}
