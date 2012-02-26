@@ -5,7 +5,7 @@
 .thr>.w,.cat>.w{padding-bottom:8px}
 .sp>.ba,.tb{padding-bottom:2px}
 .header{padding:4px 10px 5px;font-size:13px;line-height:24px}
-.title{padding-right:12px;font-weight:bold}
+.title{padding-right:6px;font-weight:bold}
 .unt{float:right}
 .ta {font-size:20px;padding-top:10px;}
 
@@ -33,7 +33,7 @@ form>table th{text-align:right}
 .nf>.hw>.pt.e2{top:50%}
 .ep>.hw>.pt.e1{height:200px}
 
-.phl{color:#999}
+.phl,.wa,.ab{color:#999}
 .phrl{text-transform:capitalize}
 .hide {background-color:#f6f6f6;border:1px solid #BBBBBB;border-radius:3px;color:#333!important;font-size:14px;
 width:8px;height:9px;margin:7px 4px 4px 0;padding-right:1px;text-align:center;text-decoration:none;

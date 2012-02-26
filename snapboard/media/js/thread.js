@@ -1,7 +1,3 @@
-function t_p(id) {
- toggle('ps'+id, 'inline');
- toggle('pv'+id, 'block');}
-
 function t_e(id) {
  toggle('pt'+id, 'block');
  exttoggle('pe'+id, 
