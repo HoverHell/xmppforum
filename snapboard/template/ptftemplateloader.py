@@ -16,6 +16,10 @@ PTFTAGLEN = len(PTFTAG)
 SPACERE = re.compile('\s\s+')
 NEWLINERE = re.compile('\n')
 
+## TODO: idea: stril 1 newline from each newline sequence. Should not
+## interfere with the syntax formatting yet allows easier insertion of line
+## breaks in resulting output.  Also looks more like TeX / markdown / ....
+
 class Loader(BaseLoader):
     is_usable = True
     
