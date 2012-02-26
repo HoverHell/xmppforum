@@ -192,7 +192,8 @@ def r_watch_post(request, post_form_id=None, post_id=None, resource='',
           "Watch removed.", postid=post.id)
     except WatchList.DoesNotExist:
         # create it
-        wl = WatchList(user=request.user, post=post, xmppresource=resource)
+        wl = WatchList(user=request.user, post=post,
+          xmppresource=(resource or ''))
         wl.save()
         return r_getreturn(request, rpc, {'link':_('dont watch'),
           'msg':_('This thread has been added to your favorites.')},
