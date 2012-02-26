@@ -601,10 +601,20 @@ def post_reply(request, post_form_id=None, post_id=None, rpc=False):
             # retreive-update the newly set tlid for the redirect.
             postobj.tlid = \
               Post.objects.filter(id=postobj.id).values('tlid')[0]['tlid']
-            return success_or_redirect(request,
-              _redirect_to_posts(parent_post, postobj),
-              u"Posted successfully (%s)." % (
-                Post.objects.get(pk=postobj.id).id_form_m()))
+            ## TODO: A possibility: return rendered post html (by a
+            ## include-template) for insertion approximately in place of the
+            ## reply form by js.
+            new_id = Post.objects.get(pk=postobj.id).id_form_m()
+            ## Special stuff: if return-url ('next') was provided - send
+            ## there with hash, else send to the post with context.
+            if request.GET.get('next'):
+                nextr = "{0}#{1}".format(request.GET.get('next'), newid)
+            else:
+                nextr = _redirect_to_posts(parent_post, postobj)
+            return r_getreturn(request,
+              #rpc,  ## TODO: no-no, not yet - nothing to handle it there.
+              nextr=nextr,
+              successtext = u"Posted successfully (%s)." % newid)
         else:
             pass  # This is a user's problem if happens somehow.
     else:

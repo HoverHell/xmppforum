@@ -48,6 +48,7 @@ def r_getreturn(request, rpc=False, rpcdata={}, successtext=None,
         else:  # explicitly return
             if postid:  # we have a post to return to.
                 # msg isn't going to be used, though.
+                ## XX: success_or_redirect(_redirect_to_posts(...))?
                 return success_or_reverse_redirect('snapboard_thread_post',
                   args=(postid,), req=request, msg=successtext)
             else:
