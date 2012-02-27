@@ -42,7 +42,7 @@ cmdpatterns = patterns('',
       new_thread, {}, 'snapboard_new_thread'),
     # TODO: edit_settings?
 
-    (r'^[#!]' + post_id_re_f,  ## TODO: needs testing.
+    (r'^[#!]' + post_id_re_f + '$',  ## TODO: needs testing.
       thread_post, {}, 'snapboard_thread_post'),
     (r'^[#!]' + post_id_re_f + r'? (?P<POST_text>(.*\n?)+)',
       post_reply, {}, 'snapboard_post_reply'),
