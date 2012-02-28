@@ -48,6 +48,7 @@ SITE_NAME = 'xmppforum'
 # -------   -------   -------   Addresses and stuff. Almost certainly have to be changed.
 
 DEFAULT_FROM_EMAIL = "jfu@localhost"
+SERVER_EMAIL = DEFAULT_FROM_EMAIL
 
 
 
@@ -77,7 +78,6 @@ NWORKERS = 2
 
 # -------   -------   -------   Defaults that should work out-of-the-box.
 
-SERVER_EMAIL = DEFAULT_FROM_EMAIL
 
 # Absolute path to the directory that holds media.
 # Example: "/home/media/media.lawrence.com/"
@@ -123,6 +123,14 @@ DATABASE_PORT = ''
 #DATABASE_PORT = '5443'
 ## Username and password are generally only needed when using postgresql
 ## over network.
+
+## E-mail (SMTP). See
+## https://docs.djangoproject.com/en/dev/ref/settings/#std:setting-EMAIL_HOST
+#EMAIL_HOST = 'localhost'  # The host to use for sending email
+#EMAIL_HOST_USER = ''      # Username to use for the SMTP server
+#EMAIL_HOST_PASSWORD = ''  # Password to use for the SMTP server
+#EMAIL_PORT = 25        # Port to use for the SMTP server
+#EMAIL_USE_TLS = False  # Whether to use a TLS (secure) connection
 
 
 # -------   -------   -------   General config.  Defaults can be used, but tune to your likings.
