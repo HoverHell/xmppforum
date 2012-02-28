@@ -107,6 +107,29 @@ def reltime(parser, token):
         raise template.TemplateSyntaxError
 
 
+DEFTIME_SWITCH_POINT = getattr(settings, 'DEFTIME_SWITCH_POINT', 24*3600)
+
+
+## XXX: for django < 1.3, providing own takes_context
+## (http://djangosnippets.org/snippets/1089/) might be preferable.
+@register.simple_tag(takes_context=True)
+def deftime(context, dateval, extra=False,
+  switch_point=DEFTIME_SWITCH_POINT):
+    """ The 'default way of printing the date'.  Use extra=True for the part
+    that goes into the title or something.
+    
+    Summary: prints reltime for dates less than configured period (def. 24h)
+    and timestamp for other dates, or reverse of that for title. """
+    now = context['now']
+    datespan = now - time.mktime(dateval.timetuple())
+    oldenough = datespan > switch_point
+    # datets - now < - switching_point
+    if bool(extra) != bool(oldenough):  # XOR
+        return dateval.strftime("%Y.%m.%d %H:%M:%S")
+    else:
+        return format_timedelta(datespan)
+
+
 ## Avatar-reworked.
 from avatar.templatetags import avatar_tags
 from avatar import util as avatar_util
