@@ -73,11 +73,13 @@ from snapboard.util import format_timedelta
 class RelTimeNode(template.Node):
     """ A template tag for printing relative-readable-formatted time from
     the given date.  """
-    def __init__(self, p_ndate):
+    def __init__(self, p_ndate, p_nlen=None):
         self.ndate = template.Variable(p_ndate)
+        self.nlen = template.Variable(p_len) if p_nlen is not None else None
 
     def render(self, context):
         now = context.get('now', None)
+        extrakwa = {}
         if now is None:
             # Should never appen if template context processor
             # is providing it.
@@ -85,18 +87,22 @@ class RelTimeNode(template.Node):
             context['now'] = now
         try:
             ndate = self.ndate.resolve(context)
+            if self.nlen is not None:
+                extrakwa['maxlen'] = \
+                  template.Variable(self.nlen).resolve(context)
         except template.VariableDoesNotExist:
             return u''
         if not isinstance(ndate, datetime.datetime):
             return (u'?sometime?')
-        return format_timedelta(now - time.mktime(ndate.timetuple()))
+        return format_timedelta(now - time.mktime(ndate.timetuple()),
+          **extrakwa)
 
 
 @register.tag
 def reltime(parser, token):
     args = token.split_contents()
-    if len(args) == 2:
-        return RelTimeNode(args[1])
+    if len(args) in [2, 3]:
+        return RelTimeNode(*args[1:])
     else:
         raise template.TemplateSyntaxError
 
