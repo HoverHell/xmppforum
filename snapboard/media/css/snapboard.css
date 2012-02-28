@@ -43,7 +43,7 @@ float:left;cursor:pointer;font:9px/9px monospace;}
 .tmd b{color:#666;}
 
 .h>div{border-bottom:0 solid #DDDEDE}
-.h,.v,.f{max-width:900px}
+.h,.v,.f{max-width:1000px}
 .h>div>div{display:table;width:100%}
 .w .h>div,.w .t,p.rm{border-right:1px solid;border-left:1px solid}
 .w .h>div>div{border-top:1px solid;/*border-bottom:1px solid*/}
@@ -56,6 +56,7 @@ float:left;cursor:pointer;font:9px/9px monospace;}
 .ti{white-space:nowrap;float:right}
 .apr>div>.v{outline: 1px solid #D050D0;outline-offset:-1px}
 .apc>div>.v{outline:2px solid red;outline-offset:-2px}
+.sp {width:1000px;}
 
 div.rm{text-align:center}
 .w .t>div,.pc.fp>.v>.t>div{padding:8px 8px 10px 7px}
@@ -64,10 +65,9 @@ div.rm{text-align:center}
 
 .f td,.b,.w .h>div,.w .t,p.rm,.w .h>div>div,.pc>.v>.t>div,.pc>div>.v>.t>div,
 .l>.v>.t>div,.l>div>.v>.t>div{border-color:#DDDEDE}
-.w .h>div>div{background-color:#f6f6f6;}
 .fp>.h>div>div{border:none}
 .fp.pc>.v>.t>div{border-top-color:#ECECEC}
-.ba,.fp>.h>div>div,.hmi{background-color:#ECECEC}
+.ba,.fp>.h>div>div,.w .h>div>div,.hmi{background-color:#ECECEC}
 .w .t,p.rm{background-color:#F6F6F6;}
 .r{color:#d00}
 .b{background-color:#f2f2f2;border-radius:2px;margin:8px 0 8px 8px;border:1px solid #dbdbdb;padding:5px 8px}
