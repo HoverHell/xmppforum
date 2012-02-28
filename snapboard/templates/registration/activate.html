@@ -1,7 +1,7 @@
 {% extends "snapboard/base_forum.html" %}
 {% load i18n %}
 
-{% block registration_content %}
+{% block extra_content %}
 	{% if account %}
 		{% blocktrans with account.username as username %}Thank you. Your 
 		account is now activated. Your username is 
