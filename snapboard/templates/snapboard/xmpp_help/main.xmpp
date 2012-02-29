@@ -1,26 +1,32 @@
-<p><i><strong>command syntax</strong> (short version) — explanation</i>
-<br/>
+<p><strong>Help structure</strong><br/>
+<i><strong>command syntax</strong> (short version of ) — explanation</i><br/>
 You can use '!' instead of '#'.</p>
-<p>
+
+<p><strong>Reading xmpp-forum</strong><br/>
 <strong>#</strong> — show last 20 threads <br/>
 <strong># &lt;N&gt; &lt;M&gt;</strong> — show N threads starting with M <br/>
 <strong>#123</strong> — show thread 123 <br/>
 <strong>#123l</strong> — show latest posts in thread 123 <br/>
 <strong>#123l 100</strong> — show 100 latest posts in thread 123 <br/>
 <strong>#c3</strong> — show threads in category 3 <br/>
-<strong>#c2 Subj</strong> — create new thread in category 2 with subject "Subj" and remaining message as content (newline required!) <br/>
 <strong>r #3/456 specresource</strong> — send notifications about specific watch (subscription) from specified XMPP resource of the bot. <br/>
-<strong>r</strong> — same as previous, omit post id to use last notified; omit resource to use automatically constructed one. <br/>
+<strong>r</strong> — same as previous, omit post id to use last notified; omit resource to use automatically constructed one.<br/>
+<strong>w #5/432</strong> — watch post #5432 (and its whole tree of replies).  Resource can be specified as well.</p>
+
+<p><strong>Writing to xmpp-forum</strong><br/>
+<strong>#c2 Subj</strong> — create new thread in category 2 with subject "Subj" and remaining message as content (newline required!) <br/>
 <strong>#5/432 text</strong> — reply to post #5/432. <br/>
 <strong># text</strong> — reply to the last post. <br/>
 <strong>#e 5/432 text</strong> — replace (edit) text of the post #5/432. <br/>
-<strong>#e 5/432</strong> — show the raw text of the post #5/432 (for editing). <br/>
-<strong>w #5/432</strong> — watch post #5432 (and its whole tree of replies).  Resource can be specified as well. <br/>
+<strong>#e 5/432</strong> — show the raw text of the post #5/432 (for editing). </p>
+
+
+<p><strong>Misc.</strong><br/>
 <strong>WHOAMI</strong> (who) — find out your username <br/>
 <strong>LOGIN</strong> (log) - get a one-time url for loging in into web. <br/>
 <strong>PASSWORD passw</strong> - set your password for logging ing through web.  Can be set to empty to disable logging in with password. <br/>
-<strong>HELP subject</strong> (h) — help on subject
-</p><p><br/>
-<em>Available subjects:</em><br/>
+<strong>HELP subject</strong> (h) — help on subject</p>
+
+<p><em>Available subjects for HELP command:</em><br/>
 <strong>register</strong> - registration command and notes.<br/>
 <strong>admin</strong> - administrative commands.</p>

@@ -6,7 +6,10 @@
         <strong>#{{ thread.id }}</strong>
         {%ws%}<a href="{% url snapboard_thread thread.id %}">
           {{ thread.subject }}</a>
-
+		{% block thread_category_optional %}
+           {%ws%}in <strong>#c{{ thread.category.id }}</strong>
+           {%ws%}<a href="{% url snapboard_category_thread_index thread.category.id %}">{{ thread.category }}</a>
+        {% endblock %}
         {% br %}
         
         {{ thread.post_count }} {% trans "posts"%},
@@ -24,11 +27,7 @@
             <em>{%ws%}{% trans "CLOSED" %}</em>
         {% endif %}
         
-        {% block thread_category_optional %}
-            {% br %}
-            <strong>#c{{ thread.category.id }}</strong>
-            {%ws%}<a href="{% url snapboard_category_thread_index thread.category.id %}">{{ thread.category }}</a>
-        {% endblock %}
+        
         
         {% if not forloop.last %}{% br %} {% br %}{% endif %}
     {% endfor %}
