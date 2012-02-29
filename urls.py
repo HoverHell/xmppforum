@@ -35,19 +35,34 @@ urlpatterns += patterns('',
 
 
 ## Registration:
-import snapboard.forms
-#import registration.views
-urlpatterns += patterns('',
-    (r'^accounts/register/$', 'registration.views.register', 
-      {'form_class': snapboard.forms.RegistrationFormEmailFree,
-       'template_name': 'registration/register.html',
-       },
-      'registration_register'),
+urlpatterns += patterns('',  ## XXX: No idea why this is needed.
     (r'^accounts/password/$', 'django.views.generic.simple.redirect_to',
        {'url': '/'}),
-    (r'^accounts/', include('registration.urls')),
 )
 
+urlpatterns += patterns('', 
+    ## XXX: Possibly temporary.  Users end up here after being redirected by
+    ## registraton backend.  Until such page is implemented - redirect them
+    ## somewhere else.
+    (r'^users/', 'django.views.generic.simple.redirect_to',
+       {'url': '/'}),
+)
+
+import snapboard.forms
+try:  # XXX: django-registration < 0.8 backwards compatibility. 0.8+ part:
+    import registration.backends
+    urlpatterns += patterns('',
+        (r'^accounts/', include('registration_optionalemail.urls')),
+    )
+except ImportError:  # pre-0.8
+    urlpatterns += patterns('',
+        (r'^accounts/register/$', 'registration.views.register', 
+          {'form_class': snapboard.forms.RegistrationFormEmailFree,
+           'template_name': 'registration/register.html',
+           },
+          'registration_register'),
+        (r'^accounts/', include('registration.urls')),
+    )
 
 ## Admin
 urlpatterns += patterns('',

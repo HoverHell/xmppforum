@@ -166,6 +166,7 @@ class RegistrationFormEmailFree(RegistrationForm):
     #  widget=forms.TextInput(attrs=attrs_dict),
     #  label=_(u'username'))
 
+    ## XX: Only used with django-registration < 0.8
     def save(self, profile_callback=None):
         """
         Override of save to allow registering of email-less users.

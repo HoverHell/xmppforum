@@ -228,6 +228,12 @@ INSTALLED_APPS = (
     'snapboard',
 )
 
+try:  # XXX: django-registration < 0.8 backwards compatibility. Fix later.
+    import registration.backends
+    INSTALLED_APPS += ('registration_optionalemail',)
+except ImportError:
+    pass  # will be handled properly in urls.
+
 from anon.settings import *
 
 AUTHENTICATION_BACKENDS = (
@@ -235,7 +241,6 @@ AUTHENTICATION_BACKENDS = (
     'loginurl.backends.LoginUrlBackend',
 )
         
-
 # List of callables that know how to import templates from various sources.
 # * At least something in here requires django 1.2 at least.
 _lp = lambda lo, *ar: (lo, ar,)  # loader, arguments
@@ -274,7 +279,6 @@ MIDDLEWARE_CLASSES = (
     'snapboard.middleware.ban.IPBanMiddleware',
     'snapboard.middleware.ban.UserBanMiddleware',
 )
-
 
 
 # -------   -------   -------   Personalized settings overrides.
