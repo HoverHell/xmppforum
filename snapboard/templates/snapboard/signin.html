@@ -1,8 +1,8 @@
 {% extends "snapboard/base_forum.html" %}
 {% load i18n %}
 
-{% block side_panel %}
-{% endblock %}
+{% block side_panel %}{% endblock %}
+{% block breadcrumb %}{{ block.super }} &mdash; Login{% endblock %}
 
 {% block snapboard_main %}
 {% if not user.is_authenticated %}

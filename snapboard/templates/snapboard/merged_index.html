@@ -3,6 +3,7 @@
 {% load i18n %}
 
 {% block snapboard_main %}
+<h3 class="ba">Recent Discussions</h3>
 {{ thread_index|safe }}
 <div class="mo"><a href="{% url snapboard_thread_index %}">More...</a></div>
 {{ category_index|safe }}

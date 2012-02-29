@@ -1,13 +1,15 @@
 #x{font-family:arial;margin:0;font-size:15px}
 
-#x>p,#x>form,.w,.tp,.ta,.tm,.cat>h3,.thr>h3,.sp>p,.tb,.sp>.ba{padding-left:10px;padding-right:10px}
-#x>form>table,.sp>.ba,.tp,.w>*,.w.st,.tp .v,.f{margin-top:8px}
+#x>p,#x>form,.w,.tp,.tm,.cat>h3,.thr>h3,.sp>p,.tb,.sp>.ba{padding-left:10px;padding-right:10px}
+#x>form>table,.sp>.ba,.w>*,.w.st,.tp .v,.f{margin-top:8px}
 .thr>.w,.cat>.w{padding-bottom:8px}
 .sp>.ba,.tb{padding-bottom:2px}
 .header{padding:4px 10px 5px;font-size:13px;line-height:24px}
-.title{padding-right:6px;font-weight:bold}
 .unt{float:right}
-.ta {font-size:20px;padding-top:10px;}
+.ta,.ta h3 {font-size:17px}
+.ta {padding:6px 10px;background-color:#ddd}
+.ta h3{margin:0;font-weight:normal;display:inline}
+h3.ba {font-size:20px;font-weight:normal;margin:0;background-color:transparent;padding:10px 10px 0}
 
 .f{border-collapse:collapse;border-spacing:0}
 .f,.ar,.f input[type="text"]{width:100%}
@@ -19,6 +21,7 @@
 .b{padding:1px 3px 2px;border-right:1px solid;float:left}
 form>table th{text-align:right}
 .mo {padding:4px 17px}
+.w>div{margin-bottom:24px;}
 
 .np,.ep>.pp{padding-top:6px}
 .np,.ep>.hw>.pt.e1,.ep>.pp{border-left:1px solid #aaa}
@@ -40,17 +43,18 @@ width:8px;height:9px;margin:7px 4px 4px 0;padding-right:1px;text-align:center;te
 float:left;cursor:pointer;font:9px/9px monospace;}
 .hm img{margin-left:-6px}
 .tn{font-size:16px;}
-.tmd b{color:#666;}
+.hm b{color:#666;}
 
 .h>div{border-bottom:0 solid #DDDEDE}
 .h,.v,.f{max-width:1000px}
 .h>div>div{display:table;width:100%}
 .w .h>div,.w .t,p.rm{border-right:1px solid;border-left:1px solid}
-.w .h>div>div{border-top:1px solid;/*border-bottom:1px solid*/}
+.w .h>div>div{border-top:1px solid;}
 .h img{float:left;margin-right:5px}
 .hm{padding:0 6px; font-size:13px;line-height:25px;color:#999}
-.hmi{font-size:12px;line-height:21px;padding:5px 6px 0;}
-.tp .hm{padding:0}
+.thr .hm{line-height:30px;}
+.hmi{color:#000;font-style:italic;font-size:15px}
+.tp .hm,.thr .fp >.v >.t >div,.thr .w .t>div{padding:0}
 .tp .hm .hide {display:none}
 .un{font-weight:bold;color:#666}
 .ti{white-space:nowrap;float:right}
@@ -69,11 +73,13 @@ div.rm{text-align:center}
 .fp.pc>.v>.t>div{border-top-color:#ECECEC}
 .ba,.fp>.h>div>div,.w .h>div>div,.hmi{background-color:#ECECEC}
 .w .t,p.rm{background-color:#F6F6F6;}
-.r{color:#d00}
+.r{color:#d00;margin-right:8px}
 .b{background-color:#f2f2f2;border-radius:2px;margin:8px 0 8px 8px;border:1px solid #dbdbdb;padding:5px 8px}
 .b[type="submit"]{background-color:#9ec97f;color:#fff;font-weight:bold}
-h3.ba {background-color:transparent;text-indent:7px}
 
 .ed-help{height:26px}
 .ed-help a{font-size:13px;margin:4px 0 0 8px}
 #id_subject{padding:4px 0;text-indent:7px}
+
+/*Settings*/
+.avatar_settings {padding-left:10px}

@@ -1,33 +1,33 @@
 {% load i18n %}
 {% load pagination_tags %}
 {% load extras %}
+
+
+
 <div class="thr">
-<h3 class="ba">{{ title }}</h3>
 {% autopaginate threads user_settings.tpp %}{% paginate %}
 <div class="w">
 {% if threads %}
 {% for thread in threads %}
 <div{% if thread.post_count == 1 %} class="l{% if thread.gsticky %} gs{% else %}{% if category and thread.csticky %} cs{% endif %}{% endif %}{% if thread.closed %} cl{% endif %}"{% else %}{% if thread.gsticky %} class="gs{% if thread.closed %} cl{% endif %}"{% else %}{% if category and thread.csticky %} class="cs{% if thread.closed %} cl{% endif %}"{% endif %}{% endif %}{% endif %}>
   <div class="h"><div><div>
-    <div class="hm hmi">
+    <div class="hm">
       <span class="tn">{% if not category %}<a href="{% url snapboard_category_thread_index thread.category.id %}">{{ thread.category }}</a> &mdash; {% endif %}<a href="{% url snapboard_thread thread.id %}">{{ thread.subject }}</a></span>
-      <br/><span class="tmd"><b>{{ thread.post_count }} posts</b>, started by <span class="un">{{ thread.first_post.user.username }}</span>
-      <span class="ti">{% reltime thread.first_post.date %}</span></span>
+      <br/><b>{{ thread.post_count }} posts</b>, started {% reltime thread.first_post.date %} by <span class="un">{{ thread.first_post.user.username }}</span>: <span class="hmi">&laquo;{{ thread.first_post.texth|truncatewords_html:15|safe }}&raquo;</span>
     </div>
   </div></div></div>
-  <div class="v">
-    <div class="t"><div>{{ thread.first_post.texth|truncatewords_html:15|safe }}</div></div>
-  </div>
+    <div class="v">
+      <div class="t"><div></div></div>
+    </div>
   {% if thread.post_count > 1 %}
   <div class="fp l">
     <div class="h"><div><div>
       <div class="hm">
-        <span class="ti">last updated {% reltime thread.date %}</span>
-        <span>by <span class="un">{{ thread.last_post.user.username }}</span></span>
+        last updated {% reltime thread.date %} by <span class="un">{{ thread.last_post.user.username }}</span>: <span class="hmi">&laquo;{{ thread.last_post.texth|truncatewords_html:15|safe }}&raquo;</span>
       </div>
     </div></div></div>
     <div class="v">
-      <div class="t"><div>{{ thread.last_post.texth|truncatewords_html:15|safe }}</div></div>
+      <div class="t"><div></div></div>
     </div>
   </div>
   {% endif %}
