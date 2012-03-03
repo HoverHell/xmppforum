@@ -1,5 +1,6 @@
 {#ptfable#}
 {% load i18n snapboard_tags extras plaintexttags avatar_tags %}
+<em>Sent by watch on post #{{ watches_ids|key:user }}.</em>{%br%}
 <strong>New message</strong> <em>#/{{ post.id }}</em> in thread <em>#{{ post.thread.id }}</em>
  “<a href="http://{{ current_site.domain }}{% url snapboard_thread_post post.id %}">
   {{ post.thread.subject }}

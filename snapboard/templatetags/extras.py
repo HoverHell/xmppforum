@@ -15,6 +15,19 @@ register = template.Library()
 register.filter('textile', textile)
 
 
+def key(d, key_name):
+    """ https://code.djangoproject.com/ticket/3371 """
+    try:
+        value = d[key_name]
+    except KeyError:
+        from django.conf import settings
+
+        value = settings.TEMPLATE_STRING_IF_INVALID
+
+    return value
+key = register.filter('key', key)
+
+
 @register.filter
 def post_summary(value, arg):
     """ Returns the first N characters of a block of text where N is the
