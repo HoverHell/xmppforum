@@ -667,6 +667,7 @@ class Post(Post_base, mp_tree.MP_Node):
             #recipients = set((wl.user for wl in WatchList.objects.filter(thread=self.thread) if wl.user not in all_recipients))
             recipients = []
             resources = {}  # Special feature, ha.
+            watches_ids = {}  # extra information to use in template.
             for wl in WatchList.objects.select_related(depth=2).filter(
               post__in=posttree).order_by("snapboard_post.depth"):
                 # Sorting is required to override resource requirement with
@@ -675,6 +676,8 @@ class Post(Post_base, mp_tree.MP_Node):
                     # ! Actually, check post.user != wl.user.  Probably.
                     # !! TODO: Should automatically add watches for own posts, or something like that!
                     recipients.append(wl.user)
+                    #watches[wl.user] = wl
+                    watches_ids[wl.user] = wl.post.id_form_m()
                 if wl.xmppresource:
                     resources[wl.user] = wl.xmppresource
                 else:
@@ -687,7 +690,8 @@ class Post(Post_base, mp_tree.MP_Node):
                 send_notifications(
                     recipients,
                     'new_post_in_watched_thread',
-                    extra_context={'post': self},
+                    extra_context={'post': self,
+                      'watches_ids': watches_ids},
                     xmppresources=resources
                 )
                 all_recipients = all_recipients.union(recipients)
