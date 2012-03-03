@@ -1,11 +1,11 @@
 {% load i18n %}
 
 <div class="cat">
-  <h3 class="ba">Topics Category List</h3>
+  <h2>Topics Category List</h2>
   <div class="w">
   {% if cat_list %}
     {% for category in cat_list %}
-      <div class="l pc"><div class="v"><div class="t"><div><a href="{% url snapboard_category_thread_index category.id %}">{{ category.label }}</a>{% if cathegory.description %} - <span class="cd">{{cathegory.description}}<span>{% endif %}</div></div></div></div>
+      <div class="l pc"><a href="{% url snapboard_category_thread_index category.id %}">{{ category.label }}</a>{% if cathegory.description %} - <span class="cd">{{cathegory.description}}<span>{% endif %}</div>
     {% endfor %}
   {% else %}
     <p>{% trans "No categories are available." %}</p>

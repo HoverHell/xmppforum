@@ -1,29 +1,25 @@
 {#ptfable#}
 {% load i18n %}
 
-<div class="tb ba header">
-		{% if not user.is_authenticated or user.really_anonymous %}
-			 <div class="unt"> <a href="{% url auth_login %}">Login</a> | <a href="/accounts/register/">Register</a></div>
-		{% endif %}
+<div class="tb header">
+	{% if not user.is_authenticated or user.really_anonymous %}
+		<div class="unt"> <a href="{% url auth_login %}">Login</a> | <a href="/accounts/register/">Register</a></div>
+	{% endif %}
     {% if user.is_authenticated %}
 	   <div class="unt">
-	   {% if user.really_anonymous %}
-        <span>{{ user.username }}</span> 
+	   {% if user.really_anonymous %} {{ user.username }}
       {% else %}
-        <span><a href="{% url snapboard_edit_settings %}" title="Settings">{{ user.username }}</a> (<a href="{{ LOGOUT_URL }}">Logout</a>)</span>
+        <a href="{% url snapboard_edit_settings %}" title="Settings">{{ user.username }}</a> (<a href="{{ LOGOUT_URL }}">Logout</a>)
       {% endif %}
 	  </div>
-        {# category id parameter is optional but useful. #}
-        <span> <a href="{% if thr %}{% url snapboard_new_thread thr.category.id %}{% else %}{% if category %}{% url snapboard_new_thread category.id %}{% else %}{% url snapboard_new_thread %}{% endif %}{% endif %}" class="r">New thread</a> <a href="{% url about %}">Help</a> {% if user.is_authenticated %}<a href="{% url snapboard_watchlist %}">Watchlist</a>{% endif %}
-        </span> 
-      {% if user.is_staff %}
-        <br/><span> [ {% trans "STAFF" %}
-        <span> || <a href="/admin/">AS</a>
-		|| <a href="/admin/snapboard/post/?censor__exact=1">CP</a>\
-		|| <a href="/admin/snapboard/abusereport/">AR</a>
-		|| <a href="/admin/snapboard/thread/?csticky__exact=1">CS</a>
-		|| <a href="/admin/snapboard/thread/?gsticky__exact=1">GS</a></span> ]
-        </span>
-      {% endif %}
-    {% endif %}
+	{% endif %}
+    
+	{# category id parameter is optional but useful. #}
+    <span class="menu"> {% if user.is_authenticated %}<a href="{% if thr %}{% url snapboard_new_thread thr.category.id %}{% else %}{% if category %}{% url snapboard_new_thread category.id %}{% else %}{% url snapboard_new_thread %}{% endif %}{% endif %}" class="r">New thread</a>{% endif %}
+	<a href="{% url about %}">Help</a> {% if user.is_authenticated %}<a href="{% url snapboard_watchlist %}">Watchlist</a>
+		{% if user.is_staff %}
+			<br/><span>{% trans "Admin" %}: <a href="/admin/">AS</a> <a href="/admin/snapboard/post/?censor__exact=1">CP</a> <a href="/admin/snapboard/abusereport/">AR</a> <a href="/admin/snapboard/thread/?csticky__exact=1">CS</a> <a href="/admin/snapboard/thread/?gsticky__exact=1">GS</a></span>
+		{% endif %}
+	{% endif %}
+    </span> 
 </div>

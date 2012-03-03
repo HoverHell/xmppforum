@@ -1,15 +1,19 @@
 #x{font-family:arial;margin:0;font-size:15px}
+a:hover,.hm .tn span a:hover{color:#ff1800}
 
-#x>p,#x>form,.w,.tp,.tm,.cat>h3,.thr>h3,.sp>p,.tb,.sp>.ba{padding-left:10px;padding-right:10px}
+#x>p,#x>form,.w,.tp,.tm,.cat>h2,.thr>h2,.sp>p,.sp>.ba,#x>.warn{padding-left:10px;padding-right:10px}
 #x>form>table,.sp>.ba,.w>*,.w.st,.tp .v,.f{margin-top:8px}
-.thr>.w,.cat>.w{padding-bottom:8px}
-.sp>.ba,.tb{padding-bottom:2px}
-.header{padding:4px 10px 5px;font-size:13px;min-height:24px;line-height:24px}
+.sp>.ba{padding-bottom:2px}
+
+/*Header*/
+.header{padding:3px 10px 5px;font-size:13px;min-height:24px;line-height:24px;background-color:#2D2D2D;color:#fff}
+.header a {color:#eee}
+.header a:hover {text-decoration:none}
+.menu a {margin-right:8px}
+.header .r{color:#fff000;font-weight:bold}
 .unt{float:right;margin-left:8px}
-.ta,.ta h3 {font-size:17px}
-.ta {padding:6px 10px;background-color:#ddd}
-.ta h3{margin:0;font-weight:normal;display:inline}
-h3.ba {font-size:20px;font-weight:normal;margin:0;background-color:transparent;padding:10px 10px 0}
+h1,h2{font-size:16px;margin:0;padding:11px 10px 9px;line-height:22px;font-weight:normal;background-color:#ddd}
+
 
 .f{border-collapse:collapse;border-spacing:0}
 .f,.ar,.f input[type="text"]{width:100%}
@@ -20,9 +24,8 @@ h3.ba {font-size:20px;font-weight:normal;margin:0;background-color:transparent;p
 .fm{text-align:center;font-weight:bold}
 .b{padding:1px 3px 2px;border-right:1px solid;float:left}
 form>table th{text-align:right}
-.mo {padding:4px 17px}
 .w>div{margin-bottom:24px}
-.w>.pc,.thr .w>div{margin-bottom:12px}
+.w>.pc{margin-bottom:12px}
 
 .np,.ep>.pp{padding-top:6px}
 .np,.ep>.hw>.pt.e1,.ep>.pp{border-left:1px solid #aaa}
@@ -39,32 +42,28 @@ form>table th{text-align:right}
 
 .phl,.wa,.ab,.his{color:#999}
 .phrl{text-transform:capitalize}
-.hide {background-color:#f6f6f6;border:1px solid #BBBBBB;border-radius:3px;color:#333!important;font-size:14px;
+.hide {border:1px solid #BBBBBB;border-radius:3px;color:#333!important;font-size:14px;
 width:8px;height:9px;margin:7px 4px 4px 0;padding-right:1px;text-align:center;text-decoration:none;
 float:left;cursor:pointer;font:9px/9px monospace;}
 .hm img{margin-left:-6px}
 .tp .hm img {margin-left:1px}
 .tp {margin-top:6px}
-.tn{font-size:16px}
-.hm b{color:#666}
-.hm .tn b{font-weight:normal;font-size:13px}
+.warn{display:block;margin-top:8px;color:red}
 
-.h>div{border-bottom:0 solid #DDDEDE}
+.h>div{border-bottom:0 solid #DDDEDE} /* ??? we need this */
 .h,.v,.f{max-width:900px}
 .h>div>div{display:table;width:100%}
 .w .h>div,.w .t,p.rm{border-right:1px solid;border-left:1px solid}
 .w .h>div>div{border-top:1px solid;}
 .h img{float:left;margin-right:5px}
 .hm{padding:0 6px; font-size:13px;line-height:25px;color:#999}
-.thr .hm{line-height:28px;}
-.hmi{color:#000;font-style:italic;font-size:15px}
+.hmi{color:#000;font-size:15px}
 .tp .hm,.thr .fp >.v >.t >div,.thr .w .t>div{padding:0}
 .tp .hm .hide {display:none}
 .un{font-weight:bold;color:#666}
 .ti{white-space:nowrap;float:right}
 .apr>div>.v{outline: 1px solid #D050D0;outline-offset:-1px}
 .apc>div>.v{outline:2px solid red;outline-offset:-2px}
-/*.sp {max-width:900px;}*/
 
 div.rm{text-align:center}
 .w .t>div,.pc.fp>.v>.t>div{padding:8px 8px 10px 7px}
@@ -75,18 +74,29 @@ div.rm{text-align:center}
 .his-post,.l>.v>.t>div,.l>div>.v>.t>div{border-color:#DDDEDE}
 .fp>.h>div>div{border:none}
 .fp.pc>.v>.t>div{border-top-color:#ECECEC}
-.ba,.fp>.h>div>div,.w .h>div>div,.hmi{background-color:#ECECEC}
-.w .t,p.rm{background-color:#F6F6F6;}
-.r{color:#d00;margin-right:8px}
+.ba,.fp>.h>div>div,.w .h>div>div{background-color:#ECECEC}
+.w .t,p.rm,.hide,.thr .w>div,.cat .w>div{background-color:#F6F6F6;}
+
+
+/*Thread index, category index*/
+.thr .h,.thr .v,.thr .f,.cat .h,.cat .v,.cat .f  {max-width:none}
+.thr .w>div,.cat .w>div{border-color:#ccc;border-style:solid;border-width:1px 0 0;margin:0;padding:6px 11px}
+.thr .w .h>div,.thr .w .h>div>div,.thr .l>.v>.t>div,.thr .l>div>.v>.t>div{border:none}
+.thr .w .h>div>div{background-color:transparent}
+.thr>.w,.cat>.w{padding:0;border-bottom:1px solid #ccc}
+.thr .hm{padding:0}
+.mo{margin-left:6px;font-size:13px;line-height:18px}
+.thr .ti{float:none}
+.tn{font-size:18px}
+.hm .tn span{font-size:13px}
+.hm .tn span a{color:#999}
+/*Forms*/
 .b,.nb{background-color:#f2f2f2;border-radius:2px;margin:8px 0 8px 8px;border:1px solid #dbdbdb;padding:5px 8px}
 .b[type="submit"]{background-color:#9ec97f;color:#fff;font-weight:bold}
-
 .ed-help{height:26px}
 .ed-help a{font-size:13px;margin:4px 0 0 8px}
 #id_subject{padding:4px 0;text-indent:7px}
-
 /*Settings*/
-.avatar_settings {padding-left:10px}
 .avatar_settings form ul,.avatar_settings form ul ul,.errorlist {list-style-type:none;padding:0;}
 .avatar_settings label input {float: left;margin-top: 10px}
 .snapboard_settings table td br{display:none}
@@ -101,3 +111,5 @@ div.rm{text-align:center}
 .his-menu{}
 /*Registration*/
 .errorlist{margin:6px 0 2px;font-style:italic;color:red;font-size:13px}
+/*Pagination*/
+.pagination{padding:8px 10px 0}

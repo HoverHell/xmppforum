@@ -1,10 +1,9 @@
 {% extends "snapboard/base_forum.html" %}
 {% load i18n %}
 {% load avatar_tags %}
-{% block breadcrumb %}{{ block.super }} &mdash; <h3>{% trans "Boards preferences" %}</h3>{% endblock %}
+{% block breadcrumb %}{{ block.super }} &mdash; {% trans "Boards preferences" %}{% endblock %}
 {% block snapboard_main %}
-
-
+<div class="w">
     <div class="snapboard_settings">
     <form method="post" action="">
         <table>
@@ -34,4 +33,5 @@
         <p><input class="b" type="submit" name="avatarsubmit" value="Upload New Image" /></p>
     </form>
     </div>
+</div>
 {% endblock %}

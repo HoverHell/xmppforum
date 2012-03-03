@@ -2,8 +2,6 @@
 {% load pagination_tags %}
 {% load extras %}
 
-
-
 <div class="thr">
 {% autopaginate threads user_settings.tpp %}{% paginate %}
 <div class="w">
@@ -12,8 +10,8 @@
 <div{% if thread.post_count == 1 %} class="l{% if thread.gsticky %} gs{% else %}{% if category and thread.csticky %} cs{% endif %}{% endif %}{% if thread.closed %} cl{% endif %}"{% else %}{% if thread.gsticky %} class="gs{% if thread.closed %} cl{% endif %}"{% else %}{% if category and thread.csticky %} class="cs{% if thread.closed %} cl{% endif %}"{% endif %}{% endif %}{% endif %}>
   <div class="h"><div><div>
     <div class="hm">
-      <span class="tn">{% if not category %}<a href="{% url snapboard_category_thread_index thread.category.id %}">{{ thread.category }}</a> &mdash; {% endif %}<a href="{% url snapboard_thread thread.id %}">{{ thread.subject }}</a> <b>{{ thread.post_count }} posts</b></span>
-      <br/>Started {% reltime thread.first_post.date %} by <span class="un">{{ thread.first_post.user.username }}</span>: <span class="hmi">&laquo;{{ thread.first_post.texth|truncatewords_html:15|safe }}&raquo;</span>
+      <span class="tn"><a href="{% url snapboard_thread thread.id %}">{{ thread.subject }}</a><span>{% if not category %} in <a href="{% url snapboard_category_thread_index thread.category.id %}">{{ thread.category }}</a>{% endif %}, {{ thread.post_count }} posts</span></span>
+      <br/><span class="un">{{ thread.first_post.user.username }}</span> started this: <span class="hmi">&laquo;{{ thread.first_post.texth|truncatewords_html:15|safe }}&raquo;</span> <span class="ti">{% reltime thread.first_post.date %}</span>
     </div>
   </div></div></div>
     <div class="v">
@@ -23,7 +21,7 @@
   <div class="fp l">
     <div class="h"><div><div>
       <div class="hm">
-        Last updated {% reltime thread.date %} by <span class="un">{{ thread.last_post.user.username }}</span>: <span class="hmi">&laquo;{{ thread.last_post.texth|truncatewords_html:15|safe }}&raquo;</span>
+        <span class="un">{{ thread.last_post.user.username }}</span> replied: <span class="hmi">&laquo;{{ thread.last_post.texth|truncatewords_html:15|safe }}&raquo;</span> <span class="ti">{% reltime thread.date %}</span>
       </div>
     </div></div></div>
     <div class="v">
@@ -36,5 +34,7 @@
 {% else %}
   <p>{% trans "No threads are available." %}</p>
 {% endif %}
+
+{% autopaginate threads user_settings.tpp %}{% paginate %}
 </div>
 </div>

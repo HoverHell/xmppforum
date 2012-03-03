@@ -1,9 +1,11 @@
 
 {% extends "snapboard/base_forum.html" %}
 {% load i18n %}
+
+{% block breadcrumb %}{{ block.super }} &mdash; Recent Discussions <a class="mo" href="{% url snapboard_thread_index %}">More discussions</a>{% endblock %}
 {% block snapboard_main %}
-<h3 class="ba">Recent Discussions</h3>
+
 {{ thread_index|safe }}
-<div class="mo"><a href="{% url snapboard_thread_index %}">More discussions...</a></div>
+
 {{ category_index|safe }}
 {% endblock %}

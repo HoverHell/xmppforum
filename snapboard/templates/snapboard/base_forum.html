@@ -18,7 +18,7 @@
 
 <body id="x">
 {% block snapboard_panel %}{% include "snapboard/include/side_panel.html" %}{% endblock %}
-<div class="ta">{% block breadcrumb %}<a class="title" href="/">{{ SITE_NAME }}</a>{% endblock %}</div>
+<h1>{% block breadcrumb %}<a class="title" href="/">{{ SITE_NAME }}</a>{% endblock %}</h1>
 {% block extra_content %}{% endblock %}
 {% block snapboard_main %}{% endblock %}
 </body>

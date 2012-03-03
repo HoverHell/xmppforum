@@ -2,8 +2,7 @@
 {% load i18n %}
 {% block title %}{{ block.super }}: Recent Threads{% endblock %}
 
-{% block breadcrumb %}{{ block.super }} &mdash; <h3>{{ title }}</h3>
-{% endblock %}
+{% block breadcrumb %}{{ block.super }} &mdash; {{ title }}{% endblock %}
 
 {% block snapboard_main %}
 {% include "snapboard/include/thread_index.html" %}
