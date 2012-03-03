@@ -2,7 +2,7 @@
 {% load i18n pagination_tags %}
 {% load avatar_tags %}
 {% load extras %}
-
+{% block breadcrumb %}{{ block.super }} &mdash; <h3>{% trans "Watchlist" %}</h3>{% endblock %}
 {% block snapboard_main %}
 
     {% autopaginate posts user_settings.ppp %}

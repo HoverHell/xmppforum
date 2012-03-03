@@ -19,7 +19,7 @@
       {% if not post.freespeech and not user.really_anonymous and not user.is_staff %}<a class="ab" href="" onclick="s_a('{{ post.id_form_m }}');">{% trans "abuse" %}</a>{% endif %}
       {% if user.is_staff %}<a href="" onclick="s_c('{{ post.id_form_m }}');">{{ post.censor|yesno:_("uncensor,censor") }}</a>{% endif %}
     {% endif %}
-    {% if post.previous_id %}<a href="{% url snapboard_show_revisions post.id_form_m %}">{% trans "history" %}</a>{% endif %}
+    {% if post.previous_id %}<a class="his" href="{% url snapboard_show_revisions post.id_form_m %}">{% trans "history" %}</a>{% endif %}
     {% if post.numanswers %} | <span>{{ post.numanswers }} answers. </span>{% endif %}
   </div>
 </div></div></div>

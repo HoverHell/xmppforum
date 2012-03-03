@@ -2,7 +2,7 @@
 {% load i18n %}
 
 {% block title %}{{ block.super }}: reg?{% endblock %}
-
+{% block breadcrumb %}{{ block.super }} &mdash; New user registration{% endblock %}
 {% block snap_extra_head %}
   <meta name="robots" content="noindex, nofollow" />
 {% endblock %}

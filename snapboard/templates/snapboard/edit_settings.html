@@ -1,13 +1,21 @@
 {% extends "snapboard/base_forum.html" %}
 {% load i18n %}
 {% load avatar_tags %}
+{% block breadcrumb %}{{ block.super }} &mdash; <h3>{% trans "Boards preferences" %}</h3>{% endblock %}
 {% block snapboard_main %}
-    <div class="index_title">
-        <h2 style="font-size: 152%;">
-            {% trans "Boards preferences" %}
-        </h2>
+
+
+    <div class="snapboard_settings">
+    <form method="post" action="">
+        <table>
+            {{ settings_form.as_table }}
+            {{ xfsettings_form.as_table }}
+            <tr><th></th><td><input class="b" type="submit" name="updatesettings" value="{% trans "Update" %}" /></td></tr>
+        </table>
+    </form>
     </div>
-    <div class="avatar_settings">
+
+<div class="avatar_settings">
     <p>Your current avatar: </p>
     {% avatar user %}
     {% if not avatars %}
@@ -17,22 +25,13 @@
             <ul>
                 {{ primary_avatar_form.as_ul }}
             </ul>
-            <input type="submit" name="defaultavatar" value="Choose as Default" />
-            <input type="submit" name="deleteavatar" value="Delete Selected" />
+            <input class="nb" type="submit" name="defaultavatar" value="Choose as Default" />
+            <input class="nb" type="submit" name="deleteavatar" value="Delete Selected" />
         </form>
     {% endif %}
     <form enctype="multipart/form-data" method="POST" action="">
         {{ upload_avatar_form.as_p }}
-        <p><input type="submit" name="avatarsubmit" value="Upload New Image" /></p>
-    </form>
-    </div>
-    <div class="snapboard_settings">
-    <form method="post" action="">
-        <table>
-            {{ settings_form.as_table }}
-            {{ xfsettings_form.as_table }}
-            <tr><th></th><td><input type="submit" name="updatesettings" value="{% trans "Update" %}" /></td></tr>
-        </table>
+        <p><input class="b" type="submit" name="avatarsubmit" value="Upload New Image" /></p>
     </form>
     </div>
 {% endblock %}

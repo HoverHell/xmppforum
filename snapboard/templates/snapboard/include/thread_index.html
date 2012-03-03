@@ -12,8 +12,8 @@
 <div{% if thread.post_count == 1 %} class="l{% if thread.gsticky %} gs{% else %}{% if category and thread.csticky %} cs{% endif %}{% endif %}{% if thread.closed %} cl{% endif %}"{% else %}{% if thread.gsticky %} class="gs{% if thread.closed %} cl{% endif %}"{% else %}{% if category and thread.csticky %} class="cs{% if thread.closed %} cl{% endif %}"{% endif %}{% endif %}{% endif %}>
   <div class="h"><div><div>
     <div class="hm">
-      <span class="tn">{% if not category %}<a href="{% url snapboard_category_thread_index thread.category.id %}">{{ thread.category }}</a> &mdash; {% endif %}<a href="{% url snapboard_thread thread.id %}">{{ thread.subject }}</a></span>
-      <br/><b>{{ thread.post_count }} posts</b>, started {% reltime thread.first_post.date %} by <span class="un">{{ thread.first_post.user.username }}</span>: <span class="hmi">&laquo;{{ thread.first_post.texth|truncatewords_html:15|safe }}&raquo;</span>
+      <span class="tn">{% if not category %}<a href="{% url snapboard_category_thread_index thread.category.id %}">{{ thread.category }}</a> &mdash; {% endif %}<a href="{% url snapboard_thread thread.id %}">{{ thread.subject }}</a> <b>{{ thread.post_count }} posts</b></span>
+      <br/>Started {% reltime thread.first_post.date %} by <span class="un">{{ thread.first_post.user.username }}</span>: <span class="hmi">&laquo;{{ thread.first_post.texth|truncatewords_html:15|safe }}&raquo;</span>
     </div>
   </div></div></div>
     <div class="v">
@@ -23,7 +23,7 @@
   <div class="fp l">
     <div class="h"><div><div>
       <div class="hm">
-        last updated {% reltime thread.date %} by <span class="un">{{ thread.last_post.user.username }}</span>: <span class="hmi">&laquo;{{ thread.last_post.texth|truncatewords_html:15|safe }}&raquo;</span>
+        Last updated {% reltime thread.date %} by <span class="un">{{ thread.last_post.user.username }}</span>: <span class="hmi">&laquo;{{ thread.last_post.texth|truncatewords_html:15|safe }}&raquo;</span>
       </div>
     </div></div></div>
     <div class="v">

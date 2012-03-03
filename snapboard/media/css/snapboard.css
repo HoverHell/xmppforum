@@ -4,8 +4,8 @@
 #x>form>table,.sp>.ba,.w>*,.w.st,.tp .v,.f{margin-top:8px}
 .thr>.w,.cat>.w{padding-bottom:8px}
 .sp>.ba,.tb{padding-bottom:2px}
-.header{padding:4px 10px 5px;font-size:13px;line-height:24px}
-.unt{float:right}
+.header{padding:4px 10px 5px;font-size:13px;min-height:24px;line-height:24px}
+.unt{float:right;margin-left:8px}
 .ta,.ta h3 {font-size:17px}
 .ta {padding:6px 10px;background-color:#ddd}
 .ta h3{margin:0;font-weight:normal;display:inline}
@@ -21,7 +21,8 @@ h3.ba {font-size:20px;font-weight:normal;margin:0;background-color:transparent;p
 .b{padding:1px 3px 2px;border-right:1px solid;float:left}
 form>table th{text-align:right}
 .mo {padding:4px 17px}
-.w>div{margin-bottom:24px;}
+.w>div{margin-bottom:24px}
+.w>.pc,.thr .w>div{margin-bottom:12px}
 
 .np,.ep>.pp{padding-top:6px}
 .np,.ep>.hw>.pt.e1,.ep>.pp{border-left:1px solid #aaa}
@@ -36,23 +37,26 @@ form>table th{text-align:right}
 .nf>.hw>.pt.e2{top:50%}
 .ep>.hw>.pt.e1{height:200px}
 
-.phl,.wa,.ab{color:#999}
+.phl,.wa,.ab,.his{color:#999}
 .phrl{text-transform:capitalize}
 .hide {background-color:#f6f6f6;border:1px solid #BBBBBB;border-radius:3px;color:#333!important;font-size:14px;
 width:8px;height:9px;margin:7px 4px 4px 0;padding-right:1px;text-align:center;text-decoration:none;
 float:left;cursor:pointer;font:9px/9px monospace;}
 .hm img{margin-left:-6px}
-.tn{font-size:16px;}
-.hm b{color:#666;}
+.tp .hm img {margin-left:1px}
+.tp {margin-top:6px}
+.tn{font-size:16px}
+.hm b{color:#666}
+.hm .tn b{font-weight:normal;font-size:13px}
 
 .h>div{border-bottom:0 solid #DDDEDE}
-.h,.v,.f{max-width:1000px}
+.h,.v,.f{max-width:900px}
 .h>div>div{display:table;width:100%}
 .w .h>div,.w .t,p.rm{border-right:1px solid;border-left:1px solid}
 .w .h>div>div{border-top:1px solid;}
 .h img{float:left;margin-right:5px}
 .hm{padding:0 6px; font-size:13px;line-height:25px;color:#999}
-.thr .hm{line-height:30px;}
+.thr .hm{line-height:28px;}
 .hmi{color:#000;font-style:italic;font-size:15px}
 .tp .hm,.thr .fp >.v >.t >div,.thr .w .t>div{padding:0}
 .tp .hm .hide {display:none}
@@ -60,21 +64,21 @@ float:left;cursor:pointer;font:9px/9px monospace;}
 .ti{white-space:nowrap;float:right}
 .apr>div>.v{outline: 1px solid #D050D0;outline-offset:-1px}
 .apc>div>.v{outline:2px solid red;outline-offset:-2px}
-.sp {max-width:1000px;}
+/*.sp {max-width:900px;}*/
 
 div.rm{text-align:center}
 .w .t>div,.pc.fp>.v>.t>div{padding:8px 8px 10px 7px}
 .pc>.v>.t>div,.pc>div>.v>.t>div{border-top:1px solid}
-.l>.v>.t>div,.l>div>.v>.t>div{border-bottom:1px solid}
+.his-post,.l>.v>.t>div,.l>div>.v>.t>div{border-bottom:1px solid}
 
 .f td,.b,.w .h>div,.w .t,p.rm,.w .h>div>div,.pc>.v>.t>div,.pc>div>.v>.t>div,
-.l>.v>.t>div,.l>div>.v>.t>div{border-color:#DDDEDE}
+.his-post,.l>.v>.t>div,.l>div>.v>.t>div{border-color:#DDDEDE}
 .fp>.h>div>div{border:none}
 .fp.pc>.v>.t>div{border-top-color:#ECECEC}
 .ba,.fp>.h>div>div,.w .h>div>div,.hmi{background-color:#ECECEC}
 .w .t,p.rm{background-color:#F6F6F6;}
 .r{color:#d00;margin-right:8px}
-.b{background-color:#f2f2f2;border-radius:2px;margin:8px 0 8px 8px;border:1px solid #dbdbdb;padding:5px 8px}
+.b,.nb{background-color:#f2f2f2;border-radius:2px;margin:8px 0 8px 8px;border:1px solid #dbdbdb;padding:5px 8px}
 .b[type="submit"]{background-color:#9ec97f;color:#fff;font-weight:bold}
 
 .ed-help{height:26px}
@@ -83,3 +87,17 @@ div.rm{text-align:center}
 
 /*Settings*/
 .avatar_settings {padding-left:10px}
+.avatar_settings form ul,.avatar_settings form ul ul,.errorlist {list-style-type:none;padding:0;}
+.avatar_settings label input {float: left;margin-top: 10px}
+.snapboard_settings table td br{display:none}
+.snapboard_settings table tr{line-height:24px}
+.snapboard_settings table tr td, .snapboard_settings table tr th {padding:4px 0;}
+.helptext{padding-left:6px;color:#999;font-size:13px;}
+.avatar_settings .b,.snapboard_settings .b,.nb,.login-b,.regform .b{margin:0 8px 0 0}
+/*History*/
+.his-header{font-size:13px;color:#999}
+.his-header .ti{margin-top:4px;}
+.his-post{padding:8px 0}
+.his-menu{}
+/*Registration*/
+.errorlist{margin:6px 0 2px;font-style:italic;color:red;font-size:13px}

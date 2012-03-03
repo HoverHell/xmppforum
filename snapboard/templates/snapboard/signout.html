@@ -1,8 +1,8 @@
 {% extends "snapboard/base_forum.html" %}
 {% load i18n %}
 
-{% block side_panel %}
-{% endblock %}
+{% block side_panel %}{% endblock %}
+{% block breadcrumb %}{{ block.super }} &mdash; And never come back!{% endblock %}
 
 {% block snapboard_main %}
 <p>{% trans "You are now logged off." %}</p>

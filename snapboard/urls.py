@@ -71,6 +71,11 @@ urlpatterns = patterns('',
     (r'^scen/(?P<oid>\d+)/(?: (?P<state>1|0))?$',
       r_set_censor, {}, 'snapboard_set_censor'),
 
+    (r'^about/',
+      direct_to_template,
+      {'template': 'snapboard/help_page.html'},
+      'about'),
+
     ## Groups
     (r'^groups/(?P<group_id>\d+)/manage/$',
          manage_group, {}, 'snapboard_manage_group'),
