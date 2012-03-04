@@ -30,9 +30,14 @@ class OptionalEmailBackend(DefaultBackend):
             site = RequestSite(request)
         if email:  # if it's not empty
             # Plug-plug-plug.
-            return DefaultBackend.register(self, request, **kwargs)
+            # Unfortunately, can't give the self to other class's method.
+            #return DefaultBackend.register(self, request, **kwargs)
+            return DefaultBackend().register(request, **kwargs)
+            ## And this is quite too hacky (but should work):
+            #return DefaultBackend.register.im_func(self, request, **kwargs)
         else:
-            return SimpleBackend.register(self, request, **kwargs)
+            #return SimpleBackend.register(self, request, **kwargs)
+            return SimpleBackend().register(request, **kwargs)
 
     def get_form_class(self, request):
         """ Return the default form class used for user registration. """

@@ -7,7 +7,7 @@ Please open the following link in your web browser. If the link
 is split over several lines, you may need to copy it in the
 address bar.{% endblocktrans %}
 
-{{ SITE_DOMAIN }}{% url registration_activate activation_key %}
+{{ site.domain }}{% url registration_activate activation_key %}
 
 {% blocktrans with site.name as site_name %}
 If there is a problem with your registration, please reply to

@@ -25,6 +25,14 @@ class RegistrationFormEmailFree(RegistrationFormUniqueEmail):
       widget=forms.TextInput(attrs=dict(attrs_dict, maxlength=75)),
       label=_(u'email address (optional)'),
       required=False)
+    
+    def clean_email(self):
+        email = self.cleaned_data['email']
+        ## The check has to be done here as well (since it doesn't need to
+        ## be ckecked for bqing unique in that case).
+        if not email:
+            return email
+        return super(RegistrationFormEmailFree, self).clean_email()
 
     ## XX: Only used with django-registration < 0.8
     def save(self, profile_callback=None):
