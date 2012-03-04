@@ -67,7 +67,7 @@ except ImportError:  # pre-0.8
 ## Admin
 urlpatterns += patterns('',
 #    (r'^admin/(.*)', admin.site.root),
-    (r'^admin/(.*)', include(admin.site.urls)),
+    (r'^admin/', include(admin.site.urls)),
 )
 
 
