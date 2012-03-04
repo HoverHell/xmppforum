@@ -29,6 +29,7 @@ class OptionalEmailBackend(DefaultBackend):
         else:
             site = RequestSite(request)
         if email:  # if it's not empty
+            self.reg_with_email = True
             # Plug-plug-plug.
             # Unfortunately, can't give the self to other class's method.
             #return DefaultBackend.register(self, request, **kwargs)
@@ -36,6 +37,7 @@ class OptionalEmailBackend(DefaultBackend):
             ## And this is quite too hacky (but should work):
             #return DefaultBackend.register.im_func(self, request, **kwargs)
         else:
+            self.reg_with_email = False
             #return SimpleBackend.register(self, request, **kwargs)
             return SimpleBackend().register(request, **kwargs)
 
@@ -45,4 +47,6 @@ class OptionalEmailBackend(DefaultBackend):
 
     def post_registration_redirect(self, request, user):
         """ After registration, redirect to the user's account page. """
+        if self.reg_with_email:
+            return ('registration_complete', (), {})
         return (user.get_absolute_url(), (), {})
