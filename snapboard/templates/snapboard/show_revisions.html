@@ -12,8 +12,17 @@
 {% endifnotequal %}{% endif %}
  <span class="his-menu">
      <span class="post_menuright">
-         {% if user.is_staff %}<span title="{% trans "ADMIN: mark this post for censorship" %}" class="popup"><a id="censor{{ last_post.id }}" href="#snap_post{{ last_post.id }}" onclick="set_censor('{{ last_post.id }}');">{{ last_post.censor|yesno:_("uncensor,censor") }}</a></span>{% endif %}
-         {% if user.is_authenticated and not last_post.freespeech %}<span title="{% trans "Report this post for violation of forum policies." %}" class="popup"><a id="abuse{{ last_post.id }}" href="#snap_post{{ last_post.id }}" onclick="set_abuse('{{ last_post.id }}');">{% trans "Report abuse" %}</a></span>{% endif %}
+         {% if user.is_staff %}
+           <span title="{% trans "ADMIN: mark this post for censorship" %}" class="popup">
+           <a id="censor{{ last_post.id_form_m }}" href="#snap_post{{ last_post.id_form_m }}" onclick="set_censor('{{ last_post.id }}');">
+           {{ last_post.censor|yesno:_("uncensor,censor") }}</a>
+           </span>
+         {% endif %}
+         {% if user.is_authenticated and not last_post.freespeech %}
+           <span title="{% trans "Report this post for violation of forum policies." %}" class="popup">
+           <a id="abuse{{ last_post.id }}" href="#snap_post{{ last_post.id }}" onclick="set_abuse('{{ last_post.id }}');">
+           {% trans "Report abuse" %}</a></span>
+         {% endif %}
      </span>
      <span class="avatar"> {% avatar last_post.user %}</span>
      <b><span class="popup" title="Author">{{ last_post.user }}</span></a></b>
@@ -22,12 +31,12 @@
         {# render post revision here #}
  <span class="his-header">
      <span class="ti">{% reltime post.date %}</span>
-     <span class="ps" style="display:none;" id="snap_post_sum{{ post.id }}">:
+     <span class="ps" style="display:none;" id="snap_post_sum{{ post.id_form_m }}">:
          {{ post.text|post_summary:"30"|safe }}
      </span>
  </span>
- <div class="his-post" style="display:block" id="snap_post_view{{ post.id }}">
-     <div class="post_text" style="display:block" id="snap_post_text{{ post.id }}">
+ <div class="his-post" style="display:block" id="snap_post_view{{ post.id_form_m }}">
+     <div class="post_text" style="display:block" id="snap_post_text{{ post.id_form_m }}">
          {{ post.text|striptags|render_post|safe }}
          {% if post.difflist %}
          <div class="post_diff">

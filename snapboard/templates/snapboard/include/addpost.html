@@ -7,7 +7,7 @@
 <div class="e">{% blocktrans with request.path|urlencode as reqpath %}You need to <a href="{{ LOGIN_URL }}?next={{ reqpath }}">sign in</a> to post messages.{% endblocktrans %}</div>
 {% else %}
 <div>{{ postform.errors }}</div>
-<form action="{% url snapboard_post_reply parent_post.id %}?next={{ request.REQUEST.next }}" method="POST">
+<form action="{% url snapboard_post_reply parent_post.id_form_m %}?next={{ request.REQUEST.next }}" method="POST">
   <table class="f">
     <tr>
       <td class="ed-help">

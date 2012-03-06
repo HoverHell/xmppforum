@@ -94,15 +94,20 @@ extra_processors = [user_settings_context, snapboard_default_context,
   timedelta_now_context]
 
 
-def _get_that_post(request, post_form_id=None, post_id=None):
+def _get_that_post(request, post_form_id=None):
     """ Helper function for allowing post-related commands unto unspecified
     "last notified" post.  Raises Http404 if cannot.
 
     Depends on django cache database."""
     if post_form_id:
+        m = re.match(Post.id_m_re, post_form_id)
+        # assert bool(m), "can't get that post named %r" % post_form_id
+        ## Assuming it is validated already.
+        thr, tlid = m.groups()
+        if not tlid:  # thread-base specifier
+            return get_object_or_404(Post.objects.select_related(),
+              thread=Thread.id_from_id_n(thr), depth=1)
         return Post.get_post_or_404(post_form_id)
-    elif post_id:
-        return get_object_or_404(Post, pk=post_id)
 
     # otherwise - find one!  (should not happen with HTTP though)
     # TODO: include the user full jid into the search!..
@@ -167,9 +172,8 @@ def rpc_dispatch(request):
 
 
 @login_required
-def r_watch_post(request, post_form_id=None, post_id=None, resource='',
-  rpc=False):
-    post = _get_that_post(request, post_form_id, post_id)
+def r_watch_post(request, post_form_id=None, resource='', rpc=False):
+    post = _get_that_post(request, post_form_id)
     # ^ 'auto' fetching should only be done from XMPP.
     thr = post.thread
     if not thr.category.can_read(request.user):
@@ -202,10 +206,10 @@ def r_watch_post(request, post_form_id=None, post_id=None, resource='',
 
 #@userbannable
 @login_required
-def r_abusereport(request, post_form_id=None, post_id=None, rpc=False):
+def r_abusereport(request, post_form_id=None, rpc=False):
     """ Report some inappropriate post for the admins to consider censoring.
     """ ## XXX: Unused?!
-    post = _get_that_post(request, post_form_id, post_id)
+    post = _get_that_post(request, post_form_id)
     thr = post.thread
     if not thr.category.can_read(request.user):
         raise PermissionError("You are not allowed to do that")
@@ -309,32 +313,38 @@ r_set_censor = rpc_gettoggler(Post, 'censor', rpcreturn=(
 
 #@userbannable
 @anonymous_login_required
-def thread(request, thread_id):
+def thread(request, post_form_id):
     """ Render a particular thread starting from its root post.  """
     ## ! XXX: might be unnecessary.
     #thr = get_object_or_404(Thread, pk=thread_id)
 
-    top_post = get_object_or_404(Post.objects.select_related(),
-      thread=thread_id, depth=1)
-    return thread_post(request, post=top_post, subtopic=False)
+    #top_post = get_object_or_404(Post.objects.select_related(),
+    #  thread=Thread.id_from_id_n(post_form_id), depth=1)
+    #return thread_post(request, post=top_post, subtopic=False)
+    return None
 
 
 @anonymous_login_required
-def thread_post(request, post_id=None, post_form_id=None, post=None,
+def thread_post(request, post_form_id=None, post=None,
   depth="v", subtopic=True):
     """ Renders (part of) the thread starting from the specified post.
     Passes the `subtopic` parameter to the template, which annotates it with
-    "Showing a part of the thread" message. """
-
-    if post is not None:
+    "Showing a part of the thread" message.
+    
+    Is also used for rendering whole threads. """
+    
+    if post is not None:  # probably unused ATM.
         top_post = post
-    elif post_id is not None or post_form_id is not None:
-        top_post = _get_that_post(request, post_form_id, post_id)
+    elif post_form_id is not None:
+        top_post = _get_that_post(request, post_form_id)
     else:  # should not ever happen.
         _log.error("Invalid invocation of the thread_post.")
         import traceback
         _log.debug("".join(traceback.print_stack()))
         return HttpResponseServerError()
+
+    ## Determine sutopic by depth:
+    subtopic = (top_post.depth != 1)
 
     thr = top_post.thread
     if not thr.category.can_read(request.user):
@@ -578,8 +588,8 @@ def _redirect_to_posts(request, target1, target2=None):
     if nextr:
       return "{0}#{1}".format(request.GET.get('next'), target1.id_form_m())
     # otherwise target the posts.
-    res = reverse('snapboard_thread_post',
-      args=(target1.id,),)
+    res = reverse('snapboard_post',
+      args=(target1.id_form_m(),),)
     if target2:
         res += u'#%s' % target2.id_form_m()
     return res
@@ -587,9 +597,9 @@ def _redirect_to_posts(request, target1, target2=None):
 
 #@userbannable
 @anonymous_login_required
-def post_reply(request, post_form_id=None, post_id=None, rpc=False):
+def post_reply(request, post_form_id=None, rpc=False):
     # with rpc=true returns dict with full form HTML.
-    parent_post = _get_that_post(request, post_form_id, post_id)
+    parent_post = _get_that_post(request, post_form_id)
 
     if request.POST and not rpc:  # POST HERE.
         thr = parent_post.thread
@@ -636,10 +646,10 @@ def post_reply(request, post_form_id=None, post_id=None, rpc=False):
 
 #@userbannable
 @login_required
-def edit_post(request, post_form_id=None, post_id=None, rpc=False):
+def edit_post(request, post_form_id=None, rpc=False):
     """ Edit an existing post.  """
     # with rpc=true returns dict with full form HTML.
-    orig_post = _get_that_post(request, post_form_id, post_id)
+    orig_post = _get_that_post(request, post_form_id)
 
     # TODO: Allow unauthenticated retreiving (not updating) of raw text of any post.
     if orig_post.user != request.user \
@@ -685,9 +695,9 @@ def edit_post(request, post_form_id=None, post_id=None, rpc=False):
                 request, processors=extra_processors))
 
 
-def show_revisions(request, post_form_id=None, post_id=None, rpc=False):
+def show_revisions(request, post_form_id=None, rpc=False):
     """ Get all revisions of a specific post.  """
-    orig_post = _get_that_post(request, post_form_id, post_id)
+    orig_post = _get_that_post(request, post_form_id)
 
     post = orig_post
     posts = [post]
@@ -757,8 +767,8 @@ def new_thread(request, cat_id=None):
 
             nthread, rpost = make_thread()
             # redirect to new thread / return success message
-            return success_or_reverse_redirect('snapboard_thread',
-              args=(nthread.id,), req=request, msg="Thread created.")
+            return success_or_reverse_redirect('snapboard_post',
+              args=(nthread.id_form_m,), req=request, msg="Thread created.")
     else:
         ## Warn the user if there's a problem with supplied category.
         if cat_id is not None:  # A specific category was supplied in URL.
@@ -1128,9 +1138,9 @@ def answer_invitation(request, invitation_id):
 
 
 @login_required
-def xmppresourcify(request, resource=None, post_form_id=None, post_id=None):
+def xmppresourcify(request, resource=None, post_form_id=None):
     _log.debug("resourcify: user: %r" % request.user)
-    post = _get_that_post(request, post_form_id, post_id)
+    post = _get_that_post(request, post_form_id)
     if not resource:
         resource = "#%d-%d" % (post.id, post.thread.id)
     wl, created = WatchList.objects.get_or_create(user=request.user, post=post)

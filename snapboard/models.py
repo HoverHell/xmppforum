@@ -11,6 +11,8 @@ from django.db.models import signals, Q
 from django.dispatch import dispatcher
 from django.utils.translation import ugettext_lazy as _
 from django.core.cache import cache
+# an unexpected usefulness (for numerid IDs):
+from treebeard.numconv import NumConv
 
 from django.http import Http404  # for get_post_or_404
 
@@ -124,7 +126,8 @@ SNAP_PREFIX = getattr(settings, 'SNAP_PREFIX', '')
 SNAP_MEDIA_PREFIX = getattr(settings, 'SNAP_MEDIA_PREFIX',
   getattr(settings, 'MEDIA_URL', ''))
 SNAP_POST_FILTER = getattr(settings, 'SNAP_POST_FILTER', 'bbcode').lower()
-
+POST_ID_ALPHABET = getattr(settings, 'POST_ID_ALPHABET',
+  r"0123456789abcdefghijklmnopqrstuvwxyz")
 
 (NOBODY, ALL, USERS, CUSTOM) = range(4)
 
@@ -336,6 +339,60 @@ class Moderator(models.Model):
         verbose_name_plural = _('moderators')
 
 
+# The whatever-custom-alphabet IDs are currently default (they can be
+# reduced to hex IDs if needed).
+def _make_id_n(alphabet=POST_ID_ALPHABET):
+    """ Constructs a thread-id / post-id stuff with given alphabet for IDs.
+    Note that although pretty much any symbols can be put into the alphabet,
+    most of them would be a bad idea and possibly break something.  """
+    """ class: ... """
+    alphabet_re = r'[' + re.escape(alphabet) + r']+'
+    # post id is optional. The 'first post' should be assumed when it's
+    # missing.
+    # (?) r'(?:[#!])?'
+    id_n_re =   (r'(?P<thread_id>' + alphabet_re + r')' +
+      r'(?:/(?P<post_tlid>' + alphabet_re + r'))?')
+    id_n_re_f = (r'' + alphabet_re + r'' +
+      r'(?:/' + alphabet_re + ')?')
+
+    id_n_re_c = re.compile(r'^' + id_n_re + r'$')
+    id_n_numconv = NumConv(len(alphabet), alphabet)
+
+    ## Functions for Post to work with that ID form.
+    def id_form_n(self):
+        """ Thread-local number + numconv alphabet.  """
+        return u"%s/%s" % (
+          id_n_numconv.int2str(self.thread_id),
+          id_n_numconv.int2str(self.tlid))
+    @classmethod
+    def from_id_n(cls, idn):
+        m = id_n_re_c.match(idn)
+        assert bool(m), u"idn %r is malformed" % idn
+        thr, tlid = m.groups()
+        assert bool(tlid), u"idn %r does not contain post id" % idn
+        return cls.objects.get(
+          thread=id_n_numconv.str2int(thr),
+          tlid=id_n_numconv.str2int(tlid))
+    # Functions for Thread ...
+    def thread_id_form_n(self):
+        return u"%s" % (id_n_numconv.int2str(self.id),)
+    @classmethod
+    def thread_id_from_id_n(cls, idn):
+        ## The post id if present is ignored
+        m = id_n_re_c.match(idn)
+        assert bool(m), u"idn %r is malformed" % idn
+        thr, tlid = m.groups()
+        return id_n_numconv.str2int(thr)
+    @classmethod
+    def thread_from_id_n(cls, idn):
+        return cls.objects.get(id=thread_id_from_id_n(cls, idn))
+    return (id_n_re, id_n_re_f, id_form_n, from_id_n, thread_id_form_n,
+        thread_from_id_n, thread_id_from_id_n)
+
+(_id_n_re, _id_n_re_f, _id_form_n, _from_id_n, _thread_id_form_n,
+  _thread_from_id_n, _thread_id_from_id_n) = _make_id_n()
+
+
 class Thread(models.Model):
     subject = models.CharField(max_length=160, verbose_name=_('subject'))
     category = models.ForeignKey(Category, verbose_name=_('category'))
@@ -353,9 +410,13 @@ class Thread(models.Model):
 
     def __unicode__(self):
         return self.subject
+        
+    id_form_m = _thread_id_form_n
+    from_id_n = _thread_from_id_n
+    id_from_id_n = _thread_id_from_id_n
 
     def get_url(self):
-        return reverse('snapboard_thread', args=(self.id,))
+        return reverse('snapboard_thread', args=(self._id_form_m(),))
 
     class Meta:
         verbose_name = _('thread')
@@ -451,28 +512,6 @@ class Post_revisions(Post_base):
         verbose_name_plural = _('post revisions')
 
 
-def _make_id_n(alphabet="0123456789abcdefghijklmnopqrstuvwxyz"):
-    """ class: ... """
-    from treebeard.numconv import NumConv    
-    id_n_re = r'(?:[#!])?(?P<thread_id>[' + alphabet + \
-      r']+)/(?P<post_tlid>[' + alphabet + r']+)'
-    id_n_re_c = re.compile(r'^' + id_n_re + r'$')
-    id_n_re_f = r'(?:[#!])?[' + alphabet + r']+/[' + alphabet + ']+'
-    id_n_numconv = NumConv(len(alphabet), alphabet)
-    def id_form_n(self):
-        """ Thread-local number + numconv alphabet.  """
-        return u"%s/%s" % (
-          id_n_numconv.int2str(self.thread_id),
-          id_n_numconv.int2str(self.tlid))
-    @classmethod
-    def from_id_n(cls, idn):
-        m = id_n_re_c.match(idn)
-        assert bool(m), u"idn %r is malformed" % idn
-        thr, tlid = m.groups()
-        return cls.objects.get(thread=int(thr, 16), tlid=int(tlid, 16))
-    return id_n_re, id_n_re_f, id_form_n, from_id_n
-
-
 class Post(Post_base, mp_tree.MP_Node):
     """ Tree-aligned set of posts (of latest versions). """
     ## Moderation:
@@ -536,42 +575,11 @@ class Post(Post_base, mp_tree.MP_Node):
         tpath = "".join([l_int2str(int(i)) for i in anpath])
         return cls.objects.get(path=tpath)
 
-    ## Numeric IDs (obsolete?).
-    id_t_re = r'(?:[#!])?(?P<thread_id>\d+)/(?P<post_tlid>\d+)'
-    id_t_re_f = r'(?:[#!])?\d+/\d+'
-    def id_form_t(self):
-        """ Thread-local number.  """
-        return u"%s/%s" % (self.thread_id, self.tlid)
-    @classmethod
-    def from_id_t(cls, idt):
-        m = re.match(r'^' + cls.id_t_re + r'$', idt)
-        assert bool(m), u"idt %r is malformed" % idt
-        thr, tlid = m.groups()
-        return cls.objects.get(thread=int(thr), tlid=int(tlid))
-
-    ## custom-set-of-symbols-IDs. Can be easily made into configurable (just
-    ## pass the set of characters into thid pentagr^W function)
-    id_z_re, id_z_re_f, id_form_z, from_id_z = _make_id_n()
-
-    ## alphanumeric IDs (obsolete?)
-    id_x_re = r'(?:[#!])?(?P<thread_id>[0-9A-Fa-f]+)/(?P<post_tlid>[0-9A-Fa-f]+)'
-    id_x_re_c = re.compile(r'^' + id_x_re + r'$')
-    id_x_re_f = r'(?:[#!])?[0-9A-Fa-f]+/[0-9A-Fa-f]+'
-    def id_form_x(self):
-        """ Thread-local number + hex.  """
-        return u"%x/%x" % (self.thread_id, self.tlid)
-    @classmethod
-    def from_id_x(cls, idx):
-        m = cls.id_x_re_c.match(idx)
-        assert bool(m), u"idx %r is malformed" % idx
-        thr, tlid = m.groups()
-        return cls.objects.get(thread=int(thr, 16), tlid=int(tlid, 16))
-
     ## Actually used properties
-    id_form_m = id_form_x
-    from_id_m = from_id_x
-    id_m_re = id_x_re
-    id_m_re_f = id_x_re_f
+    id_form_m = _id_form_n
+    from_id_m = _from_id_n
+    id_m_re = _id_n_re
+    id_m_re_f = _id_n_re_f
 
     @classmethod
     def get_post_or_404(cls, id_m):
@@ -580,13 +588,10 @@ class Post(Post_base, mp_tree.MP_Node):
         except cls.DoesNotExist:
             raise Http404('No post %s found.' % id_m)
 
-    # for (possibly) better maxwidth/maxdepth ratio.
-    # *might* run out of root posts, though!
-    # ! FIXME: put something like 5 or 6 here and increase the 'path' field
-    #  length (or remove length limit completely if possible).
+    ## The `path` is currently *hacked* into a TEXT field (below). This
+    ## steplen allows for insurmountable amount of children. The only thing
+    ## you might run out of is root posts. Not easily.
     steplen = 5
-    #path = models.CharField(max_length=255, unique=True)
-
 
     def save(self, force_insert=False, force_update=False):
         # ? huh?
@@ -613,8 +618,10 @@ class Post(Post_base, mp_tree.MP_Node):
         available number (next to the highest).
         Does not replace an existing lid unless `force`d; but does not
         update it on the object after setting!  """
+        # Function is pretty much reusable.
+        
         #from django.db import models, connection, transaction
-        # XXX: Possible TODO: set the tlid field to Deferred()?
+        # XXX: set the tlid field to Deferred()?
         from django.db import connection, transaction
         lid_s = "tlid"
 
@@ -707,9 +714,11 @@ class Post(Post_base, mp_tree.MP_Node):
         verbose_name = _('post')
         verbose_name_plural = _('posts')
         unique_together = (('thread', 'tlid'),)
+
 # ! XXX: h4x it up!
+# (still no idea why it is not done upstream)
 mp_tree.MP_Node.path = models.TextField(unique=True)
-Post._meta.get_field('path').max_length = 90000
+Post._meta.get_field('path').max_length = 90000  # supposedly not used.
 
 # Signals make it hard to handle the notification of private recipients
 # ** Not sure if it would be better to use them now.

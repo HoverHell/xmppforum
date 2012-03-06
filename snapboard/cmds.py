@@ -11,8 +11,8 @@ from xmppface.xmppbase import direct_to_template
 
 ## Double id support, way 1: complex regexes.
 from snapboard.models import Post
-post_id_re = Post.id_m_re_f
-post_id_re_f = r'(?P<post_form_id>' + post_id_re + r')'
+post_id_re = Post.id_m_re
+post_id_re_f = r'(?P<post_form_id>' + Post.id_m_re_f + r')'
 
 ## Double id suport, way 2: decorators.
 from snapboard.util import postid_to_id
@@ -29,24 +29,24 @@ cmdpatterns = patterns('',
       {'template': 'snapboard/whoami.xmpp'}),
 
     ## Main indexes.
-    (r'^[#!](?P<thread_id>\d+)$', thread, {}, 'snapboard_thread'),
-    (r'^[#!](?P<thread_id>\d+)l(?: (?P<num_posts>\d+))?$',
-      thread_latest, {}, 'snapboard_thread_latest'),
+    #(r'^[#!](?P<thread_id>\d+)$', thread, {}, 'snapboard_thread'),
+    #(r'^[#!](?P<thread_id>\d+)l(?: (?P<num_posts>\d+))?$',
+    #  thread_latest, {}, 'snapboard_thread_latest'),
     (r'^[#!]( (?P<num_limit>\d+)?( (?P<num_start>\d+)?)?)?$',
       thread_index, {}, 'snapboard_thread_index'),  # spaces!
-    (r'^[#!]c$', category_index, {}, 'snapboard_category_index'),
-    (r'^[#!]c(?P<cat_id>\d+)$',
+    (r'^c$', category_index, {}, 'snapboard_category_index'),
+    (r'^c(?P<cat_id>\d+)$',
       category_thread_index, {}, 'category_thread_index'),
 
-    (r'^[#!]c(?P<POST_category>\d+) (?P<POST_subject>.+?)\n(?P<POST_text>.(.*\n?)+)',
+    (r'^c(?P<POST_category>\d+) (?P<POST_subject>.+?)\n(?P<POST_text>.(.*\n?)+)',
       new_thread, {}, 'snapboard_new_thread'),
     # TODO: edit_settings?
 
-    (r'^[#!]' + post_id_re_f + '$',  ## TODO: needs testing.
+    (r'^[#!]' + post_id_re_f + '$',
       thread_post, {}, 'snapboard_thread_post'),
     (r'^[#!]' + post_id_re_f + r'? (?P<POST_text>(.*\n?)+)',
       post_reply, {}, 'snapboard_post_reply'),
-    (r'^[#!]e(?: ' + post_id_re_f + r'?(?: (?P<POST_text>(.*\n?)+))?)?',
+    (r'^e(?: ' + post_id_re_f + r'?(?: (?P<POST_text>(.*\n?)+))?)?',
       edit_post, {}, 'snapboard_edit_post'),
     (r'^r(?: ' + post_id_re_f + r'?(?: +(?P<resource>.+)?)?)?$',
       xmppresourcify, {}, 'snapboard_xmppresourcify'),  # XMPP-specific.

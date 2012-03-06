@@ -3,18 +3,24 @@
 {% load avatar_tags %}
 {% load plaintexttags %}
 
-<div class="h" id="pv{{ post.id_form_m }}"><div id="inh{{ post.id_form_m }}"><div>
+<div class="h" id="pv{{ post.id_form_m }}">
+  <div id="inh{{ post.id_form_m }}">
+  <div>
   <div class="hm">
-	{% avatar_opt post.user %}
-	<a id="{{ post.id_form_m }}_a" class="hide">-</a>
-    <a href="{% url snapboard_thread_post post.id_form_m %}" class="phl">#{{ post.id_form_m }}</a>
+    {% avatar_opt post.user %}
+    <a id="{{ post.id_form_m }}_a" class="hide">-</a>
+    <a href="{% url snapboard_post post.id_form_m %}" class="phl">
+      #{{ post.id_form_m }}</a>
     <span class="ti" title="{% deftime post.date 1 %}">{% deftime post.date %}</span>
-	<a class="un" href="">{{ post.user }}</a>
+    <a class="un" href="">{{ post.user }}</a>
     {% if user.is_authenticated %}
       {% if not user.really_anonymous %}{% ifequal post.user_id user.id %}
-        <a href="{% url snapboard_edit_post post.id_form_m %}?next={{ request.get_full_path|urlencode|urlencode }}" onclick="return t_e('{{ post.id_form_m }}')">{% trans "edit" %}</a>
+        <a href="{% url snapboard_edit_post post.id_form_m %}
+          ?next={{ request.get_full_path|urlencode|urlencode }}"
+          {%ws%}onclick="return t_e('{{ post.id_form_m }}')">
+          {% trans "edit" %}</a>
       {% endifequal %}{% endif %}
-      <a href="{% url snapboard_post_reply post.id %}?next={{ request.get_full_path|urlencode|urlencode }}" class="phrl" onclick="return t_r('{{ post.id_form_m }}');">{% trans "reply" %}</a>
+      <a href="{% url snapboard_post_reply post.id_form_m %}?next={{ request.get_full_path|urlencode|urlencode }}" class="phrl" onclick="return t_r('{{ post.id_form_m }}');">{% trans "reply" %}</a>
       {% if not user.really_anonymous %}<a class="wa" target="_blank" href="{% url snapboard_watch_post post.id_form_m %}" onclick="s_w('{{ post.id_form_m }}'); return false;">{% trans "watch" %}</a>{% endif %}
       {% if not post.freespeech and not user.really_anonymous and not user.is_staff %}<a class="ab" href="" onclick="s_a('{{ post.id_form_m }}');">{% trans "abuse" %}</a>{% endif %}
       {% if user.is_staff %}<a href="" onclick="s_c('{{ post.id_form_m }}');">{{ post.censor|yesno:_("uncensor,censor") }}</a>{% endif %}
@@ -22,4 +28,6 @@
     {% if post.previous_id %}<a class="his" href="{% url snapboard_show_revisions post.id_form_m %}">{% trans "history" %}</a>{% endif %}
     {% if post.numanswers %} | <span>{{ post.numanswers }} answers. </span>{% endif %}
   </div>
-</div></div></div>
+  </div>
+  </div>
+</div>

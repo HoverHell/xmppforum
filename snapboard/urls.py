@@ -20,8 +20,10 @@ from django.views.generic.simple import direct_to_template
 # post_id_re = '[#!][0-9A-Fa-f]+/[0-9A-Fa-f]+'
 from snapboard.models import Post
 post_id_re = Post.id_m_re_f
-# dual id regex.
-post_id_re_d = r'((?P<post_id>\d+)|(?P<post_form_id>' + post_id_re + r'))'
+## dual id regex.
+#post_id_re_d = r'((?P<post_id>\d+)|(?P<post_form_id>' + post_id_re + r'))'
+## nooo, screw it.
+post_id_re_f = r'(?P<post_form_id>' + post_id_re + r')'
 
 feeds = {'latest': LatestPosts}
 
@@ -35,9 +37,10 @@ urlpatterns = patterns('',
     (r'^$', merged_index, {}, 'snapboard_index'),
 
     ## Main indexes.
-    (r'^t/(?P<thread_id>\d+)/$', thread, {}, 'snapboard_thread'),
-    (r'^p/' + post_id_re_d + r'/$',
-      thread_post, {}, 'snapboard_thread_post'),
+    ## Currently, post and thread are not distinguished.  `Post` part of the
+    ## post_id is optional.
+    (r'^p/' + post_id_re_f + r'/$',
+      thread_post, {}, 'snapboard_post'),
     # TODO: thread_latest (+rss?)
     (r'^ti/$', thread_index, {}, 'snapboard_thread_index'),
     (r'^ci/$', category_index, {}, 'snapboard_category_index'),
@@ -48,16 +51,18 @@ urlpatterns = patterns('',
       new_thread, {}, 'snapboard_new_thread'),
     (r'^settings/$', edit_settings, {}, 'snapboard_edit_settings'),
 
-    (r'^r/' + post_id_re_d + r'/$',
+    (r'^r/' + post_id_re_f + r'/$',
       post_reply, {}, 'snapboard_post_reply'),
-    (r'^e/' + post_id_re_d + r'/$',
+    (r'^e/' + post_id_re_f + r'/$',
       edit_post, {}, 'snapboard_edit_post'),
-    (r'^rv/' + post_id_re_d + r'/$',
+    (r'^rv/' + post_id_re_f + r'/$',
       show_revisions, {}, 'snapboard_show_revisions'),
     (r'^watchlist/$', watchlist, {}, 'snapboard_watchlist'),
     ## RPCable views.
-    (r'^w/' + post_id_re_d + r'/$',
+    (r'^w/' + post_id_re_f + r'/$',
       r_watch_post, {}, 'snapboard_watch_post'),
+    #(r'^uw/' + post_id_re_f + r'/$',
+    #  r_unwatch_post, {}, 'snapboard_unwatch_post'),
     (r'^r_removethread/(?P<thread_id>\d+)/$',
       r_removethread, {}, 'snapboard_remove_thread'),
     # ... togglers.

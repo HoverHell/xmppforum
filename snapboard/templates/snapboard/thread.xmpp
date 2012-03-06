@@ -10,7 +10,7 @@
 {%br%}{%br%}
 
 {% with top_post as post %}
-<a href="{{ SITE_DOMAIN }}{% url snapboard_thread thr.id %}">#{{ thr.id }}</a>
+<a href="{{ SITE_DOMAIN }}{% url snapboard_post thr.id_form_m %}">#{{ thr.id }}</a>
 {%ws%}by {{ post.user }}
 {%ws%}at {{ post.date|date:"r T" }} 
 {% if post.previous_id %}{%ws%}(REVISED){% endif %}

@@ -1,8 +1,19 @@
-{% load i18n snapboard_tags %}{% url snapboard_locate_post post.id as post_url %}{% blocktrans with post.thread.subject as post_thread_subject and post.text|truncatechars:200 as post_body and post.user.username as post_user and current_site.domain as base_url %}A private message addressed to you was posted in a thread.
+{#ptfable#}
+{# XXX: unused template? #}
+{% load i18n snapboard_tags %}
+{% url snapboard_post post.id_form_m as post_url %}
+{% blocktrans with
+ post.thread.subject as post_thread_subject
+ and post.text|truncatechars:200 as post_body
+ and post.user.username as post_user
+ and current_site.domain as base_url %}
 
+A private message addressed to you was posted in a thread.
+{%br%}{%br%}
 See the full post at http://{{ base_url }}{{ post_url }}
-
-Thread: {{ post_thread_subject }}
+{%br%}{%br%}
+Thread: {{ post_thread_subject }} {%br%}
 Posted by: {{ post_user }}
-
-{{ post_body }}{% endblocktrans %}
+{%br%}{%br%}
+{{ post_body }}
+{% endblocktrans %}

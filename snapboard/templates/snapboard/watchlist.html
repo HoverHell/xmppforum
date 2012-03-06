@@ -1,3 +1,4 @@
+{#ptfable#}
 {% extends "snapboard/base_forum.html" %}
 {% load i18n pagination_tags %}
 {% load avatar_tags %}
@@ -10,28 +11,34 @@
 <div class="w">
 {% for post in posts %}
 <div id="snap_post{{post.id}}" class="l">
-{% if post.censor %}<div class="post_censored">{% else %}{% ifnotequal post.abuse 0 %}<div class="post_reported">{% endifnotequal %}{% endif %}
-    <div id="post_rpc_feedback{{ post.id }}" class="rpc_message">
-        <!-- This DIV is for RPC feedback messages for individual posts -->
-    </div>
+{% if post.censor %}
+<div class="post_censored">
+{% else %}{% ifnotequal post.abuse 0 %}
+<div class="post_reported">
+{% endifnotequal %}{% endif %}
+  <div id="post_rpc_feedback{{ post.id_form_m }}" class="rpc_message">
+    {# for RPC feedback messages for individual posts #}
+  </div>
   <div class="h"><div><div>
     <div class="hm">
-	
-	  <span class="tn"><span class="popup"><a id="watch{{ post.id }}" href="{% url snapboard_watch_post post.id %}?next={{ request.get_full_path|urlencode }}" onclick="set_watch('{{ post.id }}'); return false;">{% trans "dont watch" %}</a></span> <a href="{% url snapboard_category_thread_index post.thread.category.id %}">{{ post.thread.category }}</a>: <!--<a href="{% url snapboard_thread post.thread.id %}">{{ post.thread.subject }}</a>--> <a href="{% url snapboard_thread_post post.id %}">{{ post.thread.subject }}</a></span>
-	  
-      <br/>Posted <span class="ti">{% deftime post.date %}</span> by <a class="un" href="#snap_post{{ post.id }}" onclick="toggle_post('{{ post.id }}'); return false;">{{ post.user }}</a>
+      <span class="tn"><span class="popup">
+      <a id="watch{{ post.id_form_mx }}" href="{% url snapboard_watch_post post.id_form_m %}?next={{ request.get_full_path|urlencode }}" onclick="set_watch('{{ post.id_form_m }}'); return false;">
+        {% trans "don't watch" %}
+      </a></span> <a href="{% url snapboard_category_thread_index post.thread.category.id %}">
+        {{ post.thread.category }}</a>:<!--<a href="{% url snapboard_post post.thread.id_form_m %}">{{ post.thread.subject }}</a>--> <a href="{% url snapboard_post post.id_form_m %}">{{ post.thread.subject }}</a></span>
+      <br/>Posted <span class="ti">{% deftime post.date %}</span> by <a class="un" href="#snap_post{{ post.id_form_m }}" onclick="toggle_post('{{ post.id_form_m }}'); return false;">{{ post.user }}</a>
     </div>
   </div></div></div>
     <div class="v">
       <div class="t"><div>
-	
-		<div style="display:block" id="snap_post_view{{ post.id }}">
+    
+        <div style="display:block" id="snap_post_view{{ post.id_form_m }}">
            {{ post.texth|striptags|render_post|truncatewords_html:15|safe }}
-		</div>
-		<div class="post_summary" style="display:none;" id="snap_post_sum{{ post.id }}">
-		</div>
-	
-	  </div></div>
+        </div>
+        <div class="post_summary" style="display:none;" id="snap_post_sum{{ post.id_form_m }}">
+        </div>
+    
+      </div></div>
     </div>
 {% if post.censor %}</div>{% else %}{% ifnotequal post.abuse 0 %}</div>{% endifnotequal %}{% endif %}
 </div>

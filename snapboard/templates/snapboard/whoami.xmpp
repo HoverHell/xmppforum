@@ -1,1 +1,2 @@
 You are {% firstof request.user.username "unregistered" %}.
+ I am {{ SITE_NAME }}.

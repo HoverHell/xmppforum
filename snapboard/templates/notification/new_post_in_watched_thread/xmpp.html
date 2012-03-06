@@ -1,8 +1,9 @@
 {#ptfable#}
 {% load i18n snapboard_tags extras plaintexttags avatar_tags %}
 <em>Sent by watch on post #{{ watches_ids|key:user }}.</em>{%br%}
-<strong>New message</strong> <em>#/{{ post.id }}</em> in thread <em>#{{ post.thread.id }}</em>
- “<a href="http://{{ current_site.domain }}{% url snapboard_thread_post post.id %}">
+<strong>New message</strong> <em>#{{ post.id_form_m }}</em> in
+ “<a href="http://{{ current_site.domain }}
+   {% url snapboard_post post.thread.id_form_m %}">
   {{ post.thread.subject }}
   </a>”:{%br%}
 <strong>In reply to</strong> {{ post.get_parent.user }}'s message:{%br%}

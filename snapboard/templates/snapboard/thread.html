@@ -1,8 +1,17 @@
+{#ptfable#}
 {% extends "snapboard/base_forum.html" %}
 {% load i18n pagination_tags %}
 {% load extras %}
 
-{% block breadcrumb %}{{ block.super }} &mdash; <a href="{% url snapboard_category_thread_index thr.category.id %}">{{ thr.category }}</a> &mdash; <a href="{% url snapboard_thread thr.id %}">{{ thr.subject }}</a>{% endblock %}
+{% block breadcrumb %}
+ {{ block.super }}
+ &mdash;
+ <a href="{% url snapboard_category_thread_index thr.category.id %}">
+   {{ thr.category }}</a>
+ &mdash;
+ <a href="{% url snapboard_post thr.id_form_m %}">
+   {{ thr.subject }}</a>
+{% endblock %}
 
 {% block snapboard_main %}
 <div id="trf" class="rm"></div>

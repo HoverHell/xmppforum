@@ -1,6 +1,6 @@
 {% load i18n %}
 {% spaceless %}
-<form action="{% url snapboard_edit_post post.id %}?next={{ request.REQUEST.next }}" method="POST">
+<form action="{% url snapboard_edit_post post.id_form_m %}?next={{ request.REQUEST.next }}" method="POST">
   <table class="f">
     <tr>
       <td class="fm">{% trans "All revisions of this post are stored and publicly viewable." %}</td>

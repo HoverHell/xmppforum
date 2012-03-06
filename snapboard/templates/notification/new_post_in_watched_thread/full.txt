@@ -3,7 +3,7 @@
 A message was posted in a thread that you are currently watching.
 {%br%}{%br%}
   See the full post at
-  http://{{ current_site.domain }}{% url snapboard_thread_post post.id %}
+  http://{{ current_site.domain }}{% url snapboard_post post.id_form_m %}
 {%br%}{%br%}  Thread: {{ post.thread.subject }}
 {%br%}  Posted by: {{ post.user.username }}
 {%br%}{%br%}  {{ post.text }}

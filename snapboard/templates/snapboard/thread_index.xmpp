@@ -4,7 +4,7 @@
 {% if threads %}
     {% for thread in threads %}
         <strong>#{{ thread.id }}</strong>
-        {%ws%}<a href="{% url snapboard_thread thread.id %}">
+        {%ws%}<a href="{% url snapboard_post thread.id_form_m %}">
           {{ thread.subject }}</a>
 		{% block thread_category_optional %}
            {%ws%}in <strong>#c{{ thread.category.id }}</strong>
