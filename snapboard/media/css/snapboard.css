@@ -3,6 +3,7 @@ a:hover,.hm .tn span a:hover{color:#ff1800}
 
 #x>p,#x>form,.w,.tp,.tm,.cat>h2,.thr>h2,.sp>p,.sp>.ba,#x>.warn{padding-left:10px;padding-right:10px}
 #x>form>table,.sp>.ba,.w>*,.w.st,.tp .v,.f{margin-top:8px}
+/*what is f?*/ table.f{margin-top:0}
 .sp>.ba{padding-bottom:2px}
 
 /*Header*/
