@@ -32,7 +32,7 @@ from xmppface.xmppbase import success_or_reverse_redirect
 
 
 def r_getreturn(request, rpc=False, rpcdata={}, successtext=None,
-  nextr=None, postid=None):
+  nextr=None, postid_m=None):
     """ Common function for RPCable views to easily return some appropriate
     data (rpcdata or next-redirect).  """
     if rpc:  # explicit request to return RPC-usable data
@@ -48,11 +48,11 @@ def r_getreturn(request, rpc=False, rpcdata={}, successtext=None,
         if nextr:  # know where should return to.
             return HttpResponseRedirect(nextr)
         else:  # explicitly return
-            if postid:  # we have a post to return to.
+            if postid_m:  # we have a post to return to.
                 # msg isn't going to be used, though.
                 ## XX: success_or_redirect(_redirect_to_posts(...))?
-                return success_or_reverse_redirect('snapboard_thread_post',
-                  args=(postid,), req=request, msg=successtext)
+                return success_or_reverse_redirect('snapboard_post',
+                  args=(postid_m,), req=request, msg=successtext)
             else:
                 # Might supply some more data if we need to return somewhere
                 # else?

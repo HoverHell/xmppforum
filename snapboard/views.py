@@ -193,7 +193,7 @@ def r_watch_post(request, post_form_id=None, resource='', rpc=False):
         wl.delete()
         return r_getreturn(request, rpc, {'link':_('watch'),
           'msg':_('This thread has been removed from your favorites.')},
-          "Watch removed.", postid=post.id)
+          "Watch removed.", postid_m=post.id_form_m())
     except WatchList.DoesNotExist:
         # create it
         wl = WatchList(user=request.user, post=post,
@@ -201,7 +201,7 @@ def r_watch_post(request, post_form_id=None, resource='', rpc=False):
         wl.save()
         return r_getreturn(request, rpc, {'link':_('dont watch'),
           'msg':_('This thread has been added to your favorites.')},
-          "Watch added.", postid=post.id)
+          "Watch added.", postid_m=post.id_form_m())
 
 
 #@userbannable
@@ -220,7 +220,7 @@ def r_abusereport(request, post_form_id=None, rpc=False):
     return r_getreturn(request, rpc, {
        'link': '',
        'msg': _('The moderators have been notified of possible abuse')},
-      "Abuse report filed.", postid=post.id)
+      "Abuse report filed.", postid_m=post.id_form_m())
 
 
 @staff_required
@@ -272,9 +272,9 @@ def rpc_gettoggler(objclass, field, wrap_with=staff_required,
         # ... and compute the ultimate return.
         rpcdata = _get_for_state(state, rpcreturn, default={})
         xmppdata = _get_for_state(state, xmppreturn)
-        postid = obj.id if objclass == Post else None
+        postid_m = obj.id_form_m() if objclass == Post else None
         return r_getreturn(request, rpc, rpcdata=rpcdata,
-          successtext=xmppdata, postid=postid)
+          successtext=xmppdata, postid_m=postid_m)
     return wrap_with(_toggle_that)  # staff required by default.
 
 
@@ -680,7 +680,7 @@ def edit_post(request, post_form_id=None, rpc=False):
 
         return r_getreturn(request, rpc=False,
           nextr=_redirect_to_posts(request, orig_post),
-          successtext="Message updated.", postid=orig_post.id)
+          successtext="Message updated.", postid=orig_post.id_form_m())
     else:  # get a form for editing.
         context = {'post': orig_post}
         if rpc:
@@ -768,7 +768,7 @@ def new_thread(request, cat_id=None):
             nthread, rpost = make_thread()
             # redirect to new thread / return success message
             return success_or_reverse_redirect('snapboard_post',
-              args=(nthread.id_form_m,), req=request, msg="Thread created.")
+              args=(nthread.id_form_m(),), req=request, msg="Thread created.")
     else:
         ## Warn the user if there's a problem with supplied category.
         if cat_id is not None:  # A specific category was supplied in URL.
