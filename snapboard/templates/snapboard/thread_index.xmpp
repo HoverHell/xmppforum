@@ -6,7 +6,7 @@
         <strong>#{{ thread.id }}</strong>
         {%ws%}<a href="{% url snapboard_post thread.id_form_m %}">
           {{ thread.subject }}</a>
-		{% block thread_category_optional %}
+        {% block thread_category_optional %}
            {%ws%}in <strong>#c{{ thread.category.id }}</strong>
            {%ws%}<a href="{% url snapboard_category_thread_index thread.category.id %}">{{ thread.category }}</a>
         {% endblock %}
