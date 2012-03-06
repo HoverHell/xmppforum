@@ -1,0 +1,25 @@
+{% extends "snapboard/base_forum.html" %}
+{% load i18n %}
+
+{% block side_panel %}{% endblock %}
+{% block breadcrumb %}{{ block.super }} &mdash; 404: Page not found{% endblock %}
+
+{% block snapboard_main %}
+<div class="w">
+
+<h3>What has happened?</h3>
+<p>The page you requested does not exist.</p>
+
+<h3>Why this happens?</h3>
+<p>Reasons may vary:</p>
+<ul>
+    <li>Incorrect URL</li>
+    <li>URL has changed</li>
+    <li>User has deleted his post</li>
+</ul>
+
+<h3>What do I do now?</h3>
+<p>You can return to <a href="/">homepage</a> or <a href="https://www.google.com/">try searching</a> the needed page with Google.</p>
+
+</div>
+{% endblock %}

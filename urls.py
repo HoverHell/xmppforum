@@ -4,7 +4,7 @@ from django.contrib import admin
 #from django.contrib.auth import views as auth_views
 
 # default error handlers:
-from django.conf.urls.defaults import (handler404, handler500,
+from django.conf.urls.defaults import (handler500,
   patterns, include)
 
 admin.autodiscover()
@@ -24,6 +24,8 @@ if mainurl:
           {'url': '/%s' % mainurl}),
     )
 
+## Errors
+handler404 = 'snapboard.views.handler404'
 
 ## Auth
 urlpatterns += patterns('',

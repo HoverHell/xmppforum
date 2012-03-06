@@ -1164,6 +1164,9 @@ def xmpp_get_help(request, subject=None):
     except TemplateDoesNotExist:
         raise Http404("No such help subject")
 
+def handler404(request):
+    return render_to_response('snapboard/404.html',
+      context_instance=RequestContext(request, processors=extra_processors))
 
 RPC_ACTION_MAP = {
   "gsticky": r_set_gsticky,
