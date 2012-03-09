@@ -2,6 +2,7 @@
 <django-objects version="1.0">
     <object pk="1" model="snapboard.category">
         <field type="CharField" name="label">General Discussion</field>
+        <field type="CharField" name="name">g</field>
         <field type="PositiveSmallIntegerField" name="view_perms">1</field>
         <field type="PositiveSmallIntegerField" name="read_perms">1</field>
         <field type="PositiveSmallIntegerField" name="post_perms">1</field>
