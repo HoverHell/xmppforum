@@ -1,6 +1,11 @@
 
 Read INSTALL for actual information on installing.
 
+This file might be outdated. See INSTALL and referenced files for more
+up-to-date info.
+
+ -------
+
 Python dependencies are described (for pip) in requirements-*.txt files:
 
 requirements-d.txt - used by `boostrap.py -d` - dependencies not present in

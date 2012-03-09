@@ -8,4 +8,5 @@ django-loginurl
 ## UploadAvatarForm.
 #django-avatar
 -e git+https://github.com/ericflo/django-avatar.git#egg=django-avatar
--e hg+https://bitbucket.org/ubernostrum/django-registration#egg=django-registration
+-e hg+https://bitbucket.org/ubernostrum/django-registration@fad7080fe769#egg=django-registration
+South

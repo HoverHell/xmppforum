@@ -5,7 +5,7 @@
 ## for django-avatar
 PIL
 ## for wokkel
-twisted
+Twisted
 ## xmppforum, django, ...
 ## Well, for speed at least.
 simplejson

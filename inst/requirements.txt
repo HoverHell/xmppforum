@@ -1,4 +1,5 @@
-django-registration
+## Common requirements available in many distributions but also
+## easy-to-install anyway.
 django-treebeard
-django
+Django>=1.3
 html2text

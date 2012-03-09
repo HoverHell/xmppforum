@@ -30,7 +30,7 @@ After that, add option overrides to settings_local.py (copy from settings.py
 
 And then run
 
-   ENV/bin/python manage.py syncdb
+   ENV/bin/python manage.py syncdb --migrate  # (XXX: untested)
 
 to create a default database (it will ask few questions). After that, you
  can
