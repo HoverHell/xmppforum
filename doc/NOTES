@@ -1,0 +1,18 @@
+
+ * South:
+  * For initial database creation: `syncdb --migrate`
+  * First migration on production:
+    `python manage.py migrate snapboard --fake 0001;
+     python manage.py migrate snapboard`
+  * Dev-usage:
+   * Add 'south' to `INSTALLED_APPS`
+   * `... syncdb`
+   * `manage.py convert_to_south snapboard`
+   * ? `manage.py migrate`
+   * apply model changes.
+   * `manage.py schemamigration snapboard --auto`
+   * `manage.py migrate snapboard`
+   * Data migration:
+    * `manage.py datamigration snapboard category_name_defaults`
+    * edit the created file
+    * ...
