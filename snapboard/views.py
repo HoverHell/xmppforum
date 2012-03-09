@@ -743,7 +743,7 @@ def new_thread(request, cat_id=None):
     if request.POST:
         if threadform.is_valid() and postform.is_valid():
             cat_id = threadform.cleaned_data.pop('category')
-            category = get_object_or_404(Category, pk=cat_id)
+            category = get_object_or_404(Category, name=cat_id)
             if not category.can_create_thread(request.user):
                 raise PermissionError("You cannost post in this category")
 
@@ -773,7 +773,7 @@ def new_thread(request, cat_id=None):
         ## Warn the user if there's a problem with supplied category.
         if cat_id is not None:  # A specific category was supplied in URL.
             try:
-                category = Category.objects.get(pk=cat_id)
+                category = Category.objects.get(name=cat_id)
             except Category.DoesNotExist:
                 warn = ("Unknown category was supplied."
                   " Select one from the list.")
@@ -822,7 +822,7 @@ def _thread_annotate_posts(thread_list):
 
 @anonymous_login_required
 def category_thread_index(request, cat_id):
-    cat = get_object_or_404(Category, pk=cat_id)
+    cat = get_object_or_404(Category, name=cat_id)
     if not cat.can_read(request.user):
         raise PermissionError("You cannot list this category")
     thread_list = Thread.view_manager.get_category(cat_id)

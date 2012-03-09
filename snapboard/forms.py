@@ -50,7 +50,7 @@ class ThreadForm(forms.Form):
         #  if cat.can_create_thread(user)]
         ## Use it with normal Form and ChoiceField.
         self.fields['category'].choices = \
-          [(str(cat.id), str(cat))
+          [(str(cat.name), str(cat))
             for cat in Category.objects.all() \
             if cat.can_create_thread(user)]
         self.fields['subject'].max_length = 80

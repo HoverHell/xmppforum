@@ -3,16 +3,13 @@
 {% load extras %}
 {% if cat_list %}
   {% for category in cat_list %}
-    <strong>#c{{ category.id }}</strong>
-    <a href="{% url snapboard_category_thread_index category.id %}">{{ category.label }}</a></b>
-
-    {%br%}
+    <strong>/{{ category.name }}</strong>
+    <a href="{% url snapboard_category_thread_index category.name %}">
+      {{ category.label }}</a></b>
 
     {% if category.moderators %}
       {% trans "moderators" %}:  {{ category.moderators }}
     {% endif %}
-
-    {%br%}
 
     {% blocktrans count category.thread_count as cnt %}{{ cnt }} discussion{% plural %}{{ cnt }} discussions{% endblocktrans %}
   {% endfor %}

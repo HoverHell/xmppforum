@@ -7,11 +7,12 @@
         {%ws%}<a href="{% url snapboard_post thread.id_form_m %}">
           {{ thread.subject }}</a>
         {% block thread_category_optional %}
-           {%ws%}in <strong>#c{{ thread.category.id }}</strong>
-           {%ws%}<a href="{% url snapboard_category_thread_index thread.category.id %}">{{ thread.category }}</a>
+           {%ws%}in <strong>/{{ thread.category.name }}</strong>
+           {%ws%}<a href="
+             {% url snapboard_category_thread_index thread.category.name %}">
+             {{ thread.category }}</a>
         {% endblock %}
-        {% br %}
-        
+
         {{ thread.post_count }} {% trans "posts"%},
         {%ws%}{% trans "started by" %} <strong>{{ thread.starter }}</strong>
         {%ws%}{% trans "last updated" %} {{ thread.date|date:"r T" }}
@@ -26,9 +27,7 @@
         {% if thread.closed %}
             <em>{%ws%}{% trans "CLOSED" %}</em>
         {% endif %}
-        
-        
-        
+
         {% if not forloop.last %}{% br %} {% br %}{% endif %}
     {% endfor %}
 {% else %}

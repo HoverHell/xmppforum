@@ -35,10 +35,10 @@ cmdpatterns = patterns('',
     (r'^[#!]( (?P<num_limit>\d+)?( (?P<num_start>\d+)?)?)?$',
       thread_index, {}, 'snapboard_thread_index'),  # spaces!
     (r'^c$', category_index, {}, 'snapboard_category_index'),
-    (r'^c(?P<cat_id>\d+)$',
+    (r'^/(?P<cat_id>[^/]+)$',
       category_thread_index, {}, 'category_thread_index'),
 
-    (r'^c(?P<POST_category>\d+) (?P<POST_subject>.+?)\n(?P<POST_text>.(.*\n?)+)',
+    (r'^c(?P<POST_category>[^/ ]+) (?P<POST_subject>.+?)\n(?P<POST_text>.(.*\n?)+)',
       new_thread, {}, 'snapboard_new_thread'),
     # TODO: edit_settings?
 

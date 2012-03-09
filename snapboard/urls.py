@@ -44,10 +44,10 @@ urlpatterns = patterns('',
     # TODO: thread_latest (+rss?)
     (r'^ti/$', thread_index, {}, 'snapboard_thread_index'),
     (r'^ci/$', category_index, {}, 'snapboard_category_index'),
-    (r'^c/(?P<cat_id>\d+)/$',
+    (r'^[fc]/(?P<cat_id>[^/]+)/$',
       category_thread_index, {}, 'snapboard_category_thread_index'),
 
-    (r'^tn/(?:(?P<cat_id>\d+)/)?$',
+    (r'^tn/(?:(?P<cat_id>[^/]+)/)?$',
       new_thread, {}, 'snapboard_new_thread'),
     (r'^settings/$', edit_settings, {}, 'snapboard_edit_settings'),
 

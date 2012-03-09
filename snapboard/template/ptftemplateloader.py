@@ -11,14 +11,17 @@ from django.template.loader import (BaseLoader, get_template_from_string,
 ## Start templates with this to actually ptf them:
 PTFTAG = u'{#ptfable#}'
 PTFTAGLEN = len(PTFTAG)
-# Another way:
+## Another way:
 #tagspacere = re.compile('}\s\s+{')
-SPACERE = re.compile('\s\s+')
-NEWLINERE = re.compile('\n')
-
-## TODO: idea: stril 1 newline from each newline sequence. Should not
-## interfere with the syntax formatting yet allows easier insertion of line
-## breaks in resulting output.  Also looks more like TeX / markdown / ....
+#SPACERE = re.compile('\s\s+')
+## Hardcore-hardcore: support for 'do not remove spaces before newlines'.
+SPACERE = re.compile(r'  +([^\n])')
+SPACERE_SUB = ur'\1'
+## Remove single newlines, turn further amount of newlines into one.
+#NEWLINERE = re.compile('\n(\n?)(\n*)')
+## Another possibility: strip 1 newline from each newline sequence.
+NEWLINERE = re.compile(r'\n(\n*)')
+NEWLINERE_SUB = ur'\1'
 
 class Loader(BaseLoader):
     is_usable = True
@@ -51,8 +54,13 @@ class Loader(BaseLoader):
         template, origin = self.find_template(template_name, template_dirs)
         ## Hack it up only if tagged.
         if template.startswith(PTFTAG):
-            template = SPACERE.sub(u'',
-              NEWLINERE.sub(u'', template[PTFTAGLEN:]))
+            template = (
+              #SPACERE.sub(SPACERE_SUB,
+              #NEWLINERE.sub(NEWLINERE_SUB,
+              ## Reverse:
+              NEWLINERE.sub(NEWLINERE_SUB,
+              SPACERE.sub(SPACERE_SUB,
+              template[PTFTAGLEN:])))
             # Removing tag is optional if it's valid template, though.
         return (template, origin)
     load_template_source.is_usable = True

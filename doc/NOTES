@@ -9,10 +9,25 @@
    * `... syncdb`
    * `manage.py convert_to_south snapboard`
    * ? `manage.py migrate`
+ * Usual schema changes:
    * apply model changes.
    * `manage.py schemamigration snapboard --auto`
    * `manage.py migrate snapboard`
-   * Data migration:
-    * `manage.py datamigration snapboard category_name_defaults`
-    * edit the created file
-    * ...
+  * Data migration:
+   * `manage.py datamigration snapboard category_name_defaults`
+   * edit the created file
+   * ... migrate
+
+ * Category id to [short]name migration:
+  * ... applied south migration.
+  * Decided to use `[^/]+` for possible cat_id patterns.
+  * Changed URLs: category_thread_index, new_thread
+
+
+
+
+
+
+
+
+

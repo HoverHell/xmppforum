@@ -3,7 +3,11 @@
 {% load i18n pagination_tags avatar_tags %}
 {% load extras %}
 
-{% block breadcrumb %}{{ block.super }} &mdash; <a href="{% url snapboard_category_thread_index thread.category.id %}">{{ thread.category }}</a> &mdash; {{ thread.subject }} (changelog){% endblock %}
+{% block breadcrumb %}
+{{ block.super }} &mdash; <a href="
+  {% url snapboard_category_thread_index thread.category.id %}">
+  {{ thread.category }}</a> &mdash; {{ thread.subject }} (changelog)
+{% endblock %}
 
 {% block snapboard_main %}
 <div class="w">

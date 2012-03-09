@@ -4,16 +4,14 @@
 {% load plaintexttags %}
 {% load extras %}
 
-#c{{ thr.category.id }} {{ thr.category }}:
+<strong>/{{ thr.category.name }}</strong> {{ thr.category }}:
 {%ws%}{%ws%}{%ws%}{%ws%}{{ thr.subject }}
 
-{%br%}{%br%}
 
 {% with top_post as post %}
 <a href="{{ SITE_DOMAIN }}{% url snapboard_post thr.id_form_m %}">#{{ thr.id }}</a>
-{%ws%}by {{ post.user }}
-{%ws%}at {{ post.date|date:"r T" }} 
-{% if post.previous_id %}{%ws%}(REVISED){% endif %}
+by {{ post.user }} at {{ post.date|date:"r T" }} 
+{% if post.previous_id %} (REVISED){% endif %}
 
 {%br%}
 

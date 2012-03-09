@@ -6,7 +6,7 @@
 {% block breadcrumb %}
  {{ block.super }}
  &mdash;
- <a href="{% url snapboard_category_thread_index thr.category.id %}">
+ <a href="{% url snapboard_category_thread_index thr.category.name %}">
    {{ thr.category }}</a>
  &mdash;
  <a href="{% url snapboard_post thr.id_form_m %}">

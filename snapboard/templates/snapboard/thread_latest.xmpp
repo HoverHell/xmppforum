@@ -5,18 +5,16 @@
 {% load extras %}
 {% load avatar_tags %}
 
-#c{{ thr.category.id }} {{ thr.category }}:
+<strong>/{{ thr.category.name }}</strong> {{ thr.category }}:
 {%ws%}{%ws%}{%ws%}{%ws%}{{ thr.subject }}
 
 {% for post in post_list %}
     {%br%} {%br%} {% include "snapboard/include/post_header.xmpp" %}
 
-    {%br%}
     {% if post.parent %}
     <em>{{ post.parent.user }}&gt; {{ post.parent.text|render_post|truncatewords_html:10|safe }}</em>
     {% endif %}
 
-    {%br%}
     {{ post.user }}&gt; {{ post.text|striptags|render_post|safe }}
         
-{% endfor %}            
+{% endfor %}

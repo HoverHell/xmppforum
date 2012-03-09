@@ -1,3 +1,4 @@
+{#ptfable#}
 {% extends "snapboard/base_forum.html" %}
 {% load i18n %}
 
@@ -6,10 +7,16 @@
 
 {% block snapboard_main %}
 {% if not user.is_authenticated %}
-<form method="post" action="{% url auth_login %}">{% csrf_token %}     
+<form method="post" action="{% url auth_login %}">{% csrf_token %}
   <table>
     {{ form.as_table }}
-    <tr><th></th><td><input class="b login-b" type="submit" value="{% trans "Sign In" %}" /><input type="hidden" name="next" value="{{ next }}" /></td></tr>
+    <tr><th></th>
+      <td>
+        <input class="b login-b" type="submit"
+          value="{% trans "Sign In" %}" />
+        <input type="hidden" name="next" value="{{ next }}" />
+      </td>
+    </tr>
   </table>
 </form>
 {% else %}

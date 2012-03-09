@@ -21,7 +21,7 @@
 {# autopaginate post_list user_settings.ppp #}
 <div class="ba">{% paginate %}
 
-{% if top_post.nav %}  {# experimental navigation #}
+{% if top_post.nav %} {# experimental navigation #}
 <span class="n">
 {% if top_post.n_left %}
   <a href="{% url snapboard_post top_post.n_left.id_form_m %}
@@ -69,7 +69,7 @@
           {% include "snapboard/include/post_short_body.html" %}
         {% endif %}
       {% endif %}{# post.censor and not user.is_staff  else #}
-  {% for close in post_info.close %}</div></div>{% endfor %} 
+  {% for close in post_info.close %}</div></div>{% endfor %}
 {% endfor %}
 </div>
 <div class="ba">{% paginate %}</div>
