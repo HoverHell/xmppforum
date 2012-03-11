@@ -32,6 +32,9 @@ key = register.filter('key', key)
 def post_summary(value, arg):
     """ Returns the first N characters of a block of text where N is the
     only argument.  """
+    ## XXX: replace with something more appropriate.
+    ## For example: render post (or use texth!), replace images with
+    ## link-'...', replace newlines with  do html_truncatewords.
     l = int(arg)
     if len(value) >= arg:
         return value

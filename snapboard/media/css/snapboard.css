@@ -1,7 +1,7 @@
 #x{margin:0;font:15px/24px arial}
 a:hover,.hm .tn span a:hover{color:#ff1800}
 
-#x>p,#x>form,.w,.tp,.tm,.cat>h2,.thr>h2,.sp>p,.sp>.ba,#x>.warn,.rp-block>div{padding-left:10px;padding-right:10px}
+#x>p,#x>form,#replies>p,.w,.tp,.tm,.cat>h2,.thr>h2,.sp>p,.sp>.ba,#x>.warn,.rp-block>div{padding-left:10px;padding-right:10px}
 #x>form>table,.sp>.ba,.w>*,.w.st,.tp .v,.f{margin-top:8px}
 table.f{margin-top:0}
 .sp>.ba{padding-bottom:2px}
@@ -23,8 +23,6 @@ h1,h2{font-size:16px;margin:0;padding:10px 10px 8px;font-weight:normal;backgroun
 .ar,.f input[type="text"],.f select,.b{border:none;margin:0;display:block}
 .f th{padding-right:5px;font-weight:normal;font-size:13px}
 .f td{border:1px solid;padding:0}
-.ar{height:140px;width:880px;padding:8px}
-.v .ar{height:80px}
 .fm{text-align:center;font-weight:bold}
 .b{padding:1px 3px 2px;border-right:1px solid;float:left}
 form>table th{text-align:right}
@@ -56,6 +54,7 @@ float:left;cursor:pointer;font:9px/9px monospace;}
 
 .h>div{border-bottom:0 solid #DDDEDE} /* ??? we need this */
 .h,.v,.f{max-width:900px}
+.h img,.v img,.f img{max-width:100%}
 .h>div>div{display:table;width:100%}
 .w .h>div,.w .t,p.rm{border-right:1px solid;border-left:1px solid}
 .w .h>div>div{border-top:1px solid;}
@@ -96,11 +95,16 @@ div.rm{text-align:center}
 .hm .tn span a{color:#999}
 
 /*Forms*/
-.rp-block {position:fixed;bottom:0;left:0;background:#fff;z-index:1000;width:100%;border-top:1px solid #dbdbdb}
-.rp-block p {margin:8px 0}
+.rp-block{}
+.rp-block p{margin:8px 0}
+#x>.rp-block{position:static}
+#replies{position:fixed;bottom:0;left:0;background:#fff;z-index:1000;width:100%;border-top:1px solid #dbdbdb}
+.ar{height:140px;width:880px;padding:8px}
+#replies .ar{height:80px}
 .b,.nb{background-color:#f2f2f2;border-radius:2px;margin:8px 0 8px 8px;border:1px solid #dbdbdb;padding:5px 8px}
 .b[type="submit"]{background-color:#9ec97f;color:#fff;font-weight:bold}
-.ed-help{height:26px;float:right;font-size:13px;margin:10px 8px 0;}
+.rp-block .b[type="submit"]{margin-left:0}
+.ed-help{height:26px;float:right;font-size:13px;margin:10px 0 0;}
 #id_subject{padding:4px 0;text-indent:7px}
 
 /*Settings*/

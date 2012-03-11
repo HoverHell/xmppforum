@@ -1,13 +1,10 @@
 function t_e(id) {
  toggle('pt'+id, 'block');
- exttoggle('pe'+id, 
-  'block',
-  'action=geteditform&oid='+id);
+ exttoggle('pe'+id, 'block', 'action=geteditform&oid='+id);
  return false;}
  
 function t_r(id) {
- exttoggle('pr'+id, 'block',
-  'action=getreplyform&oid='+id);
+ exttoggle('replies', 'block', 'action=getreplyform&oid='+id);
  return false;}
 
 
@@ -18,8 +15,7 @@ function toggle(id, type) {
  else
   e.style.display = 'none';}
 
-function exttoggle(id, type, action) {
- // on show retreives HTML code from RPC.
+function exttoggle(id, type, action) { // on show retreives HTML code from RPC.
  var e = document.getElementById(id);
  if(e.style.display == 'none') {
   e.style.display = type;
@@ -28,7 +24,7 @@ function exttoggle(id, type, action) {
     res = JSON.parse(o.responseText);
     e.innerHTML = res.html;}};
   var handleFailure = function(o) {
-   e.innerHTML = "<b>" + "ERROR." + "</b>";
+   e.innerHTML = "<p>" + "ERROR." + "</p>";
    if(o.responseText !== undefined) {
     for (var n in o) {
      if (o.hasOwnProperty(n)) {
@@ -37,7 +33,7 @@ function exttoggle(id, type, action) {
    success:handleSuccess,
    failure:handleFailure,
    argument:[]};
-  e.innerHTML = "<b>" + "Processing..." + "</b>";
+  e.innerHTML = "<p>" + "Processing..." + "</p>";
   var request = YAHOO.util.Connect.asyncRequest('POST', SNAPBOARD_URLS.rpc_action, callback, action);}
  else {
   e.style.display = 'none';}}

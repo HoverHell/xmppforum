@@ -11,7 +11,5 @@
     {% if not user.really_anonymous %}{% ifequal post.user_id user.id %}
       <div style="display:none" id="pe{{ post.id_form_m }}"></div>
     {% endifequal %}{% endif %}
-    <div style="display:none" id="pr{{ post.id_form_m }}"></div>
   {% endif %}
-  <div style="display:none" id="ps{{ post.id_form_m }}"></div>
 </div>

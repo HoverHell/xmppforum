@@ -12,7 +12,7 @@
     <p>Reply to a post by <b>{{ parent_post.user.username }}</b>:</p>
     <blockquote>{{ parent_post.texth|safe }}</blockquote>
 	{% else %}
-	<p>Reply to a post <b>#{{ parent_post.id_form_m }}</b> by <b>{{ parent_post.user.username }}</b>: <i>{{ parent_post.texth|truncatewords_html:10|safe }}</i></p>
+	<p>Reply to a post <b>#{{ parent_post.id_form_m }}</b> by <b>{{ parent_post.user.username }}</b>: <i>{{ parent_post.texth|striptags|truncatewords_html:10|safe }}</i></p>
 {% endif %}
 <form action="{% url snapboard_post_reply parent_post.id_form_m %}?next={{ request.REQUEST.next }}" method="POST">
   <table class="f">
@@ -20,7 +20,8 @@
       <td><textarea class="ar" name="text"></textarea></td>
     </tr>
     <tr>
-      <td><input class="b" type="submit" value="{% trans "Post" %}" /><input class="b" type="button" value="{% trans "Preview" %}" onclick="preview('add_post_div')" /><input class="b" type="button" value="{% trans "Cancel" %}" onclick="toggle('pr'+'{{ parent_post.id_form_m }}', 'block')" /> <span class="ed-help">{% include "snapboard/include/editorhelper.html" %}</span></td>
+      <th><input class="b" type="submit" value="{% trans "Post" %}" /><input class="b" type="button" value="{% trans "Preview" %}" onclick="preview('add_post_div')" />
+	  {% if rpc %}<input class="b" type="button" value="{% trans "Cancel" %}" onclick="toggle('replies', 'block')"/>{% endif %} <span class="ed-help">{% include "snapboard/include/editorhelper.html" %}</span></th>
     </tr>
   </table>
 </form>
