@@ -1,16 +1,14 @@
 {#ptfable#}
 {% load i18n %}
 
-<div class="tb header">
+<div class="header">
     {% if not user.is_authenticated or user.really_anonymous %}
-        <div class="unt"> <a href="{% url auth_login %}">Login</a> | <a href="/accounts/register/">Register</a></div>
+        <div class="unt"> <a href="{% url auth_login %}">{% trans "Login" %}</a> or <a href="/accounts/register/">{% trans "register" %}</a></div>
     {% endif %}
     {% if user.is_authenticated %}
-       <div class="unt">
-       {% if user.really_anonymous %} {{ user.username }}
-      {% else %}
-        <a href="{% url snapboard_edit_settings %}" title="Settings">{{ user.username }}</a> (<a href="{{ LOGOUT_URL }}">Logout</a>)
-      {% endif %}
+      <div class="unt">
+      {% if user.really_anonymous %} {{ user.username }}
+      {% else %}<a class="un" href="{% url snapboard_edit_settings %}" title="Settings">{{ user.username }}</a> <a href="{{ LOGOUT_URL }}">{% trans "Logout" %}</a>{% endif %}
       </div>
     {% endif %}
     <span class="menu">
@@ -22,11 +20,11 @@
             {% url snapboard_new_thread category.id %}
           {% else %}
             {% url snapboard_new_thread %}
-          {% endif %}{% endif %}" class="r">New thread</a> 
+          {% endif %}{% endif %}" class="r">{% trans "New thread" %}</a> 
       {% endif %}
-      <a href="{% url about %}">Help</a>
+      <a href="{% url about %}">{% trans "Help" %}</a>
       {% if user.is_authenticated %} 
-        <a href="{% url snapboard_watchlist %}">Watchlist</a>
+        <a href="{% url snapboard_watchlist %}">{% trans "Watchlist" %}</a>
         {% if user.is_staff %}
           <br/>
           <span>{% trans "Admin" %}: 
@@ -40,3 +38,5 @@
       {% endif %}
     </span>
 </div>
+<a class="a-tools" onclick="toggle('tools', 'block');">{% trans "Tools" %}</a>
+<div style="display:none" id="tools"><a href="#">Collapse all</a></div>

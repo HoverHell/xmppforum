@@ -16,10 +16,8 @@
 {% block snapboard_main %}
 <div id="trf" class="rm"></div>
   {% if user.is_staff %}
-    <span class="tm">
-      <a id="csticky{{ thr.id }}" href="" onclick="set_csticky('{{ thr.id }}');">{{ thr.csticky|yesno:_("unset csticky,set csticky") }}</a>
-      <a id="gsticky{{ thr.id }}" href="" onclick="set_gsticky('{{ thr.id }}');">{{ thr.gsticky|yesno:_("unset gsticky,set gsticky") }}</a>
-      <a id="close{{ thr.id }}" href="" onclick="set_close('{{ thr.id }}');">{{ thr.closed|yesno:_("open thread,close thread") }}</a>
+  <span class="tm">
+    <a id="csticky{{ thr.id }}" href="" onclick="set_csticky('{{ thr.id }}');">{{ thr.csticky|yesno:_("Unset csticky,Set csticky") }}</a>, <a id="gsticky{{ thr.id }}" href="" onclick="set_gsticky('{{ thr.id }}');">{{ thr.gsticky|yesno:_("Unset gsticky,Set gsticky") }}</a>, <a id="close{{ thr.id }}" href="" onclick="set_close('{{ thr.id }}');">{{ thr.closed|yesno:_("Open thread,Close thread") }}</a>
     </span>
   {% endif %}
 {% include "snapboard/include/show_posts.html" %}

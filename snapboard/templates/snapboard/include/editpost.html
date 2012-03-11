@@ -1,16 +1,16 @@
 {% load i18n %}
 {% spaceless %}
+<div>
+<p>{% trans "All revisions of this post are stored and publicly viewable." %}</p>
 <form action="{% url snapboard_edit_post post.id_form_m %}?next={{ request.REQUEST.next }}" method="POST">
   <table class="f">
-    <tr>
-      <td class="fm">{% trans "All revisions of this post are stored and publicly viewable." %}</td>
-    </tr>
     <tr>
       <td><textarea class="ar" name="text">{{ post.text }}</textarea></td>
     </tr>
     <tr>
-      <td><input class="b" type="submit" value="{% trans "Update" %}" /></td>
+      <th><input class="b" type="submit" value="{% trans "Update" %}" /></th>
     </tr>
   </table>
 </form>
+</div>
 {% endspaceless %}

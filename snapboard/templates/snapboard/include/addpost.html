@@ -6,7 +6,7 @@
 {% if not user.is_authenticated %}
 <div class="e">{% blocktrans with request.path|urlencode as reqpath %}You need to <a href="{{ LOGIN_URL }}?next={{ reqpath }}">sign in</a> to post messages.{% endblocktrans %}</div>
 {% else %}
-<div class="rp-block"><div>
+<div>
 <div>{{ postform.errors }}</div>
 {% if not rpc %}
     <p>Reply to a post by <b>{{ parent_post.user.username }}</b>:</p>
@@ -29,7 +29,7 @@
   <p>{% trans "Post Preview:" %}</p>
   <div id="snap_preview_addpost" class="t"></div>
 </div>
-</div></div>
+</div>
 {% endif %}
 {% endif %}
 {% endspaceless %}

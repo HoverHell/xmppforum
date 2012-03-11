@@ -1,13 +1,22 @@
 function t_e(id) {
  toggle('pt'+id, 'block');
- exttoggle('pe'+id, 'block', 'action=geteditform&oid='+id);
+ exttoggle('replies', 'block', 'action=geteditform&oid='+id);
  return false;}
  
 function t_r(id) {
  exttoggle('replies', 'block', 'action=getreplyform&oid='+id);
  return false;}
 
+// thread level functions
+function set_csticky(id) { exttoggle('replies', 'block', 'action=csticky&oclass=thread&oid='+id);}
+function set_gsticky(id) { exttoggle('replies', 'block', 'action=gsticky&oclass=thread&oid='+id);}
+function set_close(id) { exttoggle('replies', 'block', 'action=close&oclass=thread&oid='+id);}
 
+// post level function
+function s_w(id) { exttoggle('replies', 'block', 'action=watch&oclass=post&oid='+id);}
+function s_c(id) { exttoggle('replies', 'block', 'action=censor&oclass=post&oid='+id);}
+function s_a(id) { exttoggle('replies', 'block', 'action=abuse&oclass=post&oid='+id);}
+ 
 function toggle(id, type) {
  var e = document.getElementById(id);
  if(e.style.display == 'none')
@@ -91,47 +100,7 @@ function rev(orig_id, show_id) {
  var request = YAHOO.util.Connect.asyncRequest('GET', urlq, callback, null);}
 
 
-// --- yahoo connection stuff ---
-function toggle_variable(action, oname, oclass, oid, msgdivid) {
- // This function sends an RPC request to the server to toggle a
- // variable (usually a boolean).  The server response with text
- // to replace the button clicked and a status message.
- // TODO: oid should be renamed as oid
- var postData = 'action=' + action + '&oclass=' + oclass + '&oid=' + oid;
- var div = document.getElementById(oname + oid);
- var msgdiv = document.getElementById(msgdivid);
-  var handleSuccess = function(o) {
-   if(o.responseText !== undefined) {
-    res = eval('(' + o.responseText + ')');
-    div.innerHTML = res['link'];
-    msgdiv.innerHTML = '<p class="rm">' + res['msg'] + '</p>';}};
-  var handleFailure = function(o) {
-   var errordiv = document.getElementById("thread_rpc_feedback");
-   errordiv.innerHTML = "<b>" + "ERROR." + "</b>";
-   if(o.responseText !== undefined) {
-    for (var n in o) {
-     if (o.hasOwnProperty(n)) {
-      errordiv.innerHTML += o[n];}}}
-   window.location.href="#thread_rpc_feedback"};
-  var callback = {
-   success:handleSuccess,
-   failure:handleFailure,
-   argument:[]};
- msgdiv.innerHTML = "<b>Processing...</b>";
- var request = YAHOO.util.Connect.asyncRequest('POST', SNAPBOARD_URLS.rpc_action, callback, postData);}
-
-// thread level functions
-function set_csticky(id) { toggle_variable('csticky', 'csticky', 'thread', id, 'thread_rpc_feedback');}
-function set_gsticky(id) { toggle_variable('gsticky', 'gsticky', 'thread', id, 'thread_rpc_feedback');}
-function set_close(id) { toggle_variable('close', 'close', 'thread', id, 'thread_rpc_feedback');}
-
-// post level function
-function s_w(id) { toggle_variable('watch', 'w' , 'post', id, ('prf' + id));}
-function s_c(id) { toggle_variable('censor', 'c', 'post', id, ('prf' + id));}
-function s_a(id) { toggle_variable('abuse', 'a', 'post', id, ('prf' + id));}
-
-function get_ta() {
- return document.getElementById('add_post_div').elements['post'];}
+function get_ta() { return document.getElementById('add_post_div').elements['post'];}
 
 function surround(tag, ctag) {
  var ta = get_ta();
