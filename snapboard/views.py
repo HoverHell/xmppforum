@@ -361,8 +361,9 @@ def thread_post(request, post_form_id=None, post=None,
 
     l_str2int = lambda x: Post._str2int(x)
     l_int2str = lambda v: Post._int2str(v).rjust(Post.steplen, '0')
+    # starts from '1', apparently:
     l_getinterval = lambda parent, left, right: (parent + l_int2str(left + 1),
-      parent + l_int2str(right + 1))  # starts from '1', apparently.
+      parent + l_int2str(right + 1))
 
     ### Pagination (mildly obsolete):
     ## overridable ppp.
@@ -378,8 +379,8 @@ def thread_post(request, post_form_id=None, post=None,
     paginator._count = top_post.get_children_count()
     page_obj = paginator.page(request.GET.get("page", 1))
     slice = page_obj.object_list.slice
-    # -1 because last gets included too this way.
-    pinterval = l_getinterval(top_post.path, slice.start, slice.stop - 1)
+    # first and last post; second element is the first post to *not* include:
+    pinterval = l_getinterval(top_post.path, slice.start, slice.stop)
 
     maxdepthd = l_getintparam('md', 28)
     nfsib = l_getintparam('nfsib', None)  # full next siblings
@@ -458,7 +459,9 @@ def thread_post(request, post_form_id=None, post=None,
     ## Only enable pagination filtering if a page is specified.
     ## (Can grab a specific page if willing.)
     if request.GET.get('page', ''):
-        qs = qs.filter(path__range=pinterval,)
+        #qs = qs.filter(path__range=pinterval,)
+        ## Do not include the end of range:
+        qs = qs.filter(path__gte=pinterval[0], path__lt=pinterval[1])
 
     # finally, retreive and annotate the result.
     if subtopic:
@@ -632,6 +635,7 @@ def post_reply(request, post_form_id=None, rpc=False):
         context = {'postform': PostForm(),
           "parent_post": parent_post}
         if rpc:  # get form, not page.
+            context['rpc'] = True
             return {
               "html": render_to_string('snapboard/include/addpost.html',
                 context, context_instance=RequestContext(request,
@@ -639,6 +643,7 @@ def post_reply(request, post_form_id=None, rpc=False):
             }
         else:
             # ...non-JS reply form.
+            context['rpc'] = False
             return render_to_response('snapboard/post_reply',
               context, context_instance=RequestContext(request,
                 processors=extra_processors))
@@ -682,7 +687,7 @@ def edit_post(request, post_form_id=None, rpc=False):
           nextr=_redirect_to_posts(request, orig_post),
           successtext="Message updated.", postid=orig_post.id_form_m())
     else:  # get a form for editing.
-        context = {'post': orig_post}
+        context = {'post': orig_post, 'rpc': True}
         if rpc:
             return {"html":
               render_to_string('snapboard/include/editpost.html',
