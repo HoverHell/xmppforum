@@ -6,20 +6,21 @@
 {% if not user.is_authenticated %}
 <div class="e">{% blocktrans with request.path|urlencode as reqpath %}You need to <a href="{{ LOGIN_URL }}?next={{ reqpath }}">sign in</a> to post messages.{% endblocktrans %}</div>
 {% else %}
+<div class="rp-block"><div>
 <div>{{ postform.errors }}</div>
-<p>Reply to ... er?</p>
+{% if not rpc %}
+    <p>Reply to a post by <b>{{ parent_post.user.username }}</b>:</p>
+    <blockquote>{{ parent_post.texth|safe }}</blockquote>
+	{% else %}
+	<p>Reply to a post <b>#{{ parent_post.id_form_m }}</b> by <b>{{ parent_post.user.username }}</b>: <i>{{ parent_post.texth|truncatewords_html:10|safe }}</i></p>
+{% endif %}
 <form action="{% url snapboard_post_reply parent_post.id_form_m %}?next={{ request.REQUEST.next }}" method="POST">
   <table class="f">
-    <tr>
-      <td class="ed-help">
-        {% include "snapboard/include/editorhelper.html" %}
-      </td>
-    </tr>
     <tr>
       <td><textarea class="ar" name="text"></textarea></td>
     </tr>
     <tr>
-      <td><input class="b" type="submit" value="{% trans "Post" %}" /><input class="b" type="button" value="{% trans "Preview" %}" onclick="preview('add_post_div')" /></td>
+      <td><input class="b" type="submit" value="{% trans "Post" %}" /><input class="b" type="button" value="{% trans "Preview" %}" onclick="preview('add_post_div')" /><input class="b" type="button" value="{% trans "Cancel" %}" onclick="toggle('pr'+'{{ parent_post.id_form_m }}', 'block')" /> <span class="ed-help">{% include "snapboard/include/editorhelper.html" %}</span></td>
     </tr>
   </table>
 </form>
@@ -27,6 +28,7 @@
   <p>{% trans "Post Preview:" %}</p>
   <div id="snap_preview_addpost" class="t"></div>
 </div>
+</div></div>
 {% endif %}
 {% endif %}
 {% endspaceless %}

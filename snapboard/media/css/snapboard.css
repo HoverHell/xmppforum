@@ -1,19 +1,21 @@
-#x{font-family:arial;margin:0;font-size:15px}
+#x{margin:0;font:15px/24px arial}
 a:hover,.hm .tn span a:hover{color:#ff1800}
 
-#x>p,#x>form,.w,.tp,.tm,.cat>h2,.thr>h2,.sp>p,.sp>.ba,#x>.warn{padding-left:10px;padding-right:10px}
+#x>p,#x>form,.w,.tp,.tm,.cat>h2,.thr>h2,.sp>p,.sp>.ba,#x>.warn,.rp-block>div{padding-left:10px;padding-right:10px}
 #x>form>table,.sp>.ba,.w>*,.w.st,.tp .v,.f{margin-top:8px}
-/*what is f?*/ table.f{margin-top:0}
+table.f{margin-top:0}
 .sp>.ba{padding-bottom:2px}
 
+blockquote{margin:10px 20px;font-style:italic}
+
 /*Header*/
-.header{padding:3px 10px 5px;font-size:13px;min-height:24px;line-height:24px;background-color:#2D2D2D;color:#fff}
+.header{padding:3px 10px 5px;font-size:13px;min-height:24px;background-color:#2D2D2D;color:#fff}
 .header a {color:#eee}
 .header a:hover {text-decoration:none}
 .menu a {margin-right:8px}
 .header .r{color:#fff000;font-weight:bold}
 .unt{float:right;margin-left:8px}
-h1,h2{font-size:16px;margin:0;padding:11px 10px 9px;line-height:22px;font-weight:normal;background-color:#ddd}
+h1,h2{font-size:16px;margin:0;padding:10px 10px 8px;font-weight:normal;background-color:#ddd}
 
 
 .f{border-collapse:collapse;border-spacing:0}
@@ -22,6 +24,7 @@ h1,h2{font-size:16px;margin:0;padding:11px 10px 9px;line-height:22px;font-weight
 .f th{padding-right:5px;font-weight:normal;font-size:13px}
 .f td{border:1px solid;padding:0}
 .ar{height:140px;width:880px;padding:8px}
+.v .ar{height:80px}
 .fm{text-align:center;font-weight:bold}
 .b{padding:1px 3px 2px;border-right:1px solid;float:left}
 form>table th{text-align:right}
@@ -57,7 +60,7 @@ float:left;cursor:pointer;font:9px/9px monospace;}
 .w .h>div,.w .t,p.rm{border-right:1px solid;border-left:1px solid}
 .w .h>div>div{border-top:1px solid;}
 .h img{float:left;margin-right:5px}
-.hm{padding:0 6px; font-size:13px;line-height:25px;color:#999}
+.hm{padding:0 6px; font-size:13px;color:#999}
 .hmi{color:#000;font-size:15px}
 .tp .hm,.thr .fp >.v >.t >div,.thr .w .t>div{padding:0}
 .tp .hm .hide {display:none}
@@ -67,7 +70,7 @@ float:left;cursor:pointer;font:9px/9px monospace;}
 .apc>div>.v{outline:2px solid red;outline-offset:-2px}
 
 div.rm{text-align:center}
-.w .t>div,.pc.fp>.v>.t>div{padding:8px 8px 10px 7px}
+.w .t>div,.pc.fp>.v>.t>div,.tp .t>div{padding:8px 8px 10px 7px;line-height:19px}
 .pc>.v>.t>div,.pc>div>.v>.t>div{border-top:1px solid}
 .his-post,.l>.v>.t>div,.l>div>.v>.t>div{border-bottom:1px solid}
 
@@ -91,17 +94,19 @@ div.rm{text-align:center}
 .tn{font-size:18px}
 .hm .tn span{font-size:13px}
 .hm .tn span a{color:#999}
+
 /*Forms*/
+.rp-block {position:fixed;bottom:0;left:0;background:#fff;z-index:1000;width:100%;border-top:1px solid #dbdbdb}
+.rp-block p {margin:8px 0}
 .b,.nb{background-color:#f2f2f2;border-radius:2px;margin:8px 0 8px 8px;border:1px solid #dbdbdb;padding:5px 8px}
 .b[type="submit"]{background-color:#9ec97f;color:#fff;font-weight:bold}
-.ed-help{height:26px}
-.ed-help a{font-size:13px;margin:4px 0 0 8px}
+.ed-help{height:26px;float:right;font-size:13px;margin:10px 8px 0;}
 #id_subject{padding:4px 0;text-indent:7px}
+
 /*Settings*/
 .avatar_settings form ul,.avatar_settings form ul ul,.errorlist {list-style-type:none;padding:0;}
 .avatar_settings label input {float: left;margin-top: 10px}
 .snapboard_settings table td br{display:none}
-.snapboard_settings table tr{line-height:24px}
 .snapboard_settings table tr td, .snapboard_settings table tr th {padding:4px 0;}
 .helptext{padding-left:6px;color:#999;font-size:13px;}
 .avatar_settings .b,.snapboard_settings .b,.nb,.login-b,.regform .b{margin:0 8px 0 0}
