@@ -104,7 +104,7 @@ class ThreadManager(models.Manager):
         return self.get_query_set().filter(pk__in=[x.thread_id for x in wl])
 
     def get_category(self, cat_id):
-        return self.get_query_set().filter(category__id=cat_id)
+        return self.get_query_set().filter(category__name=cat_id)
 
 
 class CategoryManager(models.Manager):
