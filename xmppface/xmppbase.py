@@ -54,7 +54,7 @@ class XmppRequest(object):
         # Populating extra fields:
         self.META = {'REMOTE_ADDR': srcjid}
         self.POST, self.GET = {}, {}
-        # Compatibility-convenuence stuff:
+        # Compatibility-convenience stuff:
         self.path = None
         #self.COOKIES, self.FILES = None, {}
 
@@ -112,6 +112,17 @@ class XmppResponse(dict):
         self.usersettings = get_user_xfsettings(user)
 
     def setxhtml(self, html):
+        ## cfg; move away later
+        h2t_tag_name = 'html2text'
+        h2t_tag = "<{0}>".format(h2t_tag_name)
+        h2t_tag_len = len(h2t_tag)
+        h2t_tag_re = re.compile(r"(<{0}>.*?)</{0}>".format(h2t_tag_name))
+        h2t_tag_any_re = re.compile(r"</?{0}/?>".format(h2t_tag_name))
+        html_src = html
+        html = h2t_tag_any_re.sub('', html)
+        html_br_re = re.compile(r"\n")
+        html = html.rstrip()  # XX: design-questionable; also done below.
+        html = html_br_re.sub('<br/>', html)
         # Usersettings are considered here
         # ! Note that changing user afterwards wouldn't change this.
         if not(self.usersettings.disable_xmpp_xhtml):
@@ -127,16 +138,22 @@ class XmppResponse(dict):
         # Remove formatting. Also, it should be XML-compatible.
         # ! Probably should replace <a> tags with some link representation.
         # ! Or even always add actual link to the tag.
-        if self.pttype == 'h2t':
-            import html2text
-            self['body'] = django.utils.encoding.force_unicode(
-              django.utils.html.escape(
-                html2text.html2text(html).rstrip()
-              )
-            )
-        elif self.pttype == 'st':
-            self['body'] = django.utils.encoding.force_unicode(
-              django.utils.html.strip_tags(self.imgfix(html))).rstrip()
+        ### PoC:
+        ## [html2text.html2text(a[3:]).strip() if a.startswith('<a>') else a
+        ## for a in re.compile(r"(<a>.*?)</a>").split(s)]
+        import html2text
+        body_parts = []
+        for part in h2t_tag_re.split(html_src):
+            if part.startswith(h2t_tag):
+                # Note: html2text tends to add '\n\n' to the end so this
+                #  rstrip is pretty much mandatory.
+                res = django.utils.html.escape(
+                  html2text.html2text(part[h2t_tag_len:]).rstrip())
+            else:
+                res = django.utils.html.strip_tags(part)
+            body_parts.append(
+              django.utils.encoding.force_unicode(res).rstrip())
+        self['body'] = ''.join(body_parts)
 
     def imgfix(self, htmlsource):
         """ Replaces all <img> tags in htmlsource with some more

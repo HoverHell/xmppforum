@@ -1,8 +1,7 @@
 {#ptfable#}
 {% load extras %}
 {% load plaintexttags %}
-<a href="{{ SITE_DOMAIN }}{% url snapboard_post post.id_form_m %}">
-  #{{ post.id_form_m }}</a>
- by {{ post.user }},
- {% reltime post.date %}
-{% if post.previous_id %} (REVISED){% endif %}
+  <a href="{{ SITE_DOMAIN }}{% url snapboard_post post.id_form_m %}">
+   #{{ post.id_form_m }}</a> 
+  by {{ post.user }}, {% deftime post.date %}
+  {% if post.previous_id %} (REVISED){% endif %}

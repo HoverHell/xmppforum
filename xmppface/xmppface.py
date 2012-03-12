@@ -238,7 +238,7 @@ def processcmd(indata):
                 "callback: " % exc)
             _log.debug(traceback.format_exc())
             response = XmppResponse(_("Sorry, something went wrong!\n" \
-              "Don't worry, admins weren't notified!"))
+              " Don't worry, admins weren't notified!"))
         # Not final. Also, toResponse(), part 1.
     except django.http.Http404, exc:  # Http404 from resolver.
         response = XmppResponse(_("No such command. Try 'HELP', maybe?"))

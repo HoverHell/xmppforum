@@ -12,7 +12,8 @@ register = Library()
 
 # XHTML-XMPP-template compatible.
 def br():
-    return "<br />\n"
+    #return "<br />\n"  # XHTML br-inserting is handled otherplace now.
+    return "\n"
 br = register.simple_tag(br)
 
 

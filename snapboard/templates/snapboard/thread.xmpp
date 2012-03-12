@@ -3,33 +3,27 @@
 {% load i18n %}
 {% load plaintexttags %}
 {% load extras %}
-
-<strong>/{{ thr.category.name }}</strong> {{ thr.category }}:
-{%ws%}{%ws%}{%ws%}{%ws%}{{ thr.subject }}
-
+<html2text>
+{{ thr.subject }}{%ws%}in{%ws%}<strong>/{{ thr.category.name }}</strong> ({{ thr.category }})
+{%br%}
 
 {% with top_post as post %}
-<a href="{{ SITE_DOMAIN }}{% url snapboard_post thr.id_form_m %}">#{{ thr.id }}</a>
-by {{ post.user }} at {{ post.date|date:"r T" }} 
-{% if post.previous_id %} (REVISED){% endif %}
+  <a href="{{ SITE_DOMAIN }}{% url snapboard_post thr.id_form_m %}">
+    #{{ thr.id_form_m }}</a> 
+  by {{ post.user }} {% deftime post.date %}
+  {% if post.previous_id %} (REVISED){% endif %}
 
-{%br%}
-
-{% if post.censor %}Censored post{% else %}
-{{ post.texth|safe }}{% endif %}
-
+  {% if post.censor %}Censored post
+  {% else %}{{ post.texth|safe }}
+  {% endif %}
 {% endwith %}
 
+
 {% for post, info in post_list %}
+  {% include "snapboard/include/post_header.xmpp" %}
 
-{%br%} {%br%} {% include "snapboard/include/post_header.xmpp" %}
-
-{%br%}
-
-{% if post.censor %}
-  Censored post
-{% else %}
-  {{ post.texth|safe }}
-{% endif %}
-        
-{% endfor %}            
+  {% if post.censor %}Censored post
+  {% else %}{{ post.texth|safe }}
+  {% endif %}
+{%br%}{%br%}{% endfor %}            
+</html2text>
