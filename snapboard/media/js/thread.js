@@ -1,71 +1,103 @@
+
+// AJAX-loaded forms
 function t_e(id) {
- toggle('pt'+id, 'block');
- exttoggle('replies', 'block', 'action=geteditform&oid='+id);
- return false;}
- 
+  toggle('pt'+id, 'block');
+  return exttoggle_f('replies', 'block', 'action=geteditform&oid='+id); }
 function t_r(id) {
- exttoggle('replies', 'block', 'action=getreplyform&oid='+id);
- return false;}
+  return exttoggle_f('replies', 'block', 'action=getreplyform&oid='+id); }
 
 // thread level functions
-function set_csticky(id) { exttoggle('replies', 'block', 'action=csticky&oclass=thread&oid='+id);}
-function set_gsticky(id) { exttoggle('replies', 'block', 'action=gsticky&oclass=thread&oid='+id);}
-function set_close(id) { exttoggle('replies', 'block', 'action=close&oclass=thread&oid='+id);}
+function set_csticky(id) { return exttoggle_v('replies', 'block',
+  'action=csticky&oclass=thread&oid='+id);}
+function set_gsticky(id) { return exttoggle_v('replies', 'block',
+  'action=gsticky&oclass=thread&oid='+id);}
+function set_close(id) { return exttoggle_v('replies', 'block',
+  'action=close&oclass=thread&oid='+id);}
 
 // post level function
-function s_w(id) { exttoggle('replies', 'block', 'action=watch&oclass=post&oid='+id);}
-function s_c(id) { exttoggle('replies', 'block', 'action=censor&oclass=post&oid='+id);}
-function s_a(id) { exttoggle('replies', 'block', 'action=abuse&oclass=post&oid='+id);}
+function s_w(id) {
+  return exttoggle_v('replies', 'block',
+    'action=watch&oclass=post&oid='+id); }
+function s_c(id) {
+  return exttoggle_v('replies', 'block',
+    'action=censor&oclass=post&oid='+id); }
+function s_a(id) {
+  return exttoggle_v('replies', 'block',
+    'action=abuse&oclass=post&oid='+id); }
  
 function toggle(id, type) {
- var e = document.getElementById(id);
- if(e.style.display == 'none')
-  e.style.display = type;
- else
-  e.style.display = 'none';}
+  var e = document.getElementById(id);
+  if(e.style.display == 'none')
+   e.style.display = type;
+  else
+   e.style.display = 'none'; }
 
-function exttoggle(id, type, action) { // on show retreives HTML code from RPC.
- var e = document.getElementById(id);
- if(e.style.display == 'none') {
-  e.style.display = type;
+function exttoggle(e, type, action, successProcess) {
   var handleSuccess = function(o) {
-   if(o.responseText !== undefined) {
-    res = JSON.parse(o.responseText);
-    e.innerHTML = res.html;}};
+    if(o.responseText !== undefined) {
+      res = JSON.parse(o.responseText);
+      successProcess(res);}};
+    // XXX: Do something if no response text?
   var handleFailure = function(o) {
-   e.innerHTML = "<p>" + "ERROR." + "</p>";
-   if(o.responseText !== undefined) {
-    for (var n in o) {
-     if (o.hasOwnProperty(n)) {
-      e.innerHTML += o[n]+"<br/>";}}}};
+	e.style.display = 'block';
+    e.innerHTML = "<p>" + "ERROR." + "</p>";
+    if(o.responseText !== undefined) {
+      for (var n in o) {
+        if (o.hasOwnProperty(n)) {
+          e.innerHTML += o[n]+"<br/>"; }}}};
   var callback = {
-   success:handleSuccess,
-   failure:handleFailure,
-   argument:[]};
+    success:handleSuccess,
+    failure:handleFailure,
+    argument:[]};
   e.innerHTML = "<p>" + "Processing..." + "</p>";
-  var request = YAHOO.util.Connect.asyncRequest('POST', SNAPBOARD_URLS.rpc_action, callback, action);}
- else {
-  e.style.display = 'none';}}
+  var request = YAHOO.util.Connect.asyncRequest(
+    'POST',
+    SNAPBOARD_URLS.rpc_action, callback, action); }
+
+function exttoggle_f(id, type, action) {
+    /* Toggle visibility of a block (e.g. form), retrieving its code
+      from server if necessary. */
+    var e = document.getElementById(id);
+    if(e.style.display == 'none') {
+		e.style.display = 'block';
+        var successProcess = function(res) {
+            e.innerHTML = res.html; };
+        exttoggle(e, type, action, successProcess); }
+    else {
+        e.style.display = 'none'; }
+    // Return false over all the chain is needed for links not to go over their href when clicked.
+    return false; }
+
+function exttoggle_v(id, type, action) {
+    // var t = event.target;  // This is meant to be called onclick, yes.
+    var e = document.getElementById(id);
+    // t.innerHTML = 'just testing';
+    var successProcess = function(res) {
+        // t.innerHTML = res['link'];
+        e.innerHTML = '<p class="rm">' + res['msg'] + '</p>';};
+    exttoggle(e, type, action, successProcess);
+    return false; }
+    
 
 function preview(form_id) {
- urlq = SNAPBOARD_URLS.rpc_preview;
- form = document.getElementById(form_id);
- text = form.post.value;
- div_preview = document.getElementById('snap_preview_addpost');
- var handleSuccess = function(o) {
-  if(o.responseText !== undefined) {
-   res = eval('(' + o.responseText + ')');
-   div_preview.innerHTML = res['preview'];
-   div_preview.parentNode.style.display = 'block';}};
- var handleFailure = function(o) {
-  var errordiv = document.getElementById("thread_rpc_feedback");
-  if(o.responseText !== undefined) {
-   div_preview.innerHTML = 'There was an error previewing your post.';
-   div_preview.parentNode.style.display = 'block';}};
- var callback = {success:handleSuccess, failure:handleFailure, argument: []};
- YAHOO.util.Connect.setDefaultPostHeader(false);
- YAHOO.util.Connect.initHeader('Content-Type', 'text/plain', true);
- var request = YAHOO.util.Connect.asyncRequest('POST', urlq, callback, text);}
+    urlq = SNAPBOARD_URLS.rpc_preview;
+    form = document.getElementById(form_id);
+    text = form.post.value;
+    div_preview = document.getElementById('snap_preview_addpost');
+    var handleSuccess = function(o) {
+     if(o.responseText !== undefined) {
+      res = eval('(' + o.responseText + ')');
+      div_preview.innerHTML = res['preview'];
+      div_preview.parentNode.style.display = 'block';}};
+    var handleFailure = function(o) {
+     var errordiv = document.getElementById("thread_rpc_feedback");
+     if(o.responseText !== undefined) {
+      div_preview.innerHTML = 'There was an error previewing your post.';
+      div_preview.parentNode.style.display = 'block';}};
+    var callback = {success:handleSuccess, failure:handleFailure, argument: []};
+    YAHOO.util.Connect.setDefaultPostHeader(false);
+    YAHOO.util.Connect.initHeader('Content-Type', 'text/plain', true);
+    var request = YAHOO.util.Connect.asyncRequest('POST', urlq, callback, text);}
 
 function rev(orig_id, show_id) {
  urlq = SNAPBOARD_URLS.rpc_postrev + '?orig=' + orig_id + '&show=' + show_id;
