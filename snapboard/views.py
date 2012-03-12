@@ -262,7 +262,10 @@ def rpc_gettoggler(objclass, field, wrap_with=staff_required,
     rpcreturn is function of state that returns data to be JSONed to the RPC
     client.  """
     def _toggle_that(request, oid=None, rpc=False, state=None):
-        obj = get_object_or_404(objclass, pk=oid)
+        if hasattr(objclass, 'from_id_m'):
+            obj = objclass.from_id_m(oid)
+        else:
+            obj = get_object_or_404(objclass, pk=oid)
         if state is not None:
             state = bool(state)  # set to the specified state.
         else:
