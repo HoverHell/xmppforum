@@ -13,6 +13,10 @@ from xmppface.xmppbase import direct_to_template
 from snapboard.models import Post
 post_id_re = Post.id_m_re
 post_id_re_f = r'(?P<post_form_id>' + Post.id_m_re_f + r')'
+cmd_tag = r'[#!]'
+
+## Make a regexp (for command-word) with optional short form.
+cmd_word = lambda x, l=1: r'(?i)%s(?:%s)' % (x[:l], x[l:])
 
 ## Double id suport, way 2: decorators.
 from snapboard.util import postid_to_id
@@ -29,24 +33,25 @@ cmdpatterns = patterns('',
       {'template': 'snapboard/whoami.xmpp'}),
 
     ## Main indexes.
-    #(r'^[#!](?P<thread_id>\d+)$', thread, {}, 'snapboard_thread'),
-    #(r'^[#!](?P<thread_id>\d+)l(?: (?P<num_posts>\d+))?$',
-    #  thread_latest, {}, 'snapboard_thread_latest'),
-    (r'^[#!]( (?P<num_limit>\d+)?( (?P<num_start>\d+)?)?)?$',
+    (r'^' + cmd_word('last') + cmd_tag +
+      '(?P<thread_id>\d+)l(?: (?P<num_posts>\d+))?$',
+      thread_latest, {}, 'snapboard_thread_latest'),
+    (r'^' + cmd_tag + '( (?P<num_limit>\d+)?( (?P<num_start>\d+)?)?)?$',
       thread_index, {}, 'snapboard_thread_index'),  # spaces!
-    (r'^c$', category_index, {}, 'snapboard_category_index'),
+    (r'^/$', category_index, {}, 'snapboard_category_index'),
     (r'^/(?P<cat_id>[^/]+)$',
       category_thread_index, {}, 'category_thread_index'),
 
-    (r'^c(?P<POST_category>[^/ ]+) (?P<POST_subject>.+?)\n(?P<POST_text>.(.*\n?)+)',
+    (r'^/(?P<POST_category>[^/ ]+) (?P<POST_subject>.+?)\n(?P<POST_text>.(.*\n?)+)',
       new_thread, {}, 'snapboard_new_thread'),
     # TODO: edit_settings?
 
-    (r'^[#!]' + post_id_re_f + '$',
+    (r'^' + cmd_tag + post_id_re_f + '$',
       thread_post, {}, 'snapboard_thread_post'),
-    (r'^[#!]' + post_id_re_f + r'? (?P<POST_text>(.*\n?)+)',
+    (r'^' + cmd_tag + post_id_re_f + r'? (?P<POST_text>(.*\n?)+)',
       post_reply, {}, 'snapboard_post_reply'),
-    (r'^e(?: ' + post_id_re_f + r'?(?: (?P<POST_text>(.*\n?)+))?)?',
+    (r'^' + cmd_word('edit') + cmd_tag +
+      '?(?: ' + post_id_re_f + r'?(?: (?P<POST_text>(.*\n?)+))?)?',
       edit_post, {}, 'snapboard_edit_post'),
     (r'^r(?: ' + post_id_re_f + r'?(?: +(?P<resource>.+)?)?)?$',
       xmppresourcify, {}, 'snapboard_xmppresourcify'),  # XMPP-specific.
