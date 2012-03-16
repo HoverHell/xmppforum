@@ -41,7 +41,7 @@
  </span>
  <div class="his-post" style="display:block" id="snap_post_view{{ post.id_form_m }}">
      <div class="post_text" style="display:block" id="snap_post_text{{ post.id_form_m }}">
-         {{ post.text|striptags|render_post|safe }}
+         {{ post.text|render_post|safe }}
          {% if post.difflist %}
          <div class="post_diff">
            {% for dtype, dstr in post.difflist %}

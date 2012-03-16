@@ -1,14 +1,15 @@
 {% load i18n %}
 {% spaceless %}
 <div>
-<p>{% trans "All revisions of this post are stored and publicly viewable." %}</p>
+<p>Editing post: <a href="#{{ post.id_form_m }}">#{{ post.id_form_m }}</a>. {% trans "All revisions of this post are stored and publicly viewable." %}</p>
+
 <form action="{% url snapboard_edit_post post.id_form_m %}?next={{ request.REQUEST.next }}" method="POST">
   <table class="f">
     <tr>
       <td><textarea class="ar" name="text">{{ post.text }}</textarea></td>
     </tr>
     <tr>
-      <th><input class="b" type="submit" value="{% trans "Update" %}" /></th>
+      <th><input class="b" type="submit" value="{% trans "Update" %}" />{% if rpc %}<input class="b" type="button" value="{% trans "Cancel" %}" onclick="<!-- Needs new function -->"/>{% endif %}</th>
     </tr>
   </table>
 </form>

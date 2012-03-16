@@ -7,28 +7,24 @@
 <div class="e">{% blocktrans with request.path|urlencode as reqpath %}You need to <a href="{{ LOGIN_URL }}?next={{ reqpath }}">sign in</a> to post messages.{% endblocktrans %}</div>
 {% else %}
 <div>
-<div>{{ postform.errors }}</div>
 {% if not rpc %}
+	<span>{{ postform.errors }}</span>
     <p>Reply to a post by <b>{{ parent_post.user.username }}</b>:</p>
     <blockquote>{{ parent_post.texth|safe }}</blockquote>
 	{% else %}
-	<p>Reply to a post <b>#{{ parent_post.id_form_m }}</b> by <b>{{ parent_post.user.username }}</b>: <i>{{ parent_post.texth|striptags|truncatewords_html:10|safe }}</i></p>
+	<p>Reply to a post <a href="#{{ parent_post.id_form_m }}">#{{ parent_post.id_form_m }}</a> by <b>{{ parent_post.user.username }}</b>: <i>{{ parent_post.texth|striptags|truncatewords_html:10|safe }}</i></p>
 {% endif %}
 <form action="{% url snapboard_post_reply parent_post.id_form_m %}?next={{ request.REQUEST.next }}" method="POST">
   <table class="f">
     <tr>
-      <td><textarea class="ar" name="text"></textarea></td>
+      <td><textarea id="add_post_div" class="ar" name="text"></textarea></td>
     </tr>
     <tr>
-      <th><input class="b" type="submit" value="{% trans "Post" %}" /><input class="b" type="button" value="{% trans "Preview" %}" onclick="preview('add_post_div')" />
-	  {% if rpc %}<input class="b" type="button" value="{% trans "Cancel" %}" onclick="toggle('replies', 'block')"/>{% endif %} <span class="ed-help">{% include "snapboard/include/editorhelper.html" %}</span></th>
+      <th><input class="b" type="submit" value="{% trans "Post" %}" /><input class="b" type="button" value="{% trans "Preview" %}" onclick="preview('add_post_div', 'p{{ parent_post.id_form_m }}')" />
+	  {% if rpc %}<input class="b" type="button" value="{% trans "Cancel" %}" onclick="<!-- Needs new function -->"/>{% endif %} <span class="ed-help">{% include "snapboard/include/editorhelper.html" %}</span></th>
     </tr>
   </table>
 </form>
-<div style="display: none">
-  <p>{% trans "Post Preview:" %}</p>
-  <div id="snap_preview_addpost" class="t"></div>
-</div>
 </div>
 {% endif %}
 {% endif %}

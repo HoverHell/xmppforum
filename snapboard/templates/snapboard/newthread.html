@@ -9,16 +9,11 @@
 <form action="" method="POST">
   <table class="f">
     {{ threadform.as_table }}
-    <tr>
-      <th></th>
-      <td class="ed-help">
-        {% include "snapboard/include/editorhelper.html" %}
-      </td>
-    </tr>
+
     {{ postform.as_table }}
     <tr>
       <th></th>
-      <td><input class="b" type="submit" value="{% trans "Start Subject" %}" /> <input class="b" type="reset" value="{% trans "Reset" %}" /></td>
+      <th><input class="b" type="submit" value="{% trans "Start Subject" %}" /> <input class="b" type="reset" value="{% trans "Reset" %}" /> <span class="ed-help">{% include "snapboard/include/editorhelper.html" %}</span></th>
     </tr>
   </table>
 </form>

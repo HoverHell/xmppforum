@@ -34,7 +34,6 @@
 {% else %}
   <p>{% trans "No threads are available." %}</p>
 {% endif %}
-
-{% autopaginate threads user_settings.tpp %}{% paginate %}
 </div>
+{% autopaginate threads user_settings.tpp %}{% paginate %}
 </div>

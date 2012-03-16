@@ -7,6 +7,7 @@
 {% load cache %}
 {% if subtopic %}
   <p>{% trans "You are viewing part of the topic" %}</p>
+{#
 {% else %}
 {% with top_post as post %}
 <div class="tp">
@@ -16,6 +17,7 @@
   </div>
 </div>
 {% endwith %}
+#}
 {% endif %}
 
 {# autopaginate post_list user_settings.ppp #}
@@ -52,7 +54,7 @@
   <div id="p{{ post.id_form_m }}"{% if not post.is_flat %}{% ifnotequal post.depth listdepth %}{% if post.next_sibling %} class="nf np{% if post.numchild != 1 %} l{% endif %}{% if post.censor %}{% if not user.is_staff %} pc{% else %} apc{% endif %}{% else %}{% ifnotequal post.abuse 0 %}{% if not user.is_staff %} pr{% else %} apr{% endif %}{% endifnotequal %}{% endif %}"{% else %} class="nf ep{% if post.numchild != 1 %} l{% endif %}{% if post.censor %}{% if not user.is_staff %} pc{% else %} apc{% endif %}{% else %}{% ifnotequal post.abuse 0 %}{% if not user.is_staff %} pr{% else %} apr{% endif %}{% endifnotequal %}{% endif %}"{% endif %}{% else %}{% if post.numchild != 1 %} class="l{% if post.censor %}{% if not user.is_staff %} pc{% else %} apc{% endif %}{% else %}{% ifnotequal post.abuse 0 %}{% if not user.is_staff %} pr{% else %} apr{% endif %}{% endifnotequal %}{% endif %}"{% else %}{% if post.censor %}{% if not user.is_staff %} class="pc"{% else %} class="apc"{% endif %}{% else %}{% ifnotequal post.abuse 0 %}{% if not user.is_staff %}class="pr"{% else %} class="apr"{% endif %}{% endifnotequal %}{% endif %}{% endif %}{% endifnotequal %}{% else %} class="fp{% if post.numchild != 1 %} l{% endif %}{% if post.censor %}{% if not user.is_staff %} pc{% else %} apc{% endif %}{% else %}{% ifnotequal post.abuse 0 %}{% if not user.is_staff %} pr{% else %} apr{% endif %}{% endifnotequal %}{% endif %}"{% endif %}>
     {% if not post.is_flat %}{% ifnotequal post.depth listdepth %}{% if not post.next_sibling %}<div class="pp"></div>{% endif %}<div class="hw"><div class="pt e1"></div><div class="pt e2"></div>{% endifnotequal %}{% endif %}
       {% if post.censor and not user.is_staff %}
-        <div id="pv{{ post.id_form_m }}" class="v"><div id="pt{{ post.id_form_m }}" class="t"><div>Censored post <a href="{% url snapboard_post post.id_form_m %}">#{{ post.id_form_m }}</a>.</div></div></div>
+        <div class="v"><div id="pt{{ post.id_form_m }}" class="t"><div>Censored post <a href="{% url snapboard_post post.id_form_m %}">#{{ post.id_form_m }}</a>.</div></div></div>
       {% else %}
         {% if not post.numanswers or post.nsib %}
           {% include "snapboard/include/post_full_header.html" %}
@@ -72,6 +74,10 @@
   {% for close in post_info.close %}</div></div>{% endfor %}
 {% endfor %}
 </div>
-<div class="ba">{% paginate %}</div>
-<div style="display:none" id="replies"></div>
+{% paginate %}
+<div id="replies">
+  <div id="tools"></div>
+  <div id="warnings"></div>
+  <div id="forms"></div>
+</div>
 </div>
