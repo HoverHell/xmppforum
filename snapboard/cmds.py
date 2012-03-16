@@ -15,6 +15,9 @@ post_id_re = Post.id_m_re
 post_id_re_f = r'(?P<post_form_id>' + Post.id_m_re_f + r')'
 cmd_tag = r'[#!]'
 
+## XMPP-pagination stuff: x_ipp - items per page (optional).
+xmpppaginate_re = r'(?:(?P<x_ipp>\d+) (?P<x_page>\d+)|(?P<x_page>\d+))'
+
 ## Make a regexp (for command-word) with optional short form.
 cmd_word = lambda x, l=1: r'(?i)%s(?:%s)' % (x[:l], x[l:])
 
@@ -36,7 +39,7 @@ cmdpatterns = patterns('',
     (r'^' + cmd_word('last') + cmd_tag +
       '(?P<thread_id>\d+)l(?: (?P<num_posts>\d+))?$',
       thread_latest, {}, 'snapboard_thread_latest'),
-    (r'^' + cmd_tag + '( (?P<num_limit>\d+)?( (?P<num_start>\d+)?)?)?$',
+    (r'^' + cmd_tag + '( ' + xmpppaginate_re + '?)?$',
       thread_index, {}, 'snapboard_thread_index'),  # spaces!
     (r'^/$', category_index, {}, 'snapboard_category_index'),
     (r'^/(?P<cat_id>[^/]+)$',

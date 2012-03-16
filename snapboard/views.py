@@ -14,7 +14,7 @@ from django.core.urlresolvers import reverse
 from django.db import connection, transaction
 from django.db.models import Q, Count
 from django.http import (HttpResponse, HttpResponseRedirect, Http404,
-  HttpResponseServerError)
+  HttpResponseServerError, HttpResponseForbidden)
 from django.shortcuts import render_to_response, get_object_or_404
 from django.template import RequestContext, TemplateDoesNotExist
 from django.template.loader import render_to_string
@@ -94,6 +94,22 @@ extra_processors = [user_settings_context, snapboard_default_context,
   timedelta_now_context]
 
 
+def _xmpppaginate(request, objects, x_page=None, x_ipp=None):
+    """ Process pagination parameters usual in XMPP commands. """
+    ## Pagination in http is usually done by templatetags; if not -
+    ##  might be better to  make a wrapper for this function.
+    # if not request.is_xmpp(): # - actually, whatever. Might even use
+    ##  the same parameter names in the urls.py
+    if not x_page and not x_ipp:  # nothing was provided
+        return objects
+    if not x_page:  # actually, impossible with normal cmd regexes.
+        x_page = 1  # can't do that with default arguments ofc.
+    if not x_ipp:
+        x_ipp = 20
+    x_start = (x_page-1)*x_ipp
+    return objects[x_start:x_start+x_ipp]  ## XXX: untested.
+
+
 def _get_that_post(request, post_form_id=None):
     """ Helper function for allowing post-related commands unto unspecified
     "last notified" post.  Raises Http404 if cannot.
@@ -163,9 +179,13 @@ def rpc_dispatch(request):
     except KeyError:
         return HttpResponseServerError("RPC: missing oid.")
 
-    # Note: django's exception handling is used.
+    # Note: django's exception handling is used... but not always.
     # Dict is expected for rpc=True call of the view.
-    response = rpc_func(request, oid, rpc=True)
+    try:
+        response = rpc_func(request, oid, rpc=True)
+    except PermissionError, e:
+        return HttpResponseForbidden(str(e))
+
     response_dict.update(response)
     return HttpResponse(simplejson.dumps(response_dict),
       mimetype='application/javascript')
@@ -467,7 +487,7 @@ def thread_post(request, post_form_id=None, post=None,
         qs = qs.filter(path__gte=pinterval[0], path__lt=pinterval[1])
 
     # finally, retreive and annotate the result.
-    if subtopic:
+    if subtopic or True:
         listdepth = top_post.depth
         qsl = list(qs)  # grab the data.
         res = [top_post] + qsl  # resulting page tree.
@@ -639,6 +659,7 @@ def post_reply(request, post_form_id=None, rpc=False):
           "parent_post": parent_post}
         if rpc:  # get form, not page.
             context['rpc'] = True
+            #raise PermissionError('Nevermind, just testing :)')
             return {
               "html": render_to_string('snapboard/include/addpost.html',
                 context, context_instance=RequestContext(request,
@@ -656,6 +677,8 @@ def post_reply(request, post_form_id=None, rpc=False):
 @login_required
 def edit_post(request, post_form_id=None, rpc=False):
     """ Edit an existing post.  """
+    ## XXX: if no post_id specified - return post.text
+    
     # with rpc=true returns dict with full form HTML.
     orig_post = _get_that_post(request, post_form_id)
 
@@ -682,13 +705,13 @@ def edit_post(request, post_form_id=None, rpc=False):
             orig_post = postform.save(commit=False)
             orig_post.previous = post_rev
             orig_post.save()
-        # else:  # ! XXX: errors? What errors?
+        # else:  # ! XXX: errors? What errors? (length limit, though)
 
         div_id_num = orig_post.id
 
         return r_getreturn(request, rpc=False,
           nextr=_redirect_to_posts(request, orig_post),
-          successtext="Message updated.", postid=orig_post.id_form_m())
+          successtext="Message updated.", postid_m=orig_post.id_form_m())
     else:  # get a form for editing.
         context = {'post': orig_post, 'rpc': True}
         if rpc:
@@ -816,7 +839,9 @@ def _thread_annotate_posts(thread_list):
     """ Requests threads' first and last posts and puts them under the same
     names.  Mutates thread_list.  """
     ## Not so very optimal...
-    ## TODO: Try doing this with custom JOINs.
+    ## TODO: Try doing this with custom JOINs (on queries in the Thread
+    ##  query set). Problematic to construct complete objects from
+    ##  results, though.
     last_posts = [t.last_post for t in thread_list]
     first_posts = [t.first_post for t in thread_list]
     posts = Post.objects.filter(pk__in=(last_posts+first_posts)
@@ -843,7 +868,7 @@ def category_thread_index(request, cat_id):
 
 
 @anonymous_login_required
-def thread_index(request, num_limit=None, num_start=None,
+def thread_index(request, x_page=None, x_ipp=None,
   template_name='snapboard/thread_index'):
     if request.user.is_authenticated():
         # filter on user prefs
@@ -853,16 +878,12 @@ def thread_index(request, num_limit=None, num_start=None,
     thread_list = [t for t in thread_list
       if t.category.can_view(request.user)]
     # Extra annotations.
+    # Should be okay to do always.
+    thread_list = _xmpppaginate(request, thread_list, x_page, x_ipp)
+
     # FIXME: It should be done *after* pagination when pagination is done.
     thread_list = _thread_annotate_posts(thread_list)
-    # ? XXX: Should this limiting be somehow common sith few more views? 
-    # But before that, need to decide on XMPP lists limiting in the first
-    # place.
-    # ? int() failure would mean programming error... or not?
-    if request.is_xmpp() or num_limit or num_start:
-        num_limit = int(num_limit or 30)
-        num_start = int(num_start or 1) - 1  # Starting from humanized '1'.
-        thread_list = thread_list[num_start:num_start + num_limit]
+
     render_dict = {'title': _("Recent Discussions"), 'threads': thread_list}
     return render_to_response(template_name,
       render_dict,
@@ -886,7 +907,7 @@ def merged_index(request):
       template_name='snapboard/include/category_index')
     cathtml = getattr(catresp, 'content', '')
     thrresp = thread_index(request,
-      num_limit=5,
+      x_ipp=5,
       template_name='snapboard/include/thread_index')
     thrhtml = getattr(thrresp, 'content', '')
     return render_to_response('snapboard/merged_index',
