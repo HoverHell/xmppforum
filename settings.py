@@ -207,6 +207,8 @@ TEMPLATE_DIRS = (
     # Always use forward slashes, even on Windows.
     # Don't forget to use absolute paths, not relative paths.
     #"/opt/jfu/sys/lib/python2.5/site-packages/sbextras/registration/templates",
+    ## Necessary for overriding templates like pagination:
+    os.path.join(os.path.dirname(__file__), 'snapboard/templates')
 )
 
 INSTALLED_APPS = (
