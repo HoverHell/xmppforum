@@ -1,32 +1,67 @@
-<p><strong>Help structure</strong><br/>
-<i><strong>command syntax</strong> (short version of ) — explanation</i><br/>
-You can use '!' instead of '#'.</p>
+{#ptfable#}
+{% load plaintexttags %}
+<strong>Help structure</strong>
 
-<p><strong>Reading xmpp-forum</strong><br/>
-<strong>#</strong> — show last 20 threads <br/>
-<strong># &lt;N&gt; &lt;M&gt;</strong> — show N threads starting with M <br/>
-<strong>#123</strong> — show thread 123 <br/>
-<strong>#123l</strong> — show latest posts in thread 123 <br/>
-<strong>#123l 100</strong> — show 100 latest posts in thread 123 <br/>
-<strong>#c3</strong> — show threads in category 3 <br/>
-<strong>r #3/456 specresource</strong> — send notifications about specific watch (subscription) from specified XMPP resource of the bot. <br/>
-<strong>r</strong> — same as previous, omit post id to use last notified; omit resource to use automatically constructed one.<br/>
-<strong>w #5/432</strong> — watch post #5432 (and its whole tree of replies).  Resource can be specified as well.</p>
+<i><strong>command syntax</strong> (short version of ) — explanation</i>
 
-<p><strong>Writing to xmpp-forum</strong><br/>
-<strong>#c2 Subj</strong> — create new thread in category 2 with subject "Subj" and remaining message as content (newline required!) <br/>
-<strong>#5/432 text</strong> — reply to post #5/432. <br/>
-<strong># text</strong> — reply to the last post. <br/>
-<strong>#e 5/432 text</strong> — replace (edit) text of the post #5/432. <br/>
-<strong>#e 5/432</strong> — show the raw text of the post #5/432 (for editing). </p>
+You can use '!' instead of '#'.
 
 
-<p><strong>Misc.</strong><br/>
-<strong>WHOAMI</strong> (who) — find out your username <br/>
-<strong>LOGIN</strong> (log) - get a one-time url for loging in into web. <br/>
-<strong>PASSWORD passw</strong> - set your password for logging ing through web.  Can be set to empty to disable logging in with password. <br/>
-<strong>HELP subject</strong> (h) — help on subject</p>
+<strong>Reading xmpp-forum</strong>
 
-<p><em>Available subjects for HELP command:</em><br/>
-<strong>register</strong> - registration command and notes.<br/>
-<strong>admin</strong> - administrative commands.</p>
+<strong>#</strong> — show last 20 threads
+
+<strong># &lt;N&gt;</strong> — show page N of thread list.
+
+<strong># &lt;M&gt; &lt;N&gt;</strong> — show page N of thread list with 
+  M threads per page.
+
+<strong>#123</strong> — show thread 123
+
+<strong>l#123</strong> — show latest posts in thread 123
+
+<strong>l#123 100</strong> — show 100 latest posts in thread 123
+
+<strong>/cat</strong> — show threads in category 'cat'
+
+<strong>r #3/456 specresource</strong> — send notifications about 
+  specific watch (subscription) from specified XMPP resource of the bot.
+
+<strong>r</strong> — same as previous, omit post id to use last 
+  notified; omit resource to use automatically constructed one.
+
+<strong>w #5/432</strong> — watch post #5432 (and its whole tree of 
+  replies). Resource can be specified as well.
+
+
+<strong>Writing to xmpp-forum</strong>
+
+<strong>/rt Subj</strong> — create new thread in category 'rt' with subject 
+  "Subj" and remaining message as content (newline required!)
+
+<strong>#5/432 text</strong> — reply to post #5/432.
+
+<strong># text</strong> — reply to the last seen post.
+
+<strong>e #5/432 text</strong> — replace (edit) text of the post #5/432.
+
+<strong>e #5/432</strong> — show the raw text of the post #5/432 (for editing).
+
+
+<strong>Misc.</strong>
+
+<strong>WHOAMI</strong> (who) — show your username.
+
+<strong>LOGIN</strong> (log) - get a one-time url for web-login.
+
+<strong>PASSWORD passw</strong> - set your password for logging in over web. 
+  Can be set to empty to disable logging in with password.
+
+<strong>HELP subject</strong> (h) — help on subject.
+
+
+<em>Available subjects for HELP command:</em>
+
+<strong>register</strong> - registration command and notes.
+
+<strong>admin</strong> - administrative commands.
