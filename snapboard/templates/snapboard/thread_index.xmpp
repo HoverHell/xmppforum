@@ -3,19 +3,20 @@
 {% load extras %}
 {% if threads %}
     {% for thread in threads %}
-        <strong>#{{ thread.id }}</strong>
-        {%ws%}<a href="{% url snapboard_post thread.id_form_m %}">
+        <strong>#{{ thread.id_form_m }}</strong>
+        {%ws%}<a href="{{ SITE_DOMAIN }}
+          {% url snapboard_post thread.id_form_m %}">
           {{ thread.subject }}</a>
         {% block thread_category_optional %}
            {%ws%}in <strong>/{{ thread.category.name }}</strong>
-           {%ws%}<a href="
+           {%ws%}<a href="{{ SITE_DOMAIN }}
              {% url snapboard_category_thread_index thread.category.name %}">
              {{ thread.category }}</a>
         {% endblock %}
 
-        {{ thread.post_count }} {% trans "posts"%},
+        {%ws%}{{ thread.post_count }} {% trans "posts"%},
         {%ws%}{% trans "started by" %} <strong>{{ thread.starter }}</strong>
-        {%ws%}{% trans "last updated" %} {{ thread.date|date:"r T" }}
+        {%ws%}{% trans "last updated" %} {% deftime thread.date %}
         {% ifnotequal thread.last_poster thread.starter %}
             {%ws%}{% trans "by" %} <strong>{{ thread.last_poster }}</strong>
         {% endifnotequal %}
