@@ -4,6 +4,7 @@
 {% if cat_list %}
   {% for category in cat_list %}
     <strong>/{{ category.name }}</strong>
+    <html2text>
     <a href="{% url snapboard_category_thread_index category.name %}">
       {{ category.label }}</a></b>
 
@@ -11,7 +12,12 @@
       {% trans "moderators" %}:  {{ category.moderators }}
     {% endif %}
 
-    {% blocktrans count category.thread_count as cnt %}{{ cnt }} discussion{% plural %}{{ cnt }} discussions{% endblocktrans %}
+    {% blocktrans count category.thread_count as cnt %}
+      {{ cnt }} discussion
+      {% plural %}
+      {{ cnt }} discussions
+    {% endblocktrans %}
+    </html2text>
   {% endfor %}
 {% else %}
   {% trans "No categories are available." %}
