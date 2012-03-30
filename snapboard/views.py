@@ -211,16 +211,20 @@ def r_watch_post(request, post_form_id=None, resource='', rpc=False):
         wl = WatchList.objects.get(user=request.user, post=post)
         # it exists, stop watching it
         wl.delete()
-        return r_getreturn(request, rpc, {'link':_('watch'),
-          'msg':_('This thread has been removed from your favorites.')},
+        return r_getreturn(request, rpc,
+          {'link':_('watch'),
+           'msg':_('This thread has been removed from your favorites.'),
+           'postid': post.id_form_m()},
           "Watch removed.", postid_m=post.id_form_m())
     except WatchList.DoesNotExist:
         # create it
         wl = WatchList(user=request.user, post=post,
           xmppresource=(resource or ''))
         wl.save()
-        return r_getreturn(request, rpc, {'link':_('dont watch'),
-          'msg':_('This thread has been added to your favorites.')},
+        return r_getreturn(request, rpc,
+          {'link':_('dont watch'),
+           'msg':_('This thread has been added to your favorites.'),
+           'postid': post.id_form_m()},
           "Watch added.", postid_m=post.id_form_m())
 
 
@@ -237,9 +241,10 @@ def r_abusereport(request, post_form_id=None, rpc=False):
       submitter = request.user,
       post = post,
       )
-    return r_getreturn(request, rpc, {
-       'link': '',
-       'msg': _('The moderators have been notified of possible abuse')},
+    return r_getreturn(request, rpc,
+      {'link': '',
+       'msg': _('The moderators have been notified of possible abuse'),
+       'postid': post.id_form_m()},
       "Abuse report filed.", postid_m=post.id_form_m())
 
 
@@ -296,6 +301,8 @@ def rpc_gettoggler(objclass, field, wrap_with=staff_required,
         rpcdata = _get_for_state(state, rpcreturn, default={})
         xmppdata = _get_for_state(state, xmppreturn)
         postid_m = obj.id_form_m() if objclass == Post else None
+        if postid_m:
+            rpcdata['postid'] = postid_m
         return r_getreturn(request, rpc, rpcdata=rpcdata,
           successtext=xmppdata, postid_m=postid_m)
     return wrap_with(_toggle_that)  # staff required by default.
@@ -487,16 +494,16 @@ def thread_post(request, post_form_id=None, post=None,
         qs = qs.filter(path__gte=pinterval[0], path__lt=pinterval[1])
 
     # finally, retreive and annotate the result.
-    if subtopic or True:
+    if subtopic or True:  ## XXX.
         listdepth = top_post.depth
         qsl = list(qs)  # grab the data.
         res = [top_post] + qsl  # resulting page tree.
-        if request.GET.get('nav', None) == '1':
+        if request.GET.get('nav', None) == '1' or True:  ## XXX.
             top_post.nav = True
             top_post.n_down = top_post.get_next_sibling()
             top_post.n_up = top_post.get_prev_sibling()
             ancestors = top_post.get_ancestors(
-              ).filter(depth__gte=2  # avoid the main post in there
+              #).filter(depth__gte=2  # avoid the main post in there - or not
               ).annotate(abuse=Count('sb_abusereport_set')
               ).reverse()
             top_post.n_left = ancestors[0] if ancestors.exists() else None
@@ -504,7 +511,7 @@ def thread_post(request, post_form_id=None, post=None,
             # / if depth = 2:
             #  top_post.n_left = "thr".
             top_post.n_right = qsl[0] if qsl else None
-            ma = request.GET.get('ma', None)  # max. ancestors.
+            ma = request.GET.get('ma', '1')  # max. ancestors.
             if ma is not None and ma.isdigit():
                 ma = int(ma)
                 res = list(ancestors[:ma])[::-1] + res
