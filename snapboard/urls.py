@@ -39,7 +39,7 @@ urlpatterns = patterns('',
     ## Main indexes.
     ## Currently, post and thread are not distinguished.  `Post` part of the
     ## post_id is optional.
-    (r'^p/' + post_id_re_f + r'/$',
+    (r'^[tp]/' + post_id_re_f + r'/$',
       thread_post, {}, 'snapboard_post'),
     # TODO: thread_latest (+rss?)
     (r'^ti/$', thread_index, {}, 'snapboard_thread_index'),
