@@ -169,7 +169,7 @@ def rpc_dispatch(request):
         action = request.POST['action'].lower()
         rpc_func = RPC_ACTION_MAP[action]
     except KeyError:
-        return HttpResponseServerError("RPC: Unknown RPC function")
+        return Http404("RPC: Unknown RPC function")
 
     try:
         ## int() is unnecessary: ORM can accept pk="123" anyway.
