@@ -10,22 +10,19 @@
 {% autopaginate posts user_settings.ppp %}{% paginate %}
 <div class="w">
 {% for post in posts %}
-<div id="snap_post{{post.id}}" class="l">
+<div id="snap_post{{post.id_form_m}}" class="l">
 {% if post.censor %}
 <div class="post_censored">
 {% else %}{% ifnotequal post.abuse 0 %}
 <div class="post_reported">
 {% endifnotequal %}{% endif %}
-  <div id="post_rpc_feedback{{ post.id_form_m }}" class="rpc_message">
-    {# for RPC feedback messages for individual posts #}
-  </div>
   <div class="h"><div><div>
     <div class="hm">
       <span class="tn">
         <span class="popup">
           <a id="watch{{ post.id_form_mx }}" href="
             {% url snapboard_watch_post post.id_form_m %}
-            ?next={{ request.get_full_path|urlencode }}" onclick="set_watch('{{ post.id_form_m }}'); return false;">
+            ?next={{ request.get_full_path|urlencode }}" onclick="s_w('{{ post.id_form_m }}'); return false;">
             {% trans "don't watch" %}
           </a>
         </span> <a href="
@@ -36,7 +33,7 @@
         #} <a href="{% url snapboard_post post.id_form_m %}">
           {{ post.thread.subject }}</a>
       </span>
-      <br/>Posted <span class="ti">
+      <br/>Posted <span class="time">
         {% deftime post.date %}</span> by <a class="un" href="#snap_post{{ post.id_form_m }}" onclick="toggle_post('{{ post.id_form_m }}'); return false;">{{ post.user }}</a>
     </div>
   </div></div></div>
@@ -55,5 +52,9 @@
 </div>
 {% endfor %}
 </div>
+</div>
+
+<div id="replies">
+  <div id="warnings"></div>
 </div>
 {% endblock %}

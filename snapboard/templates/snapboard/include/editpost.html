@@ -9,7 +9,7 @@
       <td><textarea class="ar" name="text">{{ post.text }}</textarea></td>
     </tr>
     <tr>
-      <th><input class="b" type="submit" value="{% trans "Update" %}" />{% if rpc %}<input class="b" type="button" value="{% trans "Cancel" %}" onclick="<!-- Needs new function -->"/>{% endif %}</th>
+      <th><input class="b" type="submit" value="{% trans "Update" %}" />{% if rpc %}<input class="b" type="button" value="{% trans "Cancel" %}" onclick="cleardiv('forms')"/>{% endif %}</th>
     </tr>
   </table>
 </form>

@@ -15,11 +15,50 @@
 
 {% block snapboard_main %}
 <div id="trf" class="rm"></div>
-  {% if user.is_staff %}
+{% if user.is_staff %}
   <span class="tm">
     <a id="csticky{{ thr.id }}" href="" onclick="set_csticky('{{ thr.id }}');">{{ thr.csticky|yesno:_("Unset csticky,Set csticky") }}</a>, <a id="gsticky{{ thr.id }}" href="" onclick="set_gsticky('{{ thr.id }}');">{{ thr.gsticky|yesno:_("Unset gsticky,Set gsticky") }}</a>, <a id="close{{ thr.id }}" href="" onclick="set_close('{{ thr.id }}');">{{ thr.closed|yesno:_("Open thread,Close thread") }}</a>
     </span>
-  {% endif %}
-{% include "snapboard/include/show_posts.html" %}
+{% endif %}
+
+<div class="sp">
+{% load cache %}
+{% if subtopic %}
+  <p>{% trans "You are viewing part of the topic" %}</p>
+{% endif %}
+
+{# autopaginate post_list user_settings.ppp #}
+<div class="ba">{% paginate %}
+
+{% if top_post.nav %} {# experimental navigation #}
+<span class="pagination">
+{% if top_post.n_left %}
+  <span class="page">&larr; <a href="{% url snapboard_post top_post.n_left.id_form_m %}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}">Prev. reply</a></span>
+{% else %} {% endif %}
+{% if top_post.n_up %}
+  <span class="page">&uarr; <a href="{% url snapboard_post top_post.n_up.id_form_m %}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}">Prev. topic</a></span>
+{% else %} {% endif %}
+{% if top_post.n_down %}
+  <span class="page"><a href="{% url snapboard_post top_post.n_down.id_form_m %}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}">Next topic</a> &darr;</span>
+{% else %} {% endif %}
+{% if top_post.n_right %}
+  <span class="page"><a href="{% url snapboard_post top_post.n_right.id_form_m %}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}">Next reply</a> &rarr;</span>
+{% else %} {% endif %}
+</span>
+{% endif %}
+</div>
+<div class="w{% if subtopic %} st{% endif %}">
+  {% include "snapboard/include/show_posts.html" %}
+</div>
+{% paginate %}
+
+<div id="replies">
+  <a class="a-tools" onclick="toggle('tools')">{% trans "Tools" %}</a>
+  <div id="tools" class="hidden"><p><b>Global tools</b>: <a href="#" onclick="masscollapse()">Collapse all</a> <br/><b>Mass actions</b>: <a href="#">Unwatch</a>, <a href="#">Report abuse</a></p></div>
+  <div id="warnings"></div>
+  <div id="forms"></div>
+</div>
+</div>
+
 
 {% endblock %}

@@ -21,7 +21,7 @@
     </tr>
     <tr>
       <th><input class="b" type="submit" value="{% trans "Post" %}" /><input class="b" type="button" value="{% trans "Preview" %}" onclick="preview('add_post_div', 'p{{ parent_post.id_form_m }}')" />
-	  {% if rpc %}<input class="b" type="button" value="{% trans "Cancel" %}" onclick="<!-- Needs new function -->"/>{% endif %} <span class="ed-help">{% include "snapboard/include/editorhelper.html" %}</span></th>
+	  {% if rpc %}<input class="b" type="button" value="{% trans "Cancel" %}" onclick="cleardiv('forms')"/>{% endif %} <span class="ed-help">{% include "snapboard/include/editorhelper.html" %}</span></th>
     </tr>
   </table>
 </form>

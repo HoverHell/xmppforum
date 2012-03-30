@@ -18,13 +18,13 @@
      <span class="post_menuright">
          {% if user.is_staff %}
            <span title="{% trans "ADMIN: mark this post for censorship" %}" class="popup">
-           <a id="censor{{ last_post.id_form_m }}" href="#snap_post{{ last_post.id_form_m }}" onclick="set_censor('{{ last_post.id }}');">
+           <a href="#snap_post{{ last_post.id_form_m }}" onclick="s_c('{{ last_post.id_form_m }}');">
            {{ last_post.censor|yesno:_("uncensor,censor") }}</a>
            </span>
          {% endif %}
          {% if user.is_authenticated and not last_post.freespeech %}
            <span title="{% trans "Report this post for violation of forum policies." %}" class="popup">
-           <a id="abuse{{ last_post.id }}" href="#snap_post{{ last_post.id }}" onclick="set_abuse('{{ last_post.id }}');">
+           <a href="#snap_post{{ last_post.id_form_m }}" onclick="s_a('{{ last_post.id_form_m }}');">
            {% trans "Report abuse" %}</a></span>
          {% endif %}
      </span>
@@ -34,7 +34,7 @@
     {% for post in posts %}
         {# render post revision here #}
  <span class="his-header">
-     <span class="ti">{% reltime post.date %}</span>
+     <span class="time">{% reltime post.date %}</span>
      <span class="ps" style="display:none;" id="snap_post_sum{{ post.id_form_m }}">:
          {{ post.text|post_summary:"30"|safe }}
      </span>
@@ -61,5 +61,8 @@
  {% if last_post.censor %}</div>
  {% else %}{% ifnotequal last_post.abuse 0 %}</div>
  {% endifnotequal %}{% endif %}
+</div>
+<div id="replies">
+  <div id="warnings"></div>
 </div>
 {% endblock %}
