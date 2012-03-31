@@ -22,7 +22,7 @@
       {% endifequal %}{% endif %}
       <a href="{% url snapboard_post_reply post.id_form_m %}
         ?next={{ request.get_full_path|urlencode|urlencode }}" 
-        class="reply" onclick="return t_r('{{ post.id_form_m }}');">
+        class="reply">
         {% trans "reply" %}</a> 
       {% if not user.really_anonymous %}
         <a class="watch" target="_blank"

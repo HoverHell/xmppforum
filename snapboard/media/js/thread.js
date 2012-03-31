@@ -1,6 +1,6 @@
-function $(selector) {
-  return bonzo(qwery(selector));
-}
+//function $(selector) {
+//  return bonzo(qwery(selector));
+//}
 
 // AJAX-loaded forms
 function t_e(id) { return load_form('action=geteditform&oid='+id); }
@@ -51,14 +51,18 @@ function preview(form_id, parent) {
 }
 
 function rpc_request(action, errorProcess, successProcess, url) {
-  var request = reqwest({
-    url: url || SNAPBOARD_URLS.rpc_action, 
-    type: 'json', 
-    method: 'post', 
+    var request = $.post(
+        url || SNAPBOARD_URLS.rpc_action,
+        action,
+        function(data, textStatus, jqXHR){ successProcess(data) },
+        'json'
+     ).fail(
+         function(jqXHR, textStatus){ errorProcess(textStatus) }); 
+    return false;
+  var request = $.post(url || SNAPBOARD_URLS.rpc_action, {
+    dataType: 'json', 
     data: action, 
-    error: errorProcess,
-    success: successProcess
-  }); 
+  }).done(successProcess).fail(errorProcess); 
   return false; 
 }
 
@@ -80,7 +84,7 @@ function masscollapse() {
 }
 function toggle(element) { // Universal toggle visibility (not tested yet)
   $('*[id='+element+']').toggleClass('hidden');
-  return false; 
+  return false;
 }
 
 
@@ -115,7 +119,7 @@ function switchid(id) {
 }
 function build() {
   var xp = xpath('.//a[contains(@class,"hide")]');
-  each(xp, function(e){
+  each(xp, function(e) {
     /*
     e.addEventListener('click', function(){
       switchid(this.id.split('_')[0]);
@@ -125,7 +129,15 @@ function build() {
       switchid(this.id.split('_')[0]);
       return false;
     };
-  })
+  });
+  // TODO: test it.
+    $(".reply").each(function(i, e) {
+        p_id = $(e).parents(".h")[0].id;
+        e.onclick = function(){
+            t_r(p_id);
+            return false;
+        };
+    });
 }
 window.onload = function() {
   build();
