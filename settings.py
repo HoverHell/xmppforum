@@ -246,17 +246,40 @@ AUTHENTICATION_BACKENDS = (
         
 # List of callables that know how to import templates from various sources.
 # * At least something in here requires django 1.2 at least.
-_lp = lambda lo, *ar: (lo, ar,)  # loader, arguments
-TEMPLATE_LOADERS = (
-  _lp('django.template.loaders.cached.Loader',  # cache
-    _lp('snapboard.template.ptftemplateloader.Loader',  # ptf
+## Left for syntax style reference:
+#_lp = lambda lo, *ar: (lo, ar,)  # loader, arguments
+#TEMPLATE_LOADERS = (
+#  _lp('django.template.loaders.cached.Loader',  # cache
+#    _lp('snapboard.template.ptftemplateloader.Loader',  # ptf
+#     'django.template.loaders.filesystem.Loader',
+#     'django.template.loaders.app_directories.Loader',
+#     #'django.template.loaders.eggs.load_template_source'
+#    ),  # ptf
+#  ),  # cache
+#)
+
+## A slightly better way for expressing the same:
+_fixit = lambda v: tuple([v[0], tuple([_fixit(i) if isinstance(i, (list, tuple)) else i for i in v[1:]])]);
+TEMPLATE_LOADERS = (_fixit(
+  ['django.template.loaders.cached.Loader',  # cache
+    ['snapboard.template.ptftemplateloader.Loader',  # ptf
      'django.template.loaders.filesystem.Loader',
      'django.template.loaders.app_directories.Loader',
-     #'django.template.loaders.eggs.load_template_source'
-    ),  # ptf
-  ),  # cache
-)
+     #'django.template.loaders.eggs.load_template_source',
+    ]
+  ]  # cache
+),)
 
+## An example with disabled cache, e.g. for development.
+#TEMPLATE_LOADERS = (_fixit(
+#  #['django.template.loaders.cached.Loader',  # cache
+#    ['snapboard.template.ptftemplateloader.Loader',  # ptf
+#     'django.template.loaders.filesystem.Loader',
+#     'django.template.loaders.app_directories.Loader',
+#     #'django.template.loaders.eggs.load_template_source',
+#    ]
+#  #]  # cache
+#),)
 
 TEMPLATE_CONTEXT_PROCESSORS = (
     "django.core.context_processors.auth",
